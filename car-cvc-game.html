@@ -11,24 +11,16 @@
     background: #1a1a2e;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 100vh;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    overflow: hidden;
     user-select: none;
+    padding: 10px 0;
   }
 
   #game-wrapper {
     position: relative;
-    width: 480px;
-    height: 700px;
-  }
-
-  @media (max-width: 500px) {
-    #game-wrapper {
-      transform: scale(calc(100vw / 500));
-      transform-origin: top center;
-    }
+    width: min(480px, 100vw - 20px);
   }
 
   #hud {
@@ -76,6 +68,8 @@
 
   canvas {
     display: block;
+    width: 100%;
+    height: auto;
     border: 3px solid #0f3460;
     border-top: none;
     border-radius: 0 0 16px 16px;
@@ -157,6 +151,12 @@
 
   @media (pointer: coarse) {
     #mobile-controls { display: flex; }
+  }
+
+  @media (max-width: 500px) {
+    #word-display { font-size: 32px; letter-spacing: 8px; }
+    .star { font-size: 24px; }
+    .mobile-btn { width: 60px; height: 60px; font-size: 28px; }
   }
 
   .feedback {
