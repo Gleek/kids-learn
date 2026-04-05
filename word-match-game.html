@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Match!</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none;
+  }
+
+  #game-wrapper {
+    position: relative;
+    width: 420px;
+    text-align: center;
+  }
+
+  #hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: #16213e;
+    border-radius: 16px 16px 0 0;
+    border: 3px solid #0f3460;
+    border-bottom: none;
+  }
+
+  #round-label {
+    font-size: 18px;
+    color: #aaa;
+    font-weight: 600;
+  }
+
+  #stars {
+    display: flex;
+    gap: 6px;
+  }
+
+  .star {
+    font-size: 30px;
+    transition: all 0.3s;
+  }
+
+  .star.earned { filter: drop-shadow(0 0 6px gold); }
+
+  #game-area {
+    background: #16213e;
+    border: 3px solid #0f3460;
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 30px 20px 40px;
+  }
+
+  #word-display {
+    font-size: 64px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 14px;
+    text-shadow: 0 0 20px #e94560, 0 0 40px #e94560;
+    margin-bottom: 36px;
+  }
+
+  #emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 16px;
+    max-width: 340px;
+    margin: 0 auto;
+  }
+
+  .emoji-btn {
+    font-size: 52px;
+    width: 100px;
+    height: 100px;
+    border-radius: 18px;
+    border: 4px solid #0f3460;
+    background: #1a1a2e;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, border-color 0.15s, background 0.15s;
+  }
+
+  .emoji-btn:hover {
+    transform: scale(1.08);
+    border-color: #e94560;
+    background: #222244;
+  }
+
+  .emoji-btn:active {
+    transform: scale(0.95);
+  }
+
+  .emoji-btn.correct {
+    border-color: #4caf50;
+    background: #1b3d1b;
+    animation: pop 0.4s;
+  }
+
+  .emoji-btn.wrong {
+    border-color: #e94560;
+    background: #3d1b1b;
+    animation: shake 0.4s;
+  }
+
+  .emoji-btn.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  .overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(22, 33, 62, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 16px;
+    z-index: 10;
+  }
+
+  .overlay h1 {
+    font-size: 42px;
+    color: #e94560;
+    margin-bottom: 16px;
+  }
+
+  .overlay p {
+    font-size: 22px;
+    color: #eee;
+    margin-bottom: 30px;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .overlay .final-stars {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    font-size: 28px;
+    padding: 14px 48px;
+    border: none;
+    border-radius: 50px;
+    background: #e94560;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.2s;
+  }
+
+  .btn:hover { background: #c73652; transform: scale(1.05); }
+
+  .feedback-float {
+    position: absolute;
+    font-size: 64px;
+    z-index: 5;
+    animation: floatUp 0.8s forwards;
+    pointer-events: none;
+  }
+
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-60px) scale(1.4); }
+  }
+</style>
+</head>
+<body>
+
+<div id="game-wrapper">
+  <div id="hud">
+    <div id="round-label">Round 1 / 5</div>
+    <div id="stars"></div>
+  </div>
+  <div id="game-area">
+    <div id="word-display">CAT</div>
+    <div id="emoji-grid"></div>
+  </div>
+
+  <div class="overlay" id="start-screen">
+    <h1>🔤 Word Match!</h1>
+    <p>Read the word.<br>Tap the matching emoji!</p>
+    <button class="btn" id="start-btn">GO!</button>
+  </div>
+
+  <div class="overlay" id="end-screen" style="display:none;">
+    <h1>Great Job!</h1>
+    <div class="final-stars" id="final-stars"></div>
+    <p id="end-message"></p>
+    <button class="btn" id="restart-btn">Play Again!</button>
+  </div>
+</div>
+
+<script>
+const CVC_WORDS = [
+  { word: "CAT", emoji: "🐱" },
+  { word: "DOG", emoji: "🐶" },
+  { word: "BUS", emoji: "🚌" },
+  { word: "SUN", emoji: "☀️" },
+  { word: "HEN", emoji: "🐔" },
+  { word: "PIG", emoji: "🐷" },
+  { word: "CUP", emoji: "🥤" },
+  { word: "HAT", emoji: "🎩" },
+  { word: "BED", emoji: "🛏️" },
+  { word: "FAN", emoji: "🌀" },
+  { word: "MAP", emoji: "🗺️" },
+  { word: "PEN", emoji: "🖊️" },
+  { word: "VAN", emoji: "🚐" },
+  { word: "JAM", emoji: "🍓" },
+  { word: "BUG", emoji: "🐛" },
+  { word: "BAT", emoji: "🦇" },
+  { word: "COW", emoji: "🐮" },
+  { word: "FOX", emoji: "🦊" },
+  { word: "HOP", emoji: "🐰" },
+  { word: "LOG", emoji: "🪵" },
+  { word: "MOP", emoji: "🧹" },
+  { word: "NET", emoji: "🥅" },
+  { word: "POT", emoji: "🍲" },
+  { word: "RUG", emoji: "🧶" },
+  { word: "WEB", emoji: "🕸️" },
+  { word: "ZIP", emoji: "🤐" },
+  { word: "GEM", emoji: "💎" },
+  { word: "JAR", emoji: "🫙" },
+  { word: "KEY", emoji: "🔑" },
+  { word: "NUT", emoji: "🥜" },
+];
+
+const ROUNDS = 5;
+const GRID_SIZE = 9;
+
+const wordDisplay = document.getElementById("word-display");
+const emojiGrid = document.getElementById("emoji-grid");
+const starsEl = document.getElementById("stars");
+const roundLabel = document.getElementById("round-label");
+const startScreen = document.getElementById("start-screen");
+const endScreen = document.getElementById("end-screen");
+const wrapper = document.getElementById("game-wrapper");
+
+let currentRound = 0;
+let starsEarned = 0;
+let sessionWords = [];
+let locked = false;
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playTone(success) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  gain.gain.value = 0.15;
+  if (success) {
+    osc.frequency.value = 523;
+    osc.type = "sine";
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+  } else {
+    osc.frequency.value = 200;
+    osc.type = "square";
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+  }
+}
+
+function renderStars() {
+  starsEl.innerHTML = "";
+  for (let i = 0; i < ROUNDS; i++) {
+    const span = document.createElement("span");
+    span.className = "star" + (i < starsEarned ? " earned" : "");
+    span.textContent = i < starsEarned ? "⭐" : "☆";
+    span.style.color = i < starsEarned ? "gold" : "#555";
+    starsEl.appendChild(span);
+  }
+}
+
+function pickSessionWords() {
+  const shuffled = [...CVC_WORDS].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, ROUNDS);
+}
+
+function pickDistractors(correctEmoji, count) {
+  const pool = CVC_WORDS.filter(w => w.emoji !== correctEmoji)
+    .map(w => w.emoji)
+    .sort(() => Math.random() - 0.5);
+  return pool.slice(0, count);
+}
+
+function setupRound() {
+  const word = sessionWords[currentRound];
+  wordDisplay.textContent = word.word;
+  roundLabel.textContent = `Round ${currentRound + 1} / ${ROUNDS}`;
+
+  const distractors = pickDistractors(word.emoji, GRID_SIZE - 1);
+  const allEmojis = [word.emoji, ...distractors].sort(() => Math.random() - 0.5);
+
+  emojiGrid.innerHTML = "";
+  locked = false;
+
+  for (const emoji of allEmojis) {
+    const btn = document.createElement("button");
+    btn.className = "emoji-btn";
+    btn.textContent = emoji;
+    btn.addEventListener("click", () => handlePick(btn, emoji, word.emoji));
+    emojiGrid.appendChild(btn);
+  }
+}
+
+function handlePick(btn, picked, correct) {
+  if (locked) return;
+
+  if (picked === correct) {
+    locked = true;
+    btn.classList.add("correct");
+    starsEarned = Math.min(ROUNDS, starsEarned + 1);
+    playTone(true);
+    renderStars();
+    showFeedback("⭐", btn);
+
+    // Disable all buttons
+    document.querySelectorAll(".emoji-btn").forEach(b => b.classList.add("disabled"));
+
+    setTimeout(() => {
+      currentRound++;
+      if (currentRound >= ROUNDS) {
+        endGame();
+      } else {
+        setupRound();
+      }
+    }, 1000);
+  } else {
+    btn.classList.add("wrong");
+    starsEarned = Math.max(0, starsEarned - 1);
+    playTone(false);
+    renderStars();
+    showFeedback("❌", btn);
+
+    // Disable just this wrong button
+    btn.classList.add("disabled");
+  }
+}
+
+function showFeedback(emoji, btn) {
+  const rect = btn.getBoundingClientRect();
+  const wrapRect = wrapper.getBoundingClientRect();
+  const el = document.createElement("div");
+  el.className = "feedback-float";
+  el.textContent = emoji;
+  el.style.left = (rect.left - wrapRect.left + rect.width / 2 - 20) + "px";
+  el.style.top = (rect.top - wrapRect.top - 10) + "px";
+  wrapper.appendChild(el);
+  setTimeout(() => el.remove(), 800);
+}
+
+function endGame() {
+  endScreen.style.display = "flex";
+  const finalStars = document.getElementById("final-stars");
+  finalStars.textContent = "";
+  for (let i = 0; i < ROUNDS; i++) {
+    finalStars.textContent += i < starsEarned ? "⭐" : "☆";
+  }
+  const msg = document.getElementById("end-message");
+  if (starsEarned === ROUNDS) msg.textContent = "Perfect! You got all the stars!";
+  else if (starsEarned >= 3) msg.textContent = "Great job! Keep it up!";
+  else msg.textContent = "Good try! Play again to get more stars!";
+}
+
+function startGame() {
+  startScreen.style.display = "none";
+  endScreen.style.display = "none";
+  starsEarned = 0;
+  currentRound = 0;
+  sessionWords = pickSessionWords();
+  renderStars();
+  setupRound();
+}
+
+document.getElementById("start-btn").addEventListener("click", startGame);
+document.getElementById("restart-btn").addEventListener("click", startGame);
+
+renderStars();
+</script>
+
+</body>
+</html>

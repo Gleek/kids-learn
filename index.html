@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kids Learn — Games</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a2e;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #fff;
+    padding: 40px 20px 60px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  header h1 {
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px #e94560, 0 0 40px #e94560;
+    margin-bottom: 8px;
+  }
+
+  header p {
+    font-size: 20px;
+    color: #aaa;
+  }
+
+  .categories {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .category {
+    margin-bottom: 44px;
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #0f3460;
+  }
+
+  .category-icon {
+    font-size: 32px;
+  }
+
+  .category-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #e94560;
+  }
+
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+  }
+
+  .game-card {
+    background: #16213e;
+    border: 3px solid #0f3460;
+    border-radius: 18px;
+    padding: 24px 20px;
+    text-decoration: none;
+    color: #fff;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .game-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    border-color: #e94560;
+    box-shadow: 0 8px 30px rgba(233, 69, 96, 0.2);
+  }
+
+  .game-card:active {
+    transform: scale(0.98);
+  }
+
+  .game-icon {
+    font-size: 56px;
+    line-height: 1;
+  }
+
+  .game-name {
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  .game-desc {
+    font-size: 14px;
+    color: #aaa;
+    line-height: 1.5;
+  }
+
+  .game-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(233, 69, 96, 0.15);
+    color: #e94560;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 60px;
+    color: #555;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Kids Learn</h1>
+  <p>Fun games for ages 3 - 5</p>
+</header>
+
+<div class="categories">
+
+  <!-- Reading -->
+  <div class="category">
+    <div class="category-header">
+      <span class="category-icon">📖</span>
+      <span class="category-title">Reading</span>
+    </div>
+    <div class="games-grid">
+
+      <a href="car-cvc-game.html" class="game-card">
+        <span class="game-icon">🚗</span>
+        <span class="game-name">Word Drive</span>
+        <span class="game-desc">Drive your car into the emoji that matches the CVC word!</span>
+        <span class="game-tag">CVC Words</span>
+      </a>
+
+      <a href="word-match-game.html" class="game-card">
+        <span class="game-icon">🔤</span>
+        <span class="game-name">Word Match</span>
+        <span class="game-desc">Read the word and tap the matching emoji from a grid.</span>
+        <span class="game-tag">CVC Words</span>
+      </a>
+
+      <a href="build-a-rocket-game.html" class="game-card">
+        <span class="game-icon">🚀</span>
+        <span class="game-name">Build a Rocket</span>
+        <span class="game-desc">Match words to emojis and build a rocket piece by piece!</span>
+        <span class="game-tag">CVC Words</span>
+      </a>
+
+      <a href="sentence-scene-game.html" class="game-card">
+        <span class="game-icon">🖼️</span>
+        <span class="game-name">Pick the Picture</span>
+        <span class="game-desc">Read a sentence and pick the picture that matches it.</span>
+        <span class="game-tag">Sentences</span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Maths -->
+  <div class="category">
+    <div class="category-header">
+      <span class="category-icon">🔢</span>
+      <span class="category-title">Maths</span>
+    </div>
+    <div class="games-grid">
+
+      <a href="fill-the-bus.html" class="game-card">
+        <span class="game-icon">🚌</span>
+        <span class="game-name">Fill the Bus</span>
+        <span class="game-desc">Put the right number of passengers on the bus!</span>
+        <span class="game-tag">Counting</span>
+      </a>
+
+      <a href="apple-tree.html" class="game-card">
+        <span class="game-icon">🍎</span>
+        <span class="game-name">Apple Tree</span>
+        <span class="game-desc">Count the apples in two groups and add them up!</span>
+        <span class="game-tag">Addition</span>
+      </a>
+
+      <a href="dice-roll.html" class="game-card">
+        <span class="game-icon">🎲</span>
+        <span class="game-name">Dice Roll</span>
+        <span class="game-desc">Roll two dice, count the dots, and pick the total!</span>
+        <span class="game-tag">Addition</span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Shapes -->
+  <div class="category">
+    <div class="category-header">
+      <span class="category-icon">🔷</span>
+      <span class="category-title">Shapes</span>
+    </div>
+    <div class="games-grid">
+
+      <a href="build-a-house.html" class="game-card">
+        <span class="game-icon">🔷</span>
+        <span class="game-name">Build with Shapes</span>
+        <span class="game-desc">Fill in the dotted frames to build a house, train, robot, and more!</span>
+        <span class="game-tag">Shapes</span>
+      </a>
+
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Kids Learn &mdash; Built with love for little learners
+</footer>
+
+</body>
+</html>

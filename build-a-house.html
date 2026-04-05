@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Build with Shapes! — Kids Learn</title>
+  <link rel="stylesheet" href="shared/styles.css">
+  <style>
+    :root { --wrapper-width: 540px; }
+
+    .prompt-text {
+      font-size: 44px;
+      font-weight: 900;
+      color: var(--text-color);
+      text-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent);
+      margin-bottom: 8px;
+      letter-spacing: 4px;
+    }
+
+    .prompt-sub {
+      font-size: 18px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .scene-title {
+      font-size: 15px;
+      color: #ffd700;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+
+    /* ── Build Area ── */
+    #build-area {
+      position: relative;
+      width: 320px;
+      height: 270px;
+      margin: 0 auto 20px;
+    }
+
+    /* ── Pre-built decorative parts ── */
+    .prebuilt {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    /* ── Frames ── */
+    .build-frame {
+      position: absolute;
+      transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+    }
+
+    .build-frame:not(.filled):not(.tri-frame):not(.diamond-frame) {
+      border: 3px dashed rgba(255, 255, 255, 0.25);
+    }
+
+    .build-frame.active:not(.tri-frame):not(.diamond-frame) {
+      border-color: #ffd700;
+      animation: framePulse 1s ease-in-out infinite;
+    }
+
+    .build-frame.filled {
+      border: none !important;
+      animation: pieceLand 0.4s ease-out;
+    }
+
+    @keyframes pieceLand {
+      0% { transform: scale(1.15); filter: brightness(1.4); }
+      100% { transform: scale(1); filter: brightness(1); }
+    }
+
+    /* Triangle frames */
+    .build-frame.tri-frame {
+      border: none;
+    }
+    .tri-outline {
+      width: 100%; height: 100%;
+      position: relative;
+    }
+    .tri-outline svg {
+      width: 100%; height: 100%;
+      position: absolute;
+      top: 0; left: 0;
+    }
+    .tri-outline svg polygon {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.25);
+      stroke-width: 3;
+      stroke-dasharray: 8, 6;
+    }
+    .build-frame.tri-frame.active .tri-outline svg polygon {
+      stroke: #ffd700;
+      animation: triStrokePulse 1s ease-in-out infinite;
+    }
+    @keyframes triStrokePulse {
+      0%, 100% { stroke: #ffd700; filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.3)); }
+      50% { stroke: #fff; filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6)); }
+    }
+    .build-frame.tri-frame.filled .tri-outline svg { display: none; }
+
+    /* Diamond frames */
+    .build-frame.diamond-frame { border: none; overflow: visible; }
+    .diamond-outline {
+      width: 100%; height: 100%;
+      transform: rotate(45deg);
+      border: 3px dashed rgba(255, 255, 255, 0.25);
+    }
+    .build-frame.diamond-frame.active .diamond-outline {
+      border-color: #ffd700;
+      animation: framePulse 1s ease-in-out infinite;
+    }
+    .build-frame.diamond-frame.filled .diamond-outline {
+      border: none; animation: none;
+    }
+
+    /* Oval frames */
+    .build-frame.oval-frame { border-radius: 50%; }
+    /* Circle frames */
+    .build-frame.circle-frame { border-radius: 50%; }
+
+    @keyframes framePulse {
+      0%, 100% { border-color: #ffd700; box-shadow: 0 0 8px rgba(255, 215, 0, 0.3); }
+      50% { border-color: #fff; box-shadow: 0 0 16px rgba(255, 215, 0, 0.6); }
+    }
+
+    /* Label inside frame */
+    .frame-label {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.3);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .build-frame.filled .frame-label { display: none; }
+    .build-frame.active .frame-label { color: rgba(255, 215, 0, 0.7); }
+
+    /* ── Shape Choice Grid ── */
+    #shape-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    .shape-btn {
+      width: 130px;
+      height: 110px;
+      border-radius: 18px;
+      border: 4px solid var(--border-color);
+      background: var(--bg-color);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: transform 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .shape-btn:hover { transform: scale(1.06); border-color: var(--accent); background: #222244; }
+    .shape-btn:active { transform: scale(0.95); }
+    .shape-btn.correct { border-color: #4caf50; background: #1b3d1b; animation: pop 0.4s; }
+    .shape-btn.wrong { border-color: var(--accent); background: #3d1b1b; animation: shake 0.4s; }
+    .shape-btn.disabled { pointer-events: none; opacity: 0.5; }
+    .shape-btn .shape-name { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+
+    /* ── CSS Shapes (in buttons) ── */
+    .css-shape { display: inline-block; }
+    .css-shape.square { width: 55px; height: 55px; border-radius: 4px; }
+    .css-shape.rectangle { width: 75px; height: 42px; border-radius: 4px; }
+    .css-shape.circle { width: 55px; height: 55px; border-radius: 50%; }
+    .css-shape.triangle {
+      width: 0; height: 0;
+      border-left: 33px solid transparent; border-right: 33px solid transparent;
+      border-bottom: 55px solid currentColor;
+    }
+    .css-shape.diamond { width: 42px; height: 42px; transform: rotate(45deg); border-radius: 4px; }
+    .css-shape.oval { width: 72px; height: 42px; border-radius: 50%; }
+
+    /* ── Scene Picker ── */
+    #pick-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(22, 33, 62, 0.97);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 16px 20px;
+      border-radius: 16px;
+      z-index: 10;
+      overflow-y: auto;
+    }
+
+    #pick-overlay h2 {
+      font-size: 30px;
+      color: #ffd700;
+      margin-bottom: 16px;
+    }
+
+    .pick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .pick-card {
+      background: var(--bg-color);
+      border: 3px solid var(--border-color);
+      border-radius: 14px;
+      padding: 12px 6px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: transform 0.15s, border-color 0.15s, background 0.15s;
+    }
+
+    .pick-card:hover {
+      transform: scale(1.06);
+      border-color: #ffd700;
+      background: #222244;
+    }
+
+    .pick-card:active { transform: scale(0.95); }
+
+    .pick-card .pick-icon { font-size: 38px; line-height: 1; }
+    .pick-card .pick-name { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+
+    .pick-random {
+      margin-top: 14px;
+      font-size: 20px;
+      padding: 10px 36px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrapper">
+    <div id="hud">
+      <span id="round-label">Round 1 / 5</span>
+      <div id="stars"></div>
+    </div>
+    <div id="game-area">
+      <div id="start-overlay" class="overlay">
+        <h1>Build with Shapes!</h1>
+        <p>Pick the right shape to fill<br>each dotted frame!</p>
+        <button id="start-btn" class="btn">Play</button>
+      </div>
+      <div id="pick-overlay">
+        <h2>What do you want to build?</h2>
+        <div class="pick-grid" id="pick-grid"></div>
+        <button class="btn pick-random" id="pick-random-btn">Surprise Me!</button>
+      </div>
+
+      <div id="end-overlay" class="overlay" style="display:none">
+        <h1 id="end-title"></h1>
+        <div id="final-stars" class="final-stars"></div>
+        <p id="end-message"></p>
+        <button id="restart-btn" class="btn">Play Again</button>
+      </div>
+      <div class="scene-title" id="scene-title"></div>
+      <div class="prompt-text" id="prompt-text">Square</div>
+      <div class="prompt-sub" id="prompt-sub">Find the shape!</div>
+      <div id="build-area"></div>
+      <div id="shape-grid"></div>
+    </div>
+    <div id="reward-overlay"></div>
+    <div id="reward-emoji"></div>
+  </div>
+
+  <script src="shared/game.js"></script>
+  <script>
+  (function () {
+    const TOTAL_ROUNDS = 5;
+
+    const SHAPES = [
+      { name: "Square",    css: "square" },
+      { name: "Triangle",  css: "triangle" },
+      { name: "Circle",    css: "circle" },
+      { name: "Rectangle", css: "rectangle" },
+      { name: "Diamond",   css: "diamond" },
+      { name: "Oval",      css: "oval" },
+    ];
+
+    const SHAPE_COLORS = [
+      "#e94560", "#4a90d9", "#4caf50", "#f5a623",
+      "#a855f7", "#f472b6", "#22d3ee", "#facc15",
+    ];
+
+    // ── Scene Definitions ──
+    // prebuilt: decorative parts always visible (complex shapes kid doesn't name)
+    // frames: 5 dotted frames the kid fills with simple shapes
+    const SCENES = [
+      {
+        name: "House", icon: "\uD83C\uDFE0",
+        prebuilt: [
+          // Grass ground
+          { css: "bottom:0;left:0;width:320px;height:28px;background:linear-gradient(to top,#1b5e20,#4caf50);border-radius:0 0 4px 4px;" },
+          // Chimney
+          { css: "bottom:192px;left:190px;width:24px;height:50px;background:linear-gradient(135deg,#8d6e63,#6d4c41);border-radius:3px 3px 0 0;z-index:0;" },
+          // Chimney smoke
+          { css: "bottom:240px;left:188px;width:30px;height:20px;background:rgba(180,180,180,0.4);border-radius:50%;z-index:0;" },
+          // Left bush
+          { css: "bottom:20px;left:10px;width:40px;height:28px;background:radial-gradient(ellipse,#388e3c,#2e7d32);border-radius:50%;z-index:3;" },
+          // Right bush
+          { css: "bottom:20px;right:15px;width:35px;height:24px;background:radial-gradient(ellipse,#388e3c,#2e7d32);border-radius:50%;z-index:3;" },
+          // Path from door
+          { css: "bottom:0;left:120px;width:50px;height:26px;background:linear-gradient(to top,#9e9e9e,#bdbdbd);border-radius:0 0 25px 25px;z-index:2;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Square", hint: "for the wall", type: "rect",
+            css: "bottom:26px;left:60px;width:180px;height:140px;border-radius:4px;",
+            filledCSS: "background:linear-gradient(180deg,#ffcc80,#ffb74d);border:3px solid #f9a825;border-radius:4px;box-shadow:inset 0 -4px 12px rgba(0,0,0,0.1);" },
+          { id: "f1", shape: "Rectangle", hint: "for the door", type: "rect",
+            css: "bottom:26px;left:120px;width:50px;height:80px;border-radius:4px 4px 0 0;z-index:2;",
+            filledCSS: "background:linear-gradient(180deg,#6d4c41,#5d4037);border:3px solid #4e342e;border-radius:4px 4px 0 0;box-shadow:inset -2px 0 6px rgba(0,0,0,0.2);" },
+          { id: "f2", shape: "Circle", hint: "for the window", type: "circle",
+            css: "bottom:110px;left:80px;width:44px;height:44px;z-index:2;",
+            filledCSS: "background:radial-gradient(circle at 35% 30%,#e1f5fe,#4fc3f7);border:3px solid #e0e0e0;box-shadow:inset 0 0 8px rgba(255,255,255,0.5),0 0 6px rgba(79,195,247,0.3);" },
+          { id: "f3", shape: "Triangle", hint: "for the roof", type: "tri",
+            css: "bottom:160px;left:37px;width:226px;height:82px;",
+            filledColor: "" },
+          { id: "f4", shape: "Diamond", hint: "for the attic window", type: "diamond",
+            css: "bottom:178px;left:140px;width:26px;height:26px;z-index:3;",
+            filledCSS: "background:radial-gradient(circle,#e1f5fe,#81d4fa);" },
+        ]
+      },
+      {
+        name: "Train", icon: "\uD83D\uDE82",
+        prebuilt: [
+          // Ground/track
+          { css: "bottom:0;left:0;width:320px;height:18px;background:linear-gradient(to top,#5d4037,#795548);border-radius:0 0 4px 4px;" },
+          // Rails
+          { css: "bottom:16px;left:0;width:320px;height:6px;background:#9e9e9e;" },
+          { css: "bottom:12px;left:0;width:320px;height:2px;background:#757575;" },
+          // Smoke stack on cabin
+          { css: "bottom:152px;left:230px;width:20px;height:30px;background:linear-gradient(135deg,#555,#333);border-radius:4px 4px 0 0;z-index:2;" },
+          // Smoke puffs
+          { css: "bottom:182px;left:222px;width:36px;height:22px;background:rgba(200,200,200,0.5);border-radius:50%;z-index:1;" },
+          { css: "bottom:196px;left:230px;width:28px;height:18px;background:rgba(200,200,200,0.3);border-radius:50%;z-index:1;" },
+          // Coupler
+          { css: "bottom:40px;left:10px;width:20px;height:10px;background:#666;border-radius:3px;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Rectangle", hint: "for the cargo", type: "rect",
+            css: "bottom:22px;left:30px;width:170px;height:90px;border-radius:6px;",
+            filledCSS: "background:linear-gradient(180deg,#42a5f5,#1e88e5);border:3px solid #1565c0;border-radius:6px;box-shadow:inset 0 -4px 10px rgba(0,0,0,0.15),0 4px 12px rgba(0,0,0,0.3);" },
+          { id: "f1", shape: "Square", hint: "for the cabin", type: "rect",
+            css: "bottom:22px;left:200px;width:100px;height:110px;border-radius:6px;",
+            filledCSS: "background:linear-gradient(180deg,#ef5350,#e53935);border:3px solid #c62828;border-radius:6px;box-shadow:inset 0 -4px 10px rgba(0,0,0,0.15),0 4px 12px rgba(0,0,0,0.3);" },
+          { id: "f2", shape: "Circle", hint: "for the front wheel", type: "circle",
+            css: "bottom:6px;left:240px;width:40px;height:40px;z-index:2;",
+            filledCSS: "background:radial-gradient(circle at 35% 35%,#616161,#212121);border:4px solid #424242;box-shadow:0 2px 6px rgba(0,0,0,0.4);" },
+          { id: "f3", shape: "Circle", hint: "for the back wheel", type: "circle",
+            css: "bottom:6px;left:70px;width:40px;height:40px;z-index:2;",
+            filledCSS: "background:radial-gradient(circle at 35% 35%,#616161,#212121);border:4px solid #424242;box-shadow:0 2px 6px rgba(0,0,0,0.4);" },
+          { id: "f4", shape: "Rectangle", hint: "for the cabin window", type: "rect",
+            css: "bottom:72px;left:218px;width:54px;height:38px;border-radius:4px;z-index:3;",
+            filledCSS: "background:radial-gradient(circle at 35% 30%,#e1f5fe,#4fc3f7);border:3px solid #e0e0e0;border-radius:4px;box-shadow:inset 0 0 6px rgba(255,255,255,0.4);" },
+        ]
+      },
+      {
+        name: "Robot", icon: "\uD83E\uDD16",
+        prebuilt: [
+          // Ground
+          { css: "bottom:0;left:0;width:320px;height:16px;background:linear-gradient(to top,#37474f,#546e7a);border-radius:0 0 4px 4px;" },
+          // Left leg
+          { css: "bottom:14px;left:108px;width:28px;height:50px;background:linear-gradient(135deg,#78909c,#607d8b);border-radius:0 0 6px 6px;z-index:1;" },
+          // Right leg
+          { css: "bottom:14px;left:180px;width:28px;height:50px;background:linear-gradient(135deg,#78909c,#607d8b);border-radius:0 0 6px 6px;z-index:1;" },
+          // Left foot
+          { css: "bottom:8px;left:100px;width:42px;height:14px;background:#546e7a;border-radius:4px;z-index:1;" },
+          // Right foot
+          { css: "bottom:8px;left:174px;width:42px;height:14px;background:#546e7a;border-radius:4px;z-index:1;" },
+          // Antenna wire
+          { css: "bottom:230px;left:155px;width:4px;height:24px;background:#90a4ae;z-index:2;" },
+          // Antenna ball
+          { css: "bottom:250px;left:148px;width:18px;height:18px;background:radial-gradient(circle,#f44336,#c62828);border-radius:50%;z-index:3;box-shadow:0 0 8px rgba(244,67,54,0.5);" },
+          // Buttons on body
+          { css: "bottom:90px;left:145px;width:10px;height:10px;background:#4caf50;border-radius:50%;z-index:3;box-shadow:0 0 4px #4caf50;" },
+          { css: "bottom:90px;left:162px;width:10px;height:10px;background:#ffd600;border-radius:50%;z-index:3;box-shadow:0 0 4px #ffd600;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Square", hint: "for the body", type: "rect",
+            css: "bottom:58px;left:100px;width:118px;height:110px;border-radius:10px;",
+            filledCSS: "background:linear-gradient(180deg,#b0bec5,#90a4ae);border:3px solid #78909c;border-radius:10px;box-shadow:inset 0 -6px 14px rgba(0,0,0,0.15),0 4px 14px rgba(0,0,0,0.3);" },
+          { id: "f1", shape: "Circle", hint: "for the head", type: "circle",
+            css: "bottom:168px;left:118px;width:80px;height:80px;",
+            filledCSS: "background:radial-gradient(circle at 40% 30%,#cfd8dc,#90a4ae);border:3px solid #78909c;box-shadow:0 4px 12px rgba(0,0,0,0.3);" },
+          { id: "f2", shape: "Rectangle", hint: "for the left arm", type: "rect",
+            css: "bottom:100px;left:42px;width:55px;height:26px;border-radius:13px;z-index:2;",
+            filledCSS: "background:linear-gradient(180deg,#ffb74d,#ffa726);border:3px solid #f57c00;border-radius:13px;box-shadow:0 2px 6px rgba(0,0,0,0.2);" },
+          { id: "f3", shape: "Rectangle", hint: "for the right arm", type: "rect",
+            css: "bottom:100px;left:221px;width:55px;height:26px;border-radius:13px;z-index:2;",
+            filledCSS: "background:linear-gradient(180deg,#ffb74d,#ffa726);border:3px solid #f57c00;border-radius:13px;box-shadow:0 2px 6px rgba(0,0,0,0.2);" },
+          { id: "f4", shape: "Oval", hint: "for the mouth", type: "oval",
+            css: "bottom:186px;left:138px;width:40px;height:18px;z-index:3;",
+            filledCSS: "background:linear-gradient(180deg,#424242,#212121);box-shadow:inset 0 2px 4px rgba(255,255,255,0.1);" },
+        ]
+      },
+      {
+        name: "Snowman", icon: "\u26C4",
+        prebuilt: [
+          // Snow ground
+          { css: "bottom:0;left:0;width:320px;height:24px;background:linear-gradient(to top,#e0e0e0,#f5f5f5);border-radius:0 0 4px 4px;" },
+          // Left stick arm
+          { css: "bottom:120px;left:60px;width:60px;height:5px;background:#6d4c41;transform:rotate(-15deg);z-index:2;" },
+          // Right stick arm
+          { css: "bottom:125px;left:200px;width:60px;height:5px;background:#6d4c41;transform:rotate(15deg);z-index:2;" },
+          // Coal buttons (3)
+          { css: "bottom:110px;left:153px;width:10px;height:10px;background:#333;border-radius:50%;z-index:3;" },
+          { css: "bottom:125px;left:155px;width:9px;height:9px;background:#333;border-radius:50%;z-index:3;" },
+          { css: "bottom:140px;left:154px;width:9px;height:9px;background:#333;border-radius:50%;z-index:3;" },
+          // Eyes
+          { css: "bottom:196px;left:140px;width:10px;height:10px;background:#212121;border-radius:50%;z-index:3;" },
+          { css: "bottom:196px;left:170px;width:10px;height:10px;background:#212121;border-radius:50%;z-index:3;" },
+          // Snow hill left
+          { css: "bottom:12px;left:0;width:80px;height:30px;background:radial-gradient(ellipse at bottom,#f5f5f5,transparent);border-radius:50%;z-index:1;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Circle", hint: "for the bottom", type: "circle",
+            css: "bottom:16px;left:105px;width:110px;height:110px;",
+            filledCSS: "background:radial-gradient(circle at 38% 32%,#ffffff,#e0e0e0);border:3px solid #bdbdbd;box-shadow:0 4px 14px rgba(0,0,0,0.15),inset 0 -8px 16px rgba(0,0,0,0.05);" },
+          { id: "f1", shape: "Circle", hint: "for the middle", type: "circle",
+            css: "bottom:108px;left:120px;width:80px;height:80px;z-index:1;",
+            filledCSS: "background:radial-gradient(circle at 38% 32%,#ffffff,#e0e0e0);border:3px solid #bdbdbd;box-shadow:0 4px 10px rgba(0,0,0,0.12),inset 0 -6px 12px rgba(0,0,0,0.05);" },
+          { id: "f2", shape: "Rectangle", hint: "for the hat", type: "rect",
+            css: "bottom:208px;left:128px;width:62px;height:42px;border-radius:4px;z-index:2;",
+            filledCSS: "background:linear-gradient(180deg,#212121,#424242);border:3px solid #111;border-radius:4px;box-shadow:0 3px 8px rgba(0,0,0,0.3);" },
+          { id: "f3", shape: "Triangle", hint: "for the nose", type: "tri",
+            css: "bottom:183px;left:148px;width:26px;height:22px;z-index:4;",
+            filledColor: "" },
+          { id: "f4", shape: "Oval", hint: "for the scarf", type: "oval",
+            css: "bottom:104px;left:115px;width:90px;height:24px;z-index:2;",
+            filledCSS: "background:linear-gradient(90deg,#e53935,#c62828,#e53935);box-shadow:0 2px 6px rgba(0,0,0,0.2);" },
+        ]
+      },
+      {
+        name: "Boat", icon: "\u26F5",
+        prebuilt: [
+          // Sky gradient
+          { css: "top:0;left:0;width:320px;height:120px;background:linear-gradient(180deg,#1565c0,#42a5f5);border-radius:4px 4px 0 0;z-index:0;" },
+          // Sun
+          { css: "top:15px;right:25px;width:40px;height:40px;background:radial-gradient(circle,#fff9c4,#ffd600);border-radius:50%;box-shadow:0 0 18px rgba(255,214,0,0.5);z-index:1;" },
+          // Cloud
+          { css: "top:20px;left:30px;width:60px;height:24px;background:rgba(255,255,255,0.7);border-radius:20px;z-index:1;" },
+          // Water
+          { css: "bottom:0;left:0;width:320px;height:80px;background:linear-gradient(180deg,#1e88e5,#0d47a1);border-radius:0 0 4px 4px;z-index:0;" },
+          // Wave lines
+          { css: "bottom:55px;left:0;width:320px;height:12px;background:rgba(255,255,255,0.08);border-radius:6px;z-index:1;" },
+          { css: "bottom:30px;left:0;width:320px;height:10px;background:rgba(255,255,255,0.06);border-radius:6px;z-index:1;" },
+          // Flag pole top
+          { css: "bottom:188px;left:158px;width:8px;height:8px;background:#ffd600;border-radius:50%;z-index:4;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Triangle", hint: "for the hull", type: "tri",
+            css: "bottom:50px;left:55px;width:210px;height:70px;z-index:2;",
+            filledColor: "" },
+          { id: "f1", shape: "Square", hint: "for the cabin", type: "rect",
+            css: "bottom:115px;left:110px;width:80px;height:68px;border-radius:6px;z-index:2;",
+            filledCSS: "background:linear-gradient(180deg,#ffcc80,#ffb74d);border:3px solid #f9a825;border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,0.2);" },
+          { id: "f2", shape: "Rectangle", hint: "for the mast", type: "rect",
+            css: "bottom:115px;left:155px;width:10px;height:82px;z-index:3;",
+            filledCSS: "background:linear-gradient(180deg,#8d6e63,#6d4c41);box-shadow:1px 0 3px rgba(0,0,0,0.2);" },
+          { id: "f3", shape: "Circle", hint: "for the porthole", type: "circle",
+            css: "bottom:130px;left:133px;width:32px;height:32px;z-index:3;",
+            filledCSS: "background:radial-gradient(circle at 35% 30%,#e1f5fe,#4fc3f7);border:3px solid #e0e0e0;box-shadow:inset 0 0 6px rgba(255,255,255,0.5);" },
+          { id: "f4", shape: "Triangle", hint: "for the sail", type: "tri",
+            css: "bottom:130px;left:168px;width:70px;height:66px;z-index:2;",
+            filledColor: "" },
+        ]
+      },
+      {
+        name: "Truck", icon: "\uD83D\uDE9B",
+        prebuilt: [
+          // Road
+          { css: "bottom:0;left:0;width:320px;height:24px;background:linear-gradient(to top,#424242,#616161);border-radius:0 0 4px 4px;" },
+          // Road line
+          { css: "bottom:10px;left:40px;width:50px;height:4px;background:#ffd600;border-radius:2px;z-index:1;" },
+          { css: "bottom:10px;left:120px;width:50px;height:4px;background:#ffd600;border-radius:2px;z-index:1;" },
+          { css: "bottom:10px;left:200px;width:50px;height:4px;background:#ffd600;border-radius:2px;z-index:1;" },
+          // Exhaust pipe
+          { css: "bottom:106px;left:182px;width:10px;height:28px;background:linear-gradient(180deg,#616161,#424242);border-radius:3px 3px 0 0;z-index:3;" },
+          // Exhaust smoke
+          { css: "bottom:132px;left:178px;width:20px;height:14px;background:rgba(180,180,180,0.35);border-radius:50%;z-index:2;" },
+          // Bumper
+          { css: "bottom:28px;left:285px;width:20px;height:12px;background:#bdbdbd;border-radius:3px;z-index:2;" },
+          // Front bumper
+          { css: "bottom:28px;left:16px;width:16px;height:12px;background:#bdbdbd;border-radius:3px;z-index:2;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Rectangle", hint: "for the trailer", type: "rect",
+            css: "bottom:44px;left:16px;width:176px;height:100px;border-radius:6px;",
+            filledCSS: "background:linear-gradient(180deg,#42a5f5,#1e88e5);border:3px solid #1565c0;border-radius:6px;box-shadow:inset 0 -6px 14px rgba(0,0,0,0.12),0 4px 14px rgba(0,0,0,0.3);" },
+          { id: "f1", shape: "Square", hint: "for the cabin", type: "rect",
+            css: "bottom:44px;left:196px;width:100px;height:86px;border-radius:8px;",
+            filledCSS: "background:linear-gradient(180deg,#ef5350,#e53935);border:3px solid #c62828;border-radius:8px;box-shadow:inset 0 -4px 10px rgba(0,0,0,0.15),0 4px 12px rgba(0,0,0,0.3);" },
+          { id: "f2", shape: "Circle", hint: "for the front wheel", type: "circle",
+            css: "bottom:12px;left:236px;width:48px;height:48px;z-index:2;",
+            filledCSS: "background:radial-gradient(circle at 38% 35%,#616161,#212121);border:4px solid #424242;box-shadow:0 2px 8px rgba(0,0,0,0.4);" },
+          { id: "f3", shape: "Circle", hint: "for the back wheel", type: "circle",
+            css: "bottom:12px;left:60px;width:48px;height:48px;z-index:2;",
+            filledCSS: "background:radial-gradient(circle at 38% 35%,#616161,#212121);border:4px solid #424242;box-shadow:0 2px 8px rgba(0,0,0,0.4);" },
+          { id: "f4", shape: "Rectangle", hint: "for the windshield", type: "rect",
+            css: "bottom:76px;left:212px;width:58px;height:36px;border-radius:4px;z-index:3;",
+            filledCSS: "background:radial-gradient(circle at 35% 30%,#e1f5fe,#4fc3f7);border:3px solid #e0e0e0;border-radius:4px;box-shadow:inset 0 0 8px rgba(255,255,255,0.4);" },
+        ]
+      },
+      {
+        name: "Dog", icon: "\uD83D\uDC36",
+        prebuilt: [
+          // Ground
+          { css: "bottom:0;left:0;width:320px;height:16px;background:linear-gradient(to top,#2e7d32,#4caf50);border-radius:0 0 4px 4px;" },
+          // Tail (curved)
+          { css: "bottom:120px;left:20px;width:30px;height:40px;border:5px solid #c8a24e;border-right:none;border-radius:20px 0 0 20px;z-index:0;" },
+          // Eye
+          { css: "bottom:142px;left:224px;width:12px;height:14px;background:#212121;border-radius:50%;z-index:4;" },
+          // Nose
+          { css: "bottom:122px;left:252px;width:14px;height:11px;background:#333;border-radius:50%;z-index:4;" },
+          // Ear
+          { css: "bottom:156px;left:206px;width:24px;height:30px;background:linear-gradient(180deg,#a0783c,#8d6a34);border-radius:6px 6px 0 0;z-index:0;" },
+          // Mouth
+          { css: "bottom:114px;left:240px;width:20px;height:3px;background:#6d4c41;z-index:4;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Rectangle", hint: "for the body", type: "rect",
+            css: "bottom:50px;left:60px;width:160px;height:90px;border-radius:8px;",
+            filledCSS: "background:linear-gradient(180deg,#e8b84b,#c8a24e);border:3px solid #a0783c;border-radius:8px;box-shadow:inset 0 -6px 12px rgba(0,0,0,0.1),0 4px 10px rgba(0,0,0,0.2);" },
+          { id: "f1", shape: "Square", hint: "for the head", type: "rect",
+            css: "bottom:100px;left:200px;width:80px;height:80px;border-radius:10px;",
+            filledCSS: "background:linear-gradient(180deg,#e8b84b,#c8a24e);border:3px solid #a0783c;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.2);" },
+          { id: "f2", shape: "Rectangle", hint: "for the front leg", type: "rect",
+            css: "bottom:14px;left:180px;width:28px;height:42px;border-radius:0 0 6px 6px;z-index:2;",
+            filledCSS: "background:linear-gradient(180deg,#c8a24e,#a0783c);border:3px solid #8d6a34;border-radius:0 0 6px 6px;" },
+          { id: "f3", shape: "Rectangle", hint: "for the back leg", type: "rect",
+            css: "bottom:14px;left:80px;width:28px;height:42px;border-radius:0 0 6px 6px;z-index:2;",
+            filledCSS: "background:linear-gradient(180deg,#c8a24e,#a0783c);border:3px solid #8d6a34;border-radius:0 0 6px 6px;" },
+          { id: "f4", shape: "Oval", hint: "for the snout", type: "oval",
+            css: "bottom:108px;left:234px;width:42px;height:28px;z-index:3;",
+            filledCSS: "background:linear-gradient(180deg,#ffe0b2,#ffcc80);border:2px solid #d4a44a;box-shadow:inset 0 -2px 6px rgba(0,0,0,0.1);" },
+        ]
+      },
+      {
+        name: "Fish", icon: "\uD83D\uDC1F",
+        prebuilt: [
+          // Water background
+          { css: "top:0;left:0;width:320px;height:270px;background:linear-gradient(180deg,#0277bd,#01579b);border-radius:4px;z-index:0;" },
+          // Bubbles
+          { css: "top:30px;left:50px;width:14px;height:14px;background:rgba(255,255,255,0.2);border-radius:50%;z-index:1;" },
+          { css: "top:50px;left:40px;width:10px;height:10px;background:rgba(255,255,255,0.15);border-radius:50%;z-index:1;" },
+          { css: "top:20px;right:60px;width:12px;height:12px;background:rgba(255,255,255,0.18);border-radius:50%;z-index:1;" },
+          // Eye
+          { css: "bottom:148px;left:192px;width:16px;height:16px;background:radial-gradient(circle at 40% 40%,#fff,#e0e0e0);border:2px solid #333;border-radius:50%;z-index:4;" },
+          // Pupil
+          { css: "bottom:150px;left:196px;width:8px;height:8px;background:#212121;border-radius:50%;z-index:5;" },
+          // Mouth line
+          { css: "bottom:128px;left:210px;width:18px;height:3px;background:rgba(0,0,0,0.3);z-index:4;" },
+          // Seaweed
+          { css: "bottom:0;left:20px;width:10px;height:50px;background:linear-gradient(to top,#1b5e20,#388e3c);border-radius:5px;z-index:1;" },
+          { css: "bottom:0;right:30px;width:8px;height:40px;background:linear-gradient(to top,#1b5e20,#2e7d32);border-radius:5px;z-index:1;" },
+          // Sandy bottom
+          { css: "bottom:0;left:0;width:320px;height:20px;background:linear-gradient(to top,#c8a24e,rgba(200,162,78,0.3));border-radius:0 0 4px 4px;z-index:1;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Oval", hint: "for the body", type: "oval",
+            css: "bottom:100px;left:80px;width:140px;height:80px;z-index:2;",
+            filledCSS: "background:linear-gradient(180deg,#26c6da,#00acc1);border:3px solid #00838f;box-shadow:inset 0 -6px 14px rgba(0,0,0,0.1),0 4px 12px rgba(0,0,0,0.2);" },
+          { id: "f1", shape: "Triangle", hint: "for the tail", type: "tri",
+            css: "bottom:102px;left:30px;width:70px;height:72px;z-index:1;",
+            filledColor: "" },
+          { id: "f2", shape: "Triangle", hint: "for the top fin", type: "tri",
+            css: "bottom:176px;left:120px;width:50px;height:36px;z-index:3;",
+            filledColor: "" },
+          { id: "f3", shape: "Triangle", hint: "for the bottom fin", type: "tri",
+            css: "bottom:76px;left:130px;width:44px;height:30px;z-index:3;transform:rotate(180deg);",
+            filledColor: "" },
+          { id: "f4", shape: "Circle", hint: "for the face", type: "circle",
+            css: "bottom:112px;left:170px;width:60px;height:60px;z-index:3;",
+            filledCSS: "background:radial-gradient(circle at 40% 35%,#4dd0e1,#00bcd4);border:2px solid #00838f;box-shadow:inset 0 -4px 8px rgba(0,0,0,0.08);" },
+        ]
+      },
+      {
+        name: "Flower", icon: "\uD83C\uDF3B",
+        prebuilt: [
+          // Ground
+          { css: "bottom:0;left:0;width:320px;height:24px;background:linear-gradient(to top,#1b5e20,#4caf50);border-radius:0 0 4px 4px;" },
+          // Stem
+          { css: "bottom:40px;left:154px;width:10px;height:120px;background:linear-gradient(180deg,#388e3c,#2e7d32);border-radius:4px;z-index:1;" },
+          // Left leaf
+          { css: "bottom:70px;left:114px;width:40px;height:22px;background:linear-gradient(135deg,#4caf50,#388e3c);border-radius:50%;transform:rotate(-20deg);z-index:2;" },
+          // Right leaf
+          { css: "bottom:96px;left:164px;width:38px;height:20px;background:linear-gradient(135deg,#4caf50,#388e3c);border-radius:50%;transform:rotate(20deg);z-index:2;" },
+          // Flower center details
+          { css: "bottom:192px;left:147px;width:24px;height:24px;background:radial-gradient(circle,#fdd835,#f9a825);border-radius:50%;z-index:5;box-shadow:0 0 8px rgba(253,216,53,0.4);" },
+        ],
+        frames: [
+          { id: "f0", shape: "Oval", hint: "for a petal", type: "oval",
+            css: "bottom:198px;left:108px;width:46px;height:28px;z-index:3;transform:rotate(-30deg);",
+            filledCSS: "background:linear-gradient(135deg,#ff7043,#f4511e);box-shadow:inset 0 -2px 6px rgba(0,0,0,0.1);" },
+          { id: "f1", shape: "Oval", hint: "for a petal", type: "oval",
+            css: "bottom:198px;left:166px;width:46px;height:28px;z-index:3;transform:rotate(30deg);",
+            filledCSS: "background:linear-gradient(135deg,#ff7043,#f4511e);box-shadow:inset 0 -2px 6px rgba(0,0,0,0.1);" },
+          { id: "f2", shape: "Oval", hint: "for a petal", type: "oval",
+            css: "bottom:214px;left:136px;width:46px;height:28px;z-index:3;",
+            filledCSS: "background:linear-gradient(135deg,#ff7043,#f4511e);box-shadow:inset 0 -2px 6px rgba(0,0,0,0.1);" },
+          { id: "f3", shape: "Oval", hint: "for a petal", type: "oval",
+            css: "bottom:178px;left:136px;width:46px;height:28px;z-index:3;",
+            filledCSS: "background:linear-gradient(135deg,#ff7043,#f4511e);box-shadow:inset 0 -2px 6px rgba(0,0,0,0.1);" },
+          { id: "f4", shape: "Rectangle", hint: "for the pot", type: "rect",
+            css: "bottom:16px;left:118px;width:80px;height:50px;border-radius:4px 4px 8px 8px;z-index:2;",
+            filledCSS: "background:linear-gradient(180deg,#8d6e63,#6d4c41);border:3px solid #5d4037;border-radius:4px 4px 8px 8px;box-shadow:inset 0 -4px 8px rgba(0,0,0,0.15);" },
+        ]
+      },
+      {
+        name: "Tree", icon: "\uD83C\uDF32",
+        prebuilt: [
+          // Ground
+          { css: "bottom:0;left:0;width:320px;height:20px;background:linear-gradient(to top,#1b5e20,#4caf50);border-radius:0 0 4px 4px;" },
+          // Small presents under tree
+          { css: "bottom:18px;left:85px;width:20px;height:16px;background:#e53935;border-radius:3px;z-index:3;" },
+          { css: "bottom:18px;left:210px;width:18px;height:14px;background:#1e88e5;border-radius:3px;z-index:3;" },
+          // Star on top
+          { css: "bottom:248px;left:148px;width:24px;height:24px;background:radial-gradient(circle,#fff9c4,#ffd600);clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);z-index:5;box-shadow:0 0 10px rgba(255,214,0,0.5);" },
+          // Ornament balls
+          { css: "bottom:180px;left:130px;width:12px;height:12px;background:radial-gradient(circle,#ef5350,#c62828);border-radius:50%;z-index:4;" },
+          { css: "bottom:140px;left:184px;width:12px;height:12px;background:radial-gradient(circle,#ffd600,#f9a825);border-radius:50%;z-index:4;" },
+          { css: "bottom:100px;left:116px;width:12px;height:12px;background:radial-gradient(circle,#42a5f5,#1565c0);border-radius:50%;z-index:4;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Rectangle", hint: "for the trunk", type: "rect",
+            css: "bottom:18px;left:138px;width:40px;height:60px;border-radius:4px;z-index:1;",
+            filledCSS: "background:linear-gradient(180deg,#8d6e63,#6d4c41);border:3px solid #5d4037;border-radius:4px;box-shadow:inset -3px 0 6px rgba(0,0,0,0.15);" },
+          { id: "f1", shape: "Triangle", hint: "for the bottom layer", type: "tri",
+            css: "bottom:60px;left:68px;width:184px;height:80px;z-index:2;",
+            filledColor: "" },
+          { id: "f2", shape: "Triangle", hint: "for the middle layer", type: "tri",
+            css: "bottom:115px;left:88px;width:144px;height:70px;z-index:3;",
+            filledColor: "" },
+          { id: "f3", shape: "Triangle", hint: "for the top layer", type: "tri",
+            css: "bottom:165px;left:108px;width:104px;height:60px;z-index:3;",
+            filledColor: "" },
+          { id: "f4", shape: "Circle", hint: "for the big ornament", type: "circle",
+            css: "bottom:92px;left:150px;width:20px;height:20px;z-index:5;",
+            filledCSS: "background:radial-gradient(circle at 35% 35%,#f48fb1,#e91e63);border:2px solid #c2185b;box-shadow:0 0 6px rgba(233,30,99,0.4);" },
+        ]
+      },
+      {
+        name: "Mouse", icon: "\uD83D\uDC2D",
+        prebuilt: [
+          // Whiskers left
+          { css: "bottom:92px;left:60px;width:44px;height:2px;background:#555;transform:rotate(-8deg);z-index:4;" },
+          { css: "bottom:84px;left:64px;width:40px;height:2px;background:#555;transform:rotate(8deg);z-index:4;" },
+          // Whiskers right
+          { css: "bottom:92px;left:208px;width:44px;height:2px;background:#555;transform:rotate(8deg);z-index:4;" },
+          { css: "bottom:84px;left:204px;width:40px;height:2px;background:#555;transform:rotate(-8deg);z-index:4;" },
+          // Eyes
+          { css: "bottom:122px;left:130px;width:16px;height:18px;background:radial-gradient(circle at 40% 35%,#fff,#e0e0e0);border:2px solid #333;border-radius:50%;z-index:5;" },
+          { css: "bottom:124px;left:134px;width:8px;height:8px;background:#212121;border-radius:50%;z-index:6;" },
+          { css: "bottom:122px;left:172px;width:16px;height:18px;background:radial-gradient(circle at 40% 35%,#fff,#e0e0e0);border:2px solid #333;border-radius:50%;z-index:5;" },
+          { css: "bottom:124px;left:176px;width:8px;height:8px;background:#212121;border-radius:50%;z-index:6;" },
+          // Mouth
+          { css: "bottom:78px;left:152px;width:14px;height:8px;border-bottom:2px solid #555;border-radius:0 0 50% 50%;z-index:5;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Triangle", hint: "for the face", type: "tri",
+            css: "bottom:50px;left:100px;width:120px;height:110px;z-index:2;",
+            filledColor: "" },
+          { id: "f1", shape: "Circle", hint: "for the left ear", type: "circle",
+            css: "bottom:130px;left:80px;width:70px;height:70px;z-index:1;",
+            filledCSS: "background:radial-gradient(circle at 40% 35%,#7e57c2,#5e35b1);border:3px solid #4527a0;box-shadow:inset 0 -6px 12px rgba(0,0,0,0.15),0 4px 10px rgba(0,0,0,0.2);" },
+          { id: "f2", shape: "Circle", hint: "for the right ear", type: "circle",
+            css: "bottom:130px;left:170px;width:70px;height:70px;z-index:1;",
+            filledCSS: "background:radial-gradient(circle at 40% 35%,#7e57c2,#5e35b1);border:3px solid #4527a0;box-shadow:inset 0 -6px 12px rgba(0,0,0,0.15),0 4px 10px rgba(0,0,0,0.2);" },
+          { id: "f3", shape: "Circle", hint: "for the nose", type: "circle",
+            css: "bottom:66px;left:146px;width:24px;height:24px;z-index:5;",
+            filledCSS: "background:radial-gradient(circle at 35% 30%,#f48fb1,#e91e63);border:2px solid #c2185b;box-shadow:0 0 4px rgba(233,30,99,0.3);" },
+          { id: "f4", shape: "Oval", hint: "for the inner ear", type: "oval",
+            css: "bottom:144px;left:100px;width:34px;height:40px;z-index:2;",
+            filledCSS: "background:radial-gradient(circle,#ce93d8,#ab47bc);box-shadow:inset 0 -2px 6px rgba(0,0,0,0.1);" },
+        ]
+      },
+      {
+        name: "Car", icon: "\uD83D\uDE97",
+        prebuilt: [
+          // Road
+          { css: "bottom:0;left:0;width:320px;height:22px;background:linear-gradient(to top,#424242,#616161);border-radius:0 0 4px 4px;" },
+          // Road lines
+          { css: "bottom:9px;left:30px;width:40px;height:4px;background:#ffd600;border-radius:2px;z-index:1;" },
+          { css: "bottom:9px;left:140px;width:40px;height:4px;background:#ffd600;border-radius:2px;z-index:1;" },
+          { css: "bottom:9px;left:250px;width:40px;height:4px;background:#ffd600;border-radius:2px;z-index:1;" },
+          // Headlights
+          { css: "bottom:60px;left:268px;width:14px;height:14px;background:radial-gradient(circle,#fff9c4,#ffd600);border-radius:50%;z-index:4;box-shadow:0 0 8px rgba(255,214,0,0.5);" },
+          // Door handle
+          { css: "bottom:72px;left:166px;width:14px;height:5px;background:#bdbdbd;border-radius:3px;z-index:4;" },
+          // Bumper front
+          { css: "bottom:32px;left:270px;width:16px;height:8px;background:#bdbdbd;border-radius:3px;z-index:3;" },
+          // Bumper rear
+          { css: "bottom:32px;left:32px;width:16px;height:8px;background:#bdbdbd;border-radius:3px;z-index:3;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Rectangle", hint: "for the body", type: "rect",
+            css: "bottom:34px;left:40px;width:240px;height:60px;border-radius:8px;z-index:2;",
+            filledCSS: "background:linear-gradient(180deg,#e53935,#c62828);border:3px solid #b71c1c;border-radius:8px;box-shadow:inset 0 -4px 10px rgba(0,0,0,0.15),0 4px 12px rgba(0,0,0,0.3);" },
+          { id: "f1", shape: "Triangle", hint: "for the windshield", type: "tri",
+            css: "bottom:90px;left:148px;width:80px;height:56px;z-index:2;",
+            filledColor: "" },
+          { id: "f2", shape: "Rectangle", hint: "for the roof", type: "rect",
+            css: "bottom:90px;left:80px;width:110px;height:44px;border-radius:4px;z-index:2;",
+            filledCSS: "background:linear-gradient(180deg,#ef5350,#e53935);border:3px solid #c62828;border-radius:4px;box-shadow:0 -2px 6px rgba(0,0,0,0.15);" },
+          { id: "f3", shape: "Circle", hint: "for the front wheel", type: "circle",
+            css: "bottom:14px;left:210px;width:46px;height:46px;z-index:3;",
+            filledCSS: "background:radial-gradient(circle at 38% 35%,#616161,#212121);border:4px solid #424242;box-shadow:0 2px 8px rgba(0,0,0,0.4);" },
+          { id: "f4", shape: "Circle", hint: "for the back wheel", type: "circle",
+            css: "bottom:14px;left:60px;width:46px;height:46px;z-index:3;",
+            filledCSS: "background:radial-gradient(circle at 38% 35%,#616161,#212121);border:4px solid #424242;box-shadow:0 2px 8px rgba(0,0,0,0.4);" },
+        ]
+      },
+      {
+        name: "Butterfly", icon: "\uD83E\uDD8B",
+        prebuilt: [
+          // Sky
+          { css: "top:0;left:0;width:320px;height:270px;background:linear-gradient(180deg,#e1f5fe,#b3e5fc);border-radius:4px;z-index:0;" },
+          // Body (thin vertical)
+          { css: "bottom:80px;left:154px;width:12px;height:100px;background:linear-gradient(180deg,#5d4037,#4e342e);border-radius:6px;z-index:3;" },
+          // Head
+          { css: "bottom:174px;left:148px;width:24px;height:24px;background:radial-gradient(circle at 40% 35%,#6d4c41,#4e342e);border-radius:50%;z-index:4;" },
+          // Antennae
+          { css: "bottom:194px;left:142px;width:3px;height:30px;background:#5d4037;transform:rotate(-20deg);z-index:3;" },
+          { css: "bottom:194px;left:176px;width:3px;height:30px;background:#5d4037;transform:rotate(20deg);z-index:3;" },
+          // Antennae tips
+          { css: "bottom:220px;left:130px;width:10px;height:10px;background:radial-gradient(circle,#ffd600,#f9a825);border-radius:50%;z-index:4;" },
+          { css: "bottom:220px;left:180px;width:10px;height:10px;background:radial-gradient(circle,#ffd600,#f9a825);border-radius:50%;z-index:4;" },
+          // Small dots on wings (decorative)
+          { css: "bottom:144px;left:100px;width:14px;height:14px;background:radial-gradient(circle,#fff9c4,#ffd600);border-radius:50%;z-index:4;" },
+          { css: "bottom:144px;left:208px;width:14px;height:14px;background:radial-gradient(circle,#fff9c4,#ffd600);border-radius:50%;z-index:4;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Oval", hint: "for the top left wing", type: "oval",
+            css: "bottom:146px;left:64px;width:86px;height:60px;z-index:2;transform:rotate(-15deg);",
+            filledCSS: "background:linear-gradient(135deg,#e91e63,#c2185b);box-shadow:inset 0 -4px 10px rgba(0,0,0,0.1),0 4px 10px rgba(0,0,0,0.15);" },
+          { id: "f1", shape: "Oval", hint: "for the top right wing", type: "oval",
+            css: "bottom:146px;left:172px;width:86px;height:60px;z-index:2;transform:rotate(15deg);",
+            filledCSS: "background:linear-gradient(135deg,#1e88e5,#1565c0);box-shadow:inset 0 -4px 10px rgba(0,0,0,0.1),0 4px 10px rgba(0,0,0,0.15);" },
+          { id: "f2", shape: "Oval", hint: "for the bottom left wing", type: "oval",
+            css: "bottom:88px;left:74px;width:74px;height:50px;z-index:2;transform:rotate(10deg);",
+            filledCSS: "background:linear-gradient(135deg,#ff7043,#f4511e);box-shadow:inset 0 -4px 8px rgba(0,0,0,0.1),0 3px 8px rgba(0,0,0,0.15);" },
+          { id: "f3", shape: "Oval", hint: "for the bottom right wing", type: "oval",
+            css: "bottom:88px;left:174px;width:74px;height:50px;z-index:2;transform:rotate(-10deg);",
+            filledCSS: "background:linear-gradient(135deg,#fdd835,#f9a825);box-shadow:inset 0 -4px 8px rgba(0,0,0,0.1),0 3px 8px rgba(0,0,0,0.15);" },
+          { id: "f4", shape: "Circle", hint: "for the eye", type: "circle",
+            css: "bottom:178px;left:152px;width:16px;height:16px;z-index:5;",
+            filledCSS: "background:radial-gradient(circle at 35% 35%,#fff,#e0e0e0);border:2px solid #333;" },
+        ]
+      },
+    ];
+
+    // Triangle fill colors per scene
+    const TRI_FILLS = {
+      "House": { f3: "linear-gradient(180deg,#c62828,#b71c1c)" },
+      "Snowman": { f3: "linear-gradient(180deg,#ff9800,#e65100)" },
+      "Boat": { f0: "linear-gradient(180deg,#6d4c41,#4e342e)", f4: "rgba(255,255,255,0.85)" },
+      "Fish": { f1: "linear-gradient(135deg,#00bcd4,#00838f)", f2: "linear-gradient(135deg,#26c6da,#0097a7)", f3: "linear-gradient(135deg,#26c6da,#0097a7)" },
+      "Tree": { f1: "linear-gradient(180deg,#388e3c,#2e7d32)", f2: "linear-gradient(180deg,#43a047,#388e3c)", f3: "linear-gradient(180deg,#4caf50,#43a047)" },
+      "Mouse": { f0: "linear-gradient(180deg,#7e57c2,#5e35b1)" },
+      "Car": { f1: "linear-gradient(135deg,#b3e5fc,#81d4fa)" },
+    };
+
+    let round, stars, answered, currentScene, frameEls;
+
+    const $ = id => document.getElementById(id);
+    const $roundLabel  = $("round-label");
+    const $stars       = $("stars");
+    const $prompt      = $("prompt-text");
+    const $promptSub   = $("prompt-sub");
+    const $sceneTitle  = $("scene-title");
+    const $shapeGrid   = $("shape-grid");
+    const $buildArea   = $("build-area");
+    const $startOv     = $("start-overlay");
+    const $pickOv      = $("pick-overlay");
+    const $pickGrid    = $("pick-grid");
+    const $endOv       = $("end-overlay");
+    const $endTitle    = $("end-title");
+    const $endMsg      = $("end-message");
+    const $finalStars  = $("final-stars");
+    const $rewardOv    = $("reward-overlay");
+    const $rewardEmoji = $("reward-emoji");
+    const $wrapper     = $("game-wrapper");
+
+    function buildScene(scene) {
+      $buildArea.innerHTML = "";
+      frameEls = {};
+
+      // Render prebuilt decorative parts
+      scene.prebuilt.forEach(p => {
+        const el = document.createElement("div");
+        el.className = "prebuilt";
+        el.setAttribute("style", p.css);
+        $buildArea.appendChild(el);
+      });
+
+      // Render interactive frames
+      scene.frames.forEach(f => {
+        const el = document.createElement("div");
+        el.id = f.id;
+        el.className = "build-frame";
+        el.setAttribute("style", f.css);
+
+        if (f.type === "circle") el.classList.add("circle-frame");
+        if (f.type === "oval") el.classList.add("oval-frame");
+
+        if (f.type === "tri") {
+          el.classList.add("tri-frame");
+          const outline = document.createElement("div");
+          outline.className = "tri-outline";
+          outline.innerHTML = '<svg viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="50,2 2,98 98,98"/></svg>';
+          el.appendChild(outline);
+        }
+
+        if (f.type === "diamond") {
+          el.classList.add("diamond-frame");
+          const outline = document.createElement("div");
+          outline.className = "diamond-outline";
+          el.appendChild(outline);
+        }
+
+        const label = document.createElement("span");
+        label.className = "frame-label";
+        label.textContent = f.shape.toLowerCase();
+        el.appendChild(label);
+
+        $buildArea.appendChild(el);
+        frameEls[f.id] = el;
+      });
+    }
+
+    function activateFrame(frameId) {
+      Object.values(frameEls).forEach(el => el.classList.remove("active"));
+      frameEls[frameId].classList.add("active");
+    }
+
+    function fillFrame(frame) {
+      const el = frameEls[frame.id];
+      el.classList.remove("active");
+      el.classList.add("filled");
+
+      if (frame.type === "tri") {
+        const triFills = TRI_FILLS[currentScene.name] || {};
+        const fill = triFills[frame.id] || "linear-gradient(180deg,#78909c,#607d8b)";
+        const outline = el.querySelector(".tri-outline");
+        outline.style.background = fill;
+        outline.style.clipPath = "polygon(50% 0%, 0% 100%, 100% 100%)";
+      } else if (frame.type === "diamond") {
+        const outline = el.querySelector(".diamond-outline");
+        if (frame.filledCSS) outline.setAttribute("style", "width:100%;height:100%;transform:rotate(45deg);" + frame.filledCSS);
+      } else if (frame.filledCSS) {
+        el.setAttribute("style", frame.css + frame.filledCSS);
+      }
+    }
+
+    function createShapeEl(shapeCss, color) {
+      const el = document.createElement("div");
+      el.className = "css-shape " + shapeCss;
+      if (shapeCss === "triangle") {
+        el.style.borderBottomColor = color;
+      } else {
+        el.style.background = color;
+      }
+      return el;
+    }
+
+    function pickChoices(correctName) {
+      const correct = SHAPES.find(s => s.name === correctName);
+      const wrong = SHAPES.filter(s => s.name !== correctName);
+      const distractors = KidsGame.shuffle(wrong).slice(0, 3);
+      return KidsGame.shuffle([correct, ...distractors]);
+    }
+
+    function renderChoices(correctName) {
+      $shapeGrid.innerHTML = "";
+      const colorPool = KidsGame.shuffle([...SHAPE_COLORS]);
+      const choices = pickChoices(correctName);
+
+      choices.forEach((shape, i) => {
+        const color = colorPool[i % colorPool.length];
+        const btn = document.createElement("button");
+        btn.className = "shape-btn";
+        btn.appendChild(createShapeEl(shape.css, color));
+
+        const label = document.createElement("span");
+        label.className = "shape-name";
+        label.textContent = shape.name;
+        btn.appendChild(label);
+
+        btn.addEventListener("click", () => handleAnswer(btn, shape.name, correctName));
+        $shapeGrid.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(btn, picked, correctName) {
+      if (answered) return;
+      const frame = currentScene.frames[round - 1];
+
+      if (picked === correctName) {
+        answered = true;
+        stars++;
+        btn.classList.add("correct");
+        KidsGame.playTone(true);
+        KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+        KidsGame.showFeedback("\u2B50", btn, $wrapper);
+        document.querySelectorAll(".shape-btn").forEach(b => b.classList.add("disabled"));
+        fillFrame(frame);
+        setTimeout(() => {
+          if (round < TOTAL_ROUNDS) { round++; startRound(); }
+          else endGame();
+        }, 1000);
+      } else {
+        stars = Math.max(0, stars - 1);
+        btn.classList.add("wrong");
+        setTimeout(() => btn.classList.add("disabled"), 400);
+        KidsGame.playTone(false);
+        KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+        KidsGame.showFeedback("\u274C", btn, $wrapper);
+      }
+    }
+
+    function startRound() {
+      answered = false;
+      const frame = currentScene.frames[round - 1];
+      $roundLabel.textContent = "Round " + round + " / " + TOTAL_ROUNDS;
+      $prompt.textContent = frame.shape;
+      $promptSub.textContent = "Find the " + frame.shape.toLowerCase() + " " + frame.hint + "!";
+      KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+      activateFrame(frame.id);
+      renderChoices(frame.shape);
+    }
+
+    function endGame() {
+      Object.values(frameEls).forEach(el => el.classList.remove("active"));
+      const msg = KidsGame.endGameMessage(stars, TOTAL_ROUNDS);
+      $endTitle.textContent = msg.title;
+      $endMsg.textContent = msg.message;
+      KidsGame.renderFinalStars($finalStars, stars, TOTAL_ROUNDS);
+      if (stars === TOTAL_ROUNDS && Math.random() < 0.5) {
+        KidsGame.showReward($rewardEmoji, $rewardOv);
+        setTimeout(() => { $endOv.style.display = "flex"; }, 2800);
+      } else {
+        $endOv.style.display = "flex";
+      }
+    }
+
+    function showPicker() {
+      $startOv.style.display = "none";
+      $endOv.style.display = "none";
+      $pickOv.style.display = "flex";
+
+      $pickGrid.innerHTML = "";
+      SCENES.forEach((scene, i) => {
+        const card = document.createElement("div");
+        card.className = "pick-card";
+        card.innerHTML = '<span class="pick-icon">' + scene.icon + '</span><span class="pick-name">' + scene.name + '</span>';
+        card.addEventListener("click", () => beginGame(i));
+        $pickGrid.appendChild(card);
+      });
+    }
+
+    function beginGame(sceneIndex) {
+      round = 1;
+      stars = 0;
+      answered = false;
+      $pickOv.style.display = "none";
+      $endOv.style.display = "none";
+      currentScene = SCENES[sceneIndex];
+      $sceneTitle.textContent = currentScene.icon + " Building: " + currentScene.name;
+      buildScene(currentScene);
+      startRound();
+    }
+
+    // "Surprise Me!" picks a random scene
+    $("pick-random-btn").addEventListener("click", () => {
+      beginGame(Math.floor(Math.random() * SCENES.length));
+    });
+
+    // Start button -> show picker
+    $("start-btn").addEventListener("click", showPicker);
+    // Restart -> show picker again
+    $("restart-btn").addEventListener("click", showPicker);
+
+    KidsGame.renderStars($stars, 0, TOTAL_ROUNDS);
+  })();
+  </script>
+</body>
+</html>

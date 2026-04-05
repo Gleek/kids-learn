@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apple Tree!</title>
+  <link rel="stylesheet" href="shared/styles.css">
+  <style>
+    :root { --wrapper-width: 500px; }
+
+    /* ── Equation Display ── */
+    #equation {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .apple-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      max-width: 160px;
+      min-height: 60px;
+      align-items: center;
+    }
+
+    .apple-group .apple {
+      font-size: 48px;
+      line-height: 1;
+    }
+
+    .operator {
+      font-size: 52px;
+      font-weight: 900;
+      color: var(--text-color);
+      text-shadow: 0 0 14px var(--accent);
+    }
+
+    .equals-q {
+      font-size: 52px;
+      font-weight: 900;
+      color: #ffd700;
+      text-shadow: 0 0 16px #ffd700;
+    }
+
+    /* ── Answer Choices ── */
+    #choices {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrapper">
+
+    <!-- HUD -->
+    <div id="hud">
+      <span id="round-label">Round 1 / 5</span>
+      <div id="stars"></div>
+    </div>
+
+    <!-- Game Area -->
+    <div id="game-area">
+      <div id="equation"></div>
+      <div id="choices"></div>
+    </div>
+
+    <!-- Start Screen -->
+    <div class="overlay" id="start-screen">
+      <h1>Apple Tree!</h1>
+      <p>Count the apples and pick the right total!</p>
+      <button class="btn" id="start-btn">Play</button>
+    </div>
+
+    <!-- End Screen -->
+    <div class="overlay" id="end-screen" style="display:none;">
+      <h1 id="end-title"></h1>
+      <div class="final-stars" id="final-stars"></div>
+      <p id="end-message"></p>
+      <button class="btn" id="restart-btn">Play Again</button>
+    </div>
+
+    <!-- Reward -->
+    <div id="reward-overlay"></div>
+    <div id="reward-emoji"></div>
+  </div>
+
+  <script src="shared/game.js"></script>
+  <script>
+  (function () {
+    const TOTAL_ROUNDS = 5;
+
+    let round, stars, answer, locked;
+
+    // DOM
+    const wrapper    = document.getElementById("game-wrapper");
+    const roundLabel = document.getElementById("round-label");
+    const starsEl    = document.getElementById("stars");
+    const equationEl = document.getElementById("equation");
+    const choicesEl  = document.getElementById("choices");
+    const startScr   = document.getElementById("start-screen");
+    const endScr     = document.getElementById("end-screen");
+    const endTitle   = document.getElementById("end-title");
+    const endMsg     = document.getElementById("end-message");
+    const finalStars = document.getElementById("final-stars");
+    const rewardEl   = document.getElementById("reward-emoji");
+    const overlayEl  = document.getElementById("reward-overlay");
+
+    function startGame() {
+      round = 0;
+      stars = 0;
+      startScr.style.display = "none";
+      endScr.style.display   = "none";
+      nextRound();
+    }
+
+    function generateProblem() {
+      // Each group 1-4, total never exceeds 6
+      let a, b;
+      do {
+        a = Math.floor(Math.random() * 4) + 1;
+        b = Math.floor(Math.random() * 4) + 1;
+      } while (a + b > 6);
+      return { a: a, b: b, total: a + b };
+    }
+
+    function generateChoices(correct) {
+      const opts = new Set();
+      opts.add(correct);
+      while (opts.size < 4) {
+        // Distractors in a reasonable range (1-8, but not the answer)
+        const d = Math.floor(Math.random() * 8) + 1;
+        if (d !== correct) opts.add(d);
+      }
+      return KidsGame.shuffle([...opts]);
+    }
+
+    function nextRound() {
+      round++;
+      locked = false;
+
+      if (round > TOTAL_ROUNDS) {
+        endGame();
+        return;
+      }
+
+      const problem = generateProblem();
+      answer = problem.total;
+
+      // Update HUD
+      roundLabel.textContent = "Round " + round + " / " + TOTAL_ROUNDS;
+      KidsGame.renderStars(starsEl, stars, TOTAL_ROUNDS);
+
+      // Build equation display
+      equationEl.innerHTML = "";
+
+      // First apple group
+      const groupA = document.createElement("div");
+      groupA.className = "apple-group";
+      for (let i = 0; i < problem.a; i++) {
+        const span = document.createElement("span");
+        span.className = "apple";
+        span.textContent = "\uD83C\uDF4E";
+        groupA.appendChild(span);
+      }
+      equationEl.appendChild(groupA);
+
+      // Plus sign
+      const plus = document.createElement("span");
+      plus.className = "operator";
+      plus.textContent = "+";
+      equationEl.appendChild(plus);
+
+      // Second apple group
+      const groupB = document.createElement("div");
+      groupB.className = "apple-group";
+      for (let i = 0; i < problem.b; i++) {
+        const span = document.createElement("span");
+        span.className = "apple";
+        span.textContent = "\uD83C\uDF4E";
+        groupB.appendChild(span);
+      }
+      equationEl.appendChild(groupB);
+
+      // Equals ?
+      const eq = document.createElement("span");
+      eq.className = "equals-q";
+      eq.textContent = "= ?";
+      equationEl.appendChild(eq);
+
+      // Build choices
+      const choices = generateChoices(answer);
+      choicesEl.innerHTML = "";
+      choices.forEach(function (num) {
+        const btn = document.createElement("button");
+        btn.className = "number-btn";
+        btn.textContent = num;
+        btn.addEventListener("click", function () { handleChoice(btn, num); });
+        choicesEl.appendChild(btn);
+      });
+    }
+
+    function handleChoice(btn, chosen) {
+      if (locked) return;
+
+      if (chosen === answer) {
+        locked = true;
+        stars++;
+        btn.classList.add("correct");
+        KidsGame.playTone(true);
+        KidsGame.renderStars(starsEl, stars, TOTAL_ROUNDS);
+        KidsGame.showFeedback("\uD83C\uDF1F", btn, wrapper);
+        setTimeout(nextRound, 1200);
+      } else {
+        stars = Math.max(0, stars - 1);
+        btn.classList.add("wrong");
+        KidsGame.playTone(false);
+        KidsGame.renderStars(starsEl, stars, TOTAL_ROUNDS);
+        KidsGame.showFeedback("\u274C", btn, wrapper);
+        // Grey out wrong choice so child can retry
+        setTimeout(function () {
+          btn.classList.remove("wrong");
+          btn.classList.add("disabled");
+        }, 400);
+      }
+    }
+
+    function endGame() {
+      const result = KidsGame.endGameMessage(stars, TOTAL_ROUNDS);
+      endTitle.textContent = result.title;
+      endMsg.textContent   = result.message;
+      KidsGame.renderFinalStars(finalStars, stars, TOTAL_ROUNDS);
+      endScr.style.display = "flex";
+
+      // 50% chance reward on perfect score
+      if (stars === TOTAL_ROUNDS && Math.random() < 0.5) {
+        KidsGame.showReward(rewardEl, overlayEl);
+      }
+    }
+
+    KidsGame.wireStartRestart("start-btn", "restart-btn", startGame);
+  })();
+  </script>
+</body>
+</html>

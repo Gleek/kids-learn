@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dice Roll — Kids Learn</title>
+  <link rel="stylesheet" href="shared/styles.css">
+  <style>
+    :root { --wrapper-width: 500px; }
+
+    /* ── Dice Area ── */
+    .dice-area {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 32px;
+      margin-bottom: 28px;
+    }
+
+    .plus-sign {
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--accent);
+      text-shadow: 0 0 12px var(--accent);
+    }
+
+    /* ── Single Die ── */
+    .die {
+      width: 110px;
+      height: 110px;
+      background: #fff;
+      border-radius: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      padding: 14px;
+      gap: 4px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s;
+    }
+
+    .die.rolling {
+      animation: diceRoll 0.6s ease-out;
+    }
+
+    @keyframes diceRoll {
+      0%   { transform: rotateZ(0deg) scale(0.6); opacity: 0.3; }
+      25%  { transform: rotateZ(90deg) scale(0.8); opacity: 0.6; }
+      50%  { transform: rotateZ(180deg) scale(1.1); opacity: 0.8; }
+      75%  { transform: rotateZ(300deg) scale(1.05); opacity: 1; }
+      100% { transform: rotateZ(360deg) scale(1); opacity: 1; }
+    }
+
+    /* ── Dot Cells ── */
+    .die-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #e94560;
+      box-shadow: inset 0 -2px 3px rgba(0,0,0,0.25);
+    }
+
+    /* ── Prompt ── */
+    .prompt-text {
+      font-size: 26px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    /* ── Answer Choices ── */
+    #choices {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrapper">
+
+    <!-- HUD -->
+    <div id="hud">
+      <span id="round-label">Round 1 / 5</span>
+      <div id="stars"></div>
+    </div>
+
+    <!-- Game Area -->
+    <div id="game-area">
+
+      <!-- Start Overlay -->
+      <div id="start-overlay" class="overlay">
+        <h1>Dice Roll</h1>
+        <p>Count the dots on both dice and pick the total!</p>
+        <button id="start-btn" class="btn">Play</button>
+      </div>
+
+      <!-- End Overlay -->
+      <div id="end-overlay" class="overlay" style="display:none">
+        <h1 id="end-title"></h1>
+        <div id="final-stars" class="final-stars"></div>
+        <p id="end-message"></p>
+        <button id="restart-btn" class="btn">Play Again</button>
+      </div>
+
+      <!-- Dice -->
+      <div class="dice-area">
+        <div class="die" id="die1"></div>
+        <div class="plus-sign">+</div>
+        <div class="die" id="die2"></div>
+      </div>
+
+      <!-- Prompt -->
+      <div class="prompt-text">How many dots in total?</div>
+
+      <!-- Answer Choices -->
+      <div id="choices"></div>
+    </div>
+
+    <!-- Reward / Confetti -->
+    <div id="reward-overlay"></div>
+    <div id="reward-emoji"></div>
+  </div>
+
+  <script src="shared/game.js"></script>
+  <script>
+  (function () {
+    const TOTAL_ROUNDS = 5;
+    let round, stars, answered;
+    let die1Val, die2Val, correctAnswer;
+
+    const $roundLabel  = document.getElementById("round-label");
+    const $stars       = document.getElementById("stars");
+    const $die1        = document.getElementById("die1");
+    const $die2        = document.getElementById("die2");
+    const $choices     = document.getElementById("choices");
+    const $startOv     = document.getElementById("start-overlay");
+    const $endOv       = document.getElementById("end-overlay");
+    const $endTitle    = document.getElementById("end-title");
+    const $endMsg      = document.getElementById("end-message");
+    const $finalStars  = document.getElementById("final-stars");
+    const $rewardOv    = document.getElementById("reward-overlay");
+    const $rewardEmoji = document.getElementById("reward-emoji");
+    const $wrapper     = document.getElementById("game-wrapper");
+
+    /* ── Dice Face Rendering ──
+       A 3x3 grid. Positions map to:
+         0  1  2
+         3  4  5
+         6  7  8
+    */
+    const FACE_MAP = {
+      1: [4],
+      2: [2, 6],
+      3: [2, 4, 6],
+      4: [0, 2, 6, 8],
+    };
+
+    function renderDie(el, value) {
+      const positions = FACE_MAP[value] || [];
+      el.innerHTML = "";
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement("div");
+        cell.className = "die-cell";
+        if (positions.includes(i)) {
+          const dot = document.createElement("div");
+          dot.className = "dot";
+          cell.appendChild(dot);
+        }
+        el.appendChild(cell);
+      }
+    }
+
+    function rollDice() {
+      die1Val = Math.floor(Math.random() * 4) + 1;
+      die2Val = Math.floor(Math.random() * 4) + 1;
+      correctAnswer = die1Val + die2Val;
+
+      // Animate
+      $die1.classList.add("rolling");
+      $die2.classList.add("rolling");
+
+      // Render faces after a short delay so the animation is visible
+      setTimeout(() => {
+        renderDie($die1, die1Val);
+        renderDie($die2, die2Val);
+      }, 150);
+
+      setTimeout(() => {
+        $die1.classList.remove("rolling");
+        $die2.classList.remove("rolling");
+      }, 600);
+    }
+
+    function generateChoices() {
+      const choices = new Set();
+      choices.add(correctAnswer);
+      while (choices.size < 4) {
+        // Generate distractors in the plausible range (2-8)
+        let d = Math.floor(Math.random() * 7) + 2; // 2..8
+        choices.add(d);
+      }
+      return KidsGame.shuffle([...choices]);
+    }
+
+    function renderChoices() {
+      $choices.innerHTML = "";
+      const opts = generateChoices();
+      opts.forEach(num => {
+        const btn = document.createElement("button");
+        btn.className = "number-btn";
+        btn.textContent = num;
+        btn.addEventListener("click", () => handleAnswer(btn, num));
+        $choices.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(btn, picked) {
+      if (answered) return;
+
+      if (picked === correctAnswer) {
+        answered = true;
+        stars++;
+        btn.classList.add("correct");
+        KidsGame.playTone(true);
+        KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+        KidsGame.showFeedback("\u2B50", btn, $wrapper);
+
+        // Disable all buttons
+        document.querySelectorAll("#choices .number-btn").forEach(b => b.classList.add("disabled"));
+
+        setTimeout(() => {
+          if (round < TOTAL_ROUNDS) {
+            round++;
+            startRound();
+          } else {
+            endGame();
+          }
+        }, 1000);
+      } else {
+        // Wrong — lose a star, grey out this button, allow retry
+        stars = Math.max(0, stars - 1);
+        btn.classList.add("wrong");
+        setTimeout(() => btn.classList.add("disabled"), 400);
+        KidsGame.playTone(false);
+        KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+        KidsGame.showFeedback("\u274C", btn, $wrapper);
+      }
+    }
+
+    function startRound() {
+      answered = false;
+      $roundLabel.textContent = "Round " + round + " / " + TOTAL_ROUNDS;
+      KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+      rollDice();
+      // Render choices after dice settle
+      setTimeout(renderChoices, 650);
+    }
+
+    function endGame() {
+      const msg = KidsGame.endGameMessage(stars, TOTAL_ROUNDS);
+      $endTitle.textContent = msg.title;
+      $endMsg.textContent = msg.message;
+      KidsGame.renderFinalStars($finalStars, stars, TOTAL_ROUNDS);
+      $endOv.style.display = "flex";
+
+      if (stars === TOTAL_ROUNDS && Math.random() < 0.5) {
+        KidsGame.showReward($rewardEmoji, $rewardOv);
+      }
+    }
+
+    function startGame() {
+      round = 1;
+      stars = 0;
+      answered = false;
+      $startOv.style.display = "none";
+      $endOv.style.display = "none";
+      startRound();
+    }
+
+    KidsGame.wireStartRestart("start-btn", "restart-btn", startGame);
+    KidsGame.renderStars($stars, 0, TOTAL_ROUNDS);
+  })();
+  </script>
+</body>
+</html>

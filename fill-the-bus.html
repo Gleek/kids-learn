@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fill the Bus!</title>
+  <link rel="stylesheet" href="shared/styles.css">
+  <style>
+    :root { --wrapper-width: 500px; }
+
+    /* ── Prompt ── */
+    #prompt {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--text-color);
+      margin-bottom: 20px;
+      text-shadow: 0 0 14px var(--accent);
+    }
+
+    #prompt .target-number {
+      font-size: 52px;
+      color: #ffd700;
+      text-shadow: 0 0 16px #ffd700;
+    }
+
+    /* ── Bus ── */
+    .bus-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .bus {
+      position: relative;
+      width: 400px;
+      height: 200px;
+    }
+
+    /* Bus body */
+    .bus-body {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      width: 100%;
+      height: 140px;
+      background: #f5c542;
+      border-radius: 16px 16px 8px 8px;
+      border: 4px solid #d4a017;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+
+    /* Bus roof */
+    .bus-roof {
+      position: absolute;
+      bottom: 156px;
+      left: 20px;
+      width: 320px;
+      height: 24px;
+      background: #e0b030;
+      border-radius: 12px 12px 0 0;
+      border: 3px solid #d4a017;
+      border-bottom: none;
+    }
+
+    /* Windshield */
+    .bus-windshield {
+      position: absolute;
+      bottom: 56px;
+      right: 8px;
+      width: 44px;
+      height: 80px;
+      background: #a8dff0;
+      border-radius: 6px;
+      border: 3px solid #d4a017;
+    }
+
+    /* Headlight */
+    .bus-headlight {
+      position: absolute;
+      bottom: 46px;
+      right: -2px;
+      width: 14px;
+      height: 14px;
+      background: #fff8aa;
+      border-radius: 50%;
+      border: 2px solid #d4a017;
+      box-shadow: 0 0 8px #fff8aa;
+    }
+
+    /* Bus stripe */
+    .bus-stripe {
+      position: absolute;
+      bottom: 44px;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      background: #d4a017;
+    }
+
+    /* Wheels */
+    .bus-wheel {
+      position: absolute;
+      bottom: 4px;
+      width: 36px;
+      height: 36px;
+      background: #333;
+      border-radius: 50%;
+      border: 4px solid #555;
+    }
+    .bus-wheel::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 12px;
+      height: 12px;
+      background: #888;
+      border-radius: 50%;
+    }
+    .bus-wheel.front { left: 50px; }
+    .bus-wheel.rear  { right: 50px; }
+
+    /* Door */
+    .bus-door {
+      position: absolute;
+      bottom: 24px;
+      left: 12px;
+      width: 30px;
+      height: 56px;
+      background: #a8dff0;
+      border-radius: 4px;
+      border: 3px solid #d4a017;
+    }
+
+    /* ── Window Seats ── */
+    .bus-windows {
+      position: absolute;
+      bottom: 72px;
+      left: 54px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .window-seat {
+      width: 52px;
+      height: 52px;
+      background: #a8dff0;
+      border: 3px solid #d4a017;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.2s;
+    }
+
+    .window-seat:hover {
+      transform: scale(1.1);
+      background: #90cce0;
+    }
+
+    .window-seat:active {
+      transform: scale(0.95);
+    }
+
+    .window-seat.filled {
+      background: #ffe680;
+      animation: pop 0.3s;
+    }
+
+    /* ── GO Button ── */
+    #go-btn {
+      font-size: 32px;
+      padding: 12px 60px;
+      margin-top: 4px;
+    }
+
+    /* ── Counter ── */
+    #passenger-count {
+      font-size: 22px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    /* ── Bus Whoosh ── */
+    .bus.whoosh {
+      animation: busWhoosh 0.8s cubic-bezier(0.4, 0, 1, 1) forwards;
+    }
+
+    @keyframes busWhoosh {
+      0%   { transform: translateX(0) scale(1); opacity: 1; }
+      30%  { transform: translateX(-15px) scale(1.02); opacity: 1; }
+      100% { transform: translateX(600px) scale(0.95); opacity: 0; }
+    }
+
+    .bus.arrive {
+      animation: busArrive 0.5s ease-out forwards;
+    }
+
+    @keyframes busArrive {
+      0%   { transform: translateX(-600px); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrapper">
+
+    <!-- HUD -->
+    <div id="hud">
+      <span id="round-label">Round 1 / 5</span>
+      <div id="stars"></div>
+    </div>
+
+    <!-- Game Area -->
+    <div id="game-area">
+      <div id="prompt"></div>
+
+      <div class="bus-container">
+        <div class="bus">
+          <div class="bus-roof"></div>
+          <div class="bus-body"></div>
+          <div class="bus-stripe"></div>
+          <div class="bus-windshield"></div>
+          <div class="bus-headlight"></div>
+          <div class="bus-door"></div>
+          <div class="bus-windows" id="bus-windows"></div>
+          <div class="bus-wheel front"></div>
+          <div class="bus-wheel rear"></div>
+        </div>
+      </div>
+
+      <div id="passenger-count"></div>
+      <button class="btn" id="go-btn">GO!</button>
+    </div>
+
+    <!-- Start Screen -->
+    <div class="overlay" id="start-screen">
+      <h1>Fill the Bus!</h1>
+      <p>Tap the windows to add passengers.<br>Put the right number on the bus!</p>
+      <button class="btn" id="start-btn">Play</button>
+    </div>
+
+    <!-- End Screen -->
+    <div class="overlay" id="end-screen" style="display:none;">
+      <h1 id="end-title"></h1>
+      <div class="final-stars" id="final-stars"></div>
+      <p id="end-message"></p>
+      <button class="btn" id="restart-btn">Play Again</button>
+    </div>
+
+    <!-- Reward -->
+    <div id="reward-overlay"></div>
+    <div id="reward-emoji"></div>
+  </div>
+
+  <script src="shared/game.js"></script>
+  <script>
+  (function () {
+    const TOTAL_ROUNDS = 5;
+    const TOTAL_SEATS = 5;
+    const PASSENGERS = ["😊", "😃", "🥳", "😎", "🤩", "😁", "🧒", "👧", "👦"];
+
+    let round, stars, target, seats, locked;
+
+    // DOM
+    const wrapper    = document.getElementById("game-wrapper");
+    const roundLabel = document.getElementById("round-label");
+    const starsEl    = document.getElementById("stars");
+    const prompt     = document.getElementById("prompt");
+    const windowsEl  = document.getElementById("bus-windows");
+    const countEl    = document.getElementById("passenger-count");
+    const goBtn      = document.getElementById("go-btn");
+    const startScr   = document.getElementById("start-screen");
+    const endScr     = document.getElementById("end-screen");
+    const endTitle   = document.getElementById("end-title");
+    const endMsg     = document.getElementById("end-message");
+    const finalStars = document.getElementById("final-stars");
+    const rewardEl   = document.getElementById("reward-emoji");
+    const overlayEl  = document.getElementById("reward-overlay");
+
+    function startGame() {
+      round = 0;
+      stars = 0;
+      startScr.style.display = "none";
+      endScr.style.display   = "none";
+      nextRound();
+    }
+
+    function nextRound() {
+      round++;
+      locked = false;
+
+      if (round > TOTAL_ROUNDS) {
+        endGame();
+        return;
+      }
+
+      // Pick target 1-5
+      target = Math.floor(Math.random() * 5) + 1;
+
+      // Reset seats
+      seats = new Array(TOTAL_SEATS).fill(false);
+
+      // Update UI
+      roundLabel.textContent = "Round " + round + " / " + TOTAL_ROUNDS;
+      KidsGame.renderStars(starsEl, stars, TOTAL_ROUNDS);
+      prompt.innerHTML = 'Put <span class="target-number">' + target + '</span> on the bus!';
+      renderBusWindows();
+      updateCount();
+      goBtn.disabled = false;
+
+      // Bus arrives from left
+      busEl.classList.remove("whoosh");
+      void busEl.offsetWidth;
+      busEl.classList.add("arrive");
+      busEl.addEventListener("animationend", function handler() {
+        busEl.classList.remove("arrive");
+        busEl.removeEventListener("animationend", handler);
+      });
+    }
+
+    function renderBusWindows() {
+      windowsEl.innerHTML = "";
+      for (let i = 0; i < TOTAL_SEATS; i++) {
+        const seat = document.createElement("div");
+        seat.className = "window-seat" + (seats[i] ? " filled" : "");
+        seat.textContent = seats[i] || "";
+        seat.dataset.index = i;
+        seat.addEventListener("click", function () { toggleSeat(i); });
+        windowsEl.appendChild(seat);
+      }
+    }
+
+    function toggleSeat(index) {
+      if (locked) return;
+
+      if (seats[index]) {
+        // Remove passenger
+        seats[index] = false;
+      } else {
+        // Add a random passenger emoji
+        seats[index] = KidsGame.pickRandom(PASSENGERS, 1)[0];
+      }
+
+      renderBusWindows();
+      updateCount();
+    }
+
+    function updateCount() {
+      const count = seats.filter(Boolean).length;
+      countEl.textContent = count + " / " + target + " passengers";
+    }
+
+    function playWhooshSound() {
+      const ctx = KidsGame.getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(150, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.5);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.6);
+    }
+
+    const busEl = document.querySelector(".bus");
+
+    function checkAnswer() {
+      if (locked) return;
+      locked = true;
+      goBtn.disabled = true;
+
+      const count = seats.filter(Boolean).length;
+      const correct = count === target;
+
+      if (correct) {
+        stars++;
+        KidsGame.playTone(true);
+        KidsGame.renderStars(starsEl, stars, TOTAL_ROUNDS);
+        KidsGame.showFeedback("🌟", goBtn, wrapper);
+
+        // Whoosh the bus away after a brief pause
+        setTimeout(() => {
+          playWhooshSound();
+          busEl.classList.add("whoosh");
+        }, 600);
+
+        // Next round after whoosh completes
+        setTimeout(nextRound, 1600);
+      } else {
+        stars = Math.max(0, stars - 1);
+        KidsGame.playTone(false);
+        KidsGame.renderStars(starsEl, stars, TOTAL_ROUNDS);
+        KidsGame.showFeedback("❌", goBtn, wrapper);
+        setTimeout(nextRound, 1200);
+      }
+    }
+
+    function endGame() {
+      const result = KidsGame.endGameMessage(stars, TOTAL_ROUNDS);
+      endTitle.textContent = result.title;
+      endMsg.textContent   = result.message;
+      KidsGame.renderFinalStars(finalStars, stars, TOTAL_ROUNDS);
+      endScr.style.display = "flex";
+
+      // 50% chance reward on perfect score
+      if (stars === TOTAL_ROUNDS && Math.random() < 0.5) {
+        KidsGame.showReward(rewardEl, overlayEl);
+      }
+    }
+
+    goBtn.addEventListener("click", checkAnswer);
+    KidsGame.wireStartRestart("start-btn", "restart-btn", startGame);
+  })();
+  </script>
+</body>
+</html>

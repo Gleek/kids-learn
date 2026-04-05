@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pick the Picture!</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none;
+  }
+
+  #game-wrapper {
+    position: relative;
+    width: 600px;
+    text-align: center;
+  }
+
+  #hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: #16213e;
+    border-radius: 16px 16px 0 0;
+    border: 3px solid #0f3460;
+    border-bottom: none;
+  }
+
+  #round-label {
+    font-size: 18px;
+    color: #aaa;
+    font-weight: 600;
+  }
+
+  #stars {
+    display: flex;
+    gap: 6px;
+  }
+
+  .star {
+    font-size: 28px;
+    transition: all 0.3s;
+  }
+  .star.earned { filter: drop-shadow(0 0 6px gold); }
+
+  #game-area {
+    background: #16213e;
+    border: 3px solid #0f3460;
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 30px 24px 36px;
+  }
+
+  #sentence-display {
+    font-size: 36px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.4;
+    text-shadow: 0 0 15px rgba(233, 69, 96, 0.5);
+    margin-bottom: 30px;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+  }
+
+  #choices {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+  }
+
+  .scene-card {
+    width: 250px;
+    height: 250px;
+    border-radius: 20px;
+    border: 5px solid #0f3460;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+    background: #1a1a2e;
+  }
+
+  .scene-card:hover {
+    transform: scale(1.04);
+    border-color: #e94560;
+  }
+
+  .scene-card:active {
+    transform: scale(0.97);
+  }
+
+  .scene-card.correct {
+    border-color: #4caf50;
+    animation: popCard 0.5s;
+  }
+
+  .scene-card.wrong {
+    border-color: #e94560;
+    animation: shakeCard 0.5s;
+  }
+
+  .scene-card.disabled {
+    pointer-events: none;
+  }
+
+  .scene-card.dimmed {
+    opacity: 0.4;
+  }
+
+  @keyframes popCard {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes shakeCard {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
+  /* Emoji-based scene rendering */
+  .scene-canvas {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 80px;
+    position: relative;
+  }
+
+  .scene-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 15px;
+  }
+
+  .scene-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+  }
+
+  .scene-emoji {
+    position: relative;
+    z-index: 1;
+  }
+
+  .scene-emoji.main {
+    font-size: 72px;
+  }
+
+  .scene-emoji.context {
+    font-size: 40px;
+  }
+
+  .scene-label {
+    position: absolute;
+    bottom: 8px;
+    left: 0; right: 0;
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    z-index: 2;
+  }
+
+  .overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(22, 33, 62, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 16px;
+    z-index: 10;
+  }
+
+  .overlay h1 {
+    font-size: 42px;
+    color: #e94560;
+    margin-bottom: 16px;
+  }
+
+  .overlay p {
+    font-size: 22px;
+    color: #eee;
+    margin-bottom: 30px;
+    text-align: center;
+    line-height: 1.5;
+    padding: 0 20px;
+  }
+
+  .overlay .final-stars {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    font-size: 28px;
+    padding: 14px 48px;
+    border: none;
+    border-radius: 50px;
+    background: #e94560;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.2s;
+  }
+
+  .btn:hover { background: #c73652; transform: scale(1.05); }
+
+  .feedback-float {
+    position: absolute;
+    font-size: 64px;
+    z-index: 15;
+    animation: floatUp 0.9s forwards;
+    pointer-events: none;
+  }
+
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-70px) scale(1.5); }
+  }
+
+  /* Sentence word highlight animation */
+  .word {
+    display: inline-block;
+    margin: 0 5px;
+    animation: wordPop 0.4s ease-out both;
+  }
+
+  @keyframes wordPop {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  #reward-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 25;
+    pointer-events: none;
+    display: none;
+  }
+
+  #reward-overlay.active {
+    display: block;
+  }
+
+  .confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+    pointer-events: none;
+  }
+
+  @keyframes confettiFall {
+    0% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(600px) rotate(720deg) scale(0.5); }
+  }
+
+  #reward-emoji {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    font-size: 100px;
+    z-index: 26;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #reward-emoji.active {
+    animation: rewardPop 2.5s ease-out forwards;
+  }
+
+  @keyframes rewardPop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(-20deg); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(5deg); }
+    35% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5) rotate(10deg); }
+  }
+</style>
+</head>
+<body>
+
+<div id="game-wrapper">
+  <div id="hud">
+    <div id="round-label">Round 1 / 5</div>
+    <div id="stars"></div>
+  </div>
+  <div id="game-area">
+    <div id="sentence-display"></div>
+    <div id="choices"></div>
+  </div>
+
+  <div id="reward-overlay"></div>
+  <div id="reward-emoji">🏆</div>
+
+  <div class="overlay" id="start-screen">
+    <h1>🖼️ Pick the Picture!</h1>
+    <p>Read the sentence.<br>Tap the picture that matches!</p>
+    <button class="btn" id="start-btn">GO!</button>
+  </div>
+
+  <div class="overlay" id="end-screen" style="display:none;">
+    <h1 id="end-title">Great Job!</h1>
+    <div class="final-stars" id="final-stars"></div>
+    <p id="end-message"></p>
+    <button class="btn" id="restart-btn">Play Again!</button>
+  </div>
+</div>
+
+<script>
+// ── Sentence Data ──
+// Each entry: sentence, correct scene, wrong scene
+// Scenes use emoji compositions + background colors
+// "img" field reserved for real generated images
+const IMG = "images/sentence/";
+
+const ALL_IMAGES = [
+  IMG + "cat-on-mat.jpg",
+  IMG + "cat-in-tree.jpg",
+  IMG + "dog-in-mud.jpg",
+  IMG + "dog-on-bed.jpg",
+  IMG + "fish-in-pond.jpg",
+  IMG + "fish-in-sky.jpg",
+  IMG + "hen-on-egg.jpg",
+  IMG + "hen-on-log.jpg",
+  IMG + "sun-in-sky.jpg",
+  IMG + "moon-in-sky.jpg",
+  IMG + "boy-red-hat.jpg",
+  IMG + "girl-hat.jpg",
+  IMG + "frog-on-log.jpg",
+  IMG + "frog-in-tub.jpg",
+  IMG + "pig-in-pen.jpg",
+  IMG + "pig-in-car.jpg",
+  IMG + "bug-on-rug.jpg",
+  IMG + "bug-on-plate.jpg",
+  IMG + "cup-on-bed.jpg",
+  IMG + "cup-in-tree.jpg",
+  IMG + "van-on-hill.jpg",
+  IMG + "van-in-sea.jpg",
+  IMG + "man-with-box.jpg",
+  IMG + "man-with-balloon.jpg",
+  IMG + "bat-in-cave.jpg",
+  IMG + "bat-in-garden.jpg",
+  IMG + "fox-in-den.jpg",
+  IMG + "fox-in-house.jpg",
+  IMG + "jam-in-jar.jpg",
+  IMG + "jam-in-shoe.jpg",
+  IMG + "man-with-ball.jpg",
+  IMG + "bat-in-sun.jpg",
+  IMG + "fox-in-hut.jpg",
+];
+
+const SENTENCES = [
+  { sentence: "The cat sat on the mat.",  correct: IMG + "cat-on-mat.jpg" },
+  { sentence: "The dog ran in the mud.",   correct: IMG + "dog-in-mud.jpg" },
+  { sentence: "The fish is in the pond.",  correct: IMG + "fish-in-pond.jpg" },
+  { sentence: "The hen sat on the egg.",   correct: IMG + "hen-on-egg.jpg" },
+  { sentence: "The sun is in the sky.",    correct: IMG + "sun-in-sky.jpg" },
+  { sentence: "The boy has a red hat.",    correct: IMG + "boy-red-hat.jpg" },
+  { sentence: "The frog is on a log.",     correct: IMG + "frog-on-log.jpg" },
+  { sentence: "The pig is in the pen.",    correct: IMG + "pig-in-pen.jpg" },
+  { sentence: "The bug is on the rug.",    correct: IMG + "bug-on-rug.jpg" },
+  { sentence: "The cup is on the bed.",    correct: IMG + "cup-on-bed.jpg" },
+  { sentence: "The van is on the hill.",   correct: IMG + "van-on-hill.jpg" },
+  { sentence: "The man has a big box.",    correct: IMG + "man-with-box.jpg" },
+  { sentence: "The bat is in the cave.",   correct: IMG + "bat-in-cave.jpg" },
+  { sentence: "The fox hid in the den.",   correct: IMG + "fox-in-den.jpg" },
+  { sentence: "The jam is in the jar.",    correct: IMG + "jam-in-jar.jpg" },
+  { sentence: "The cat is in the tree.",   correct: IMG + "cat-in-tree.jpg" },
+  { sentence: "The dog is on the bed.",    correct: IMG + "dog-on-bed.jpg" },
+  { sentence: "The fish is in the sky.",   correct: IMG + "fish-in-sky.jpg" },
+  { sentence: "The hen is on the log.",    correct: IMG + "hen-on-log.jpg" },
+  { sentence: "The moon is in the sky.",   correct: IMG + "moon-in-sky.jpg" },
+  { sentence: "The girl has a hat.",       correct: IMG + "girl-hat.jpg" },
+  { sentence: "The frog is in the tub.",   correct: IMG + "frog-in-tub.jpg" },
+  { sentence: "The pig is in the car.",    correct: IMG + "pig-in-car.jpg" },
+  { sentence: "The bug is on the plate.",  correct: IMG + "bug-on-plate.jpg" },
+  { sentence: "The cup is in the tree.",   correct: IMG + "cup-in-tree.jpg" },
+  { sentence: "The van is in the sea.",    correct: IMG + "van-in-sea.jpg" },
+  { sentence: "The man has a ball.",       correct: IMG + "man-with-ball.jpg" },
+  { sentence: "The bat is in the sun.",    correct: IMG + "bat-in-sun.jpg" },
+  { sentence: "The fox is in a hut.",      correct: IMG + "fox-in-hut.jpg" },
+  { sentence: "The jam is in the shoe.",   correct: IMG + "jam-in-shoe.jpg" },
+];
+
+const ROUNDS = 5;
+
+const sentenceDisplay = document.getElementById("sentence-display");
+const choicesEl = document.getElementById("choices");
+const starsEl = document.getElementById("stars");
+const roundLabel = document.getElementById("round-label");
+const startScreen = document.getElementById("start-screen");
+const endScreen = document.getElementById("end-screen");
+const wrapper = document.getElementById("game-wrapper");
+
+let currentRound = 0;
+let starsEarned = 0;
+let sessionSentences = [];
+let locked = false;
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playTone(success) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  gain.gain.value = 0.15;
+  if (success) {
+    osc.frequency.value = 523; osc.type = "sine";
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+  } else {
+    osc.frequency.value = 200; osc.type = "square";
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+  }
+}
+
+function renderStars() {
+  starsEl.innerHTML = "";
+  for (let i = 0; i < ROUNDS; i++) {
+    const span = document.createElement("span");
+    span.className = "star" + (i < starsEarned ? " earned" : "");
+    span.textContent = i < starsEarned ? "⭐" : "☆";
+    span.style.color = i < starsEarned ? "gold" : "#555";
+    starsEl.appendChild(span);
+  }
+}
+
+function pickSession() {
+  const shuffled = [...SENTENCES].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, ROUNDS);
+}
+
+function animateSentence(text) {
+  sentenceDisplay.innerHTML = "";
+  const words = text.split(" ");
+  words.forEach((word, i) => {
+    const span = document.createElement("span");
+    span.className = "word";
+    span.textContent = word;
+    span.style.animationDelay = (i * 0.12) + "s";
+    sentenceDisplay.appendChild(span);
+  });
+}
+
+function buildScene(imgSrc) {
+  const card = document.createElement("div");
+  card.className = "scene-card";
+
+  const img = document.createElement("img");
+  img.src = imgSrc;
+  img.alt = "";
+  img.draggable = false;
+  card.appendChild(img);
+
+  return card;
+}
+
+function setupRound() {
+  const data = sessionSentences[currentRound];
+  roundLabel.textContent = `Round ${currentRound + 1} / ${ROUNDS}`;
+  animateSentence(data.sentence);
+
+  choicesEl.innerHTML = "";
+  locked = false;
+
+  // Pick a random wrong image from the pool
+  const wrongPool = ALL_IMAGES.filter(img => img !== data.correct);
+  const wrongImg = wrongPool[Math.floor(Math.random() * wrongPool.length)];
+
+  // Randomize left/right placement
+  const scenes = [
+    { img: data.correct, isCorrect: true },
+    { img: wrongImg, isCorrect: false },
+  ].sort(() => Math.random() - 0.5);
+
+  for (const scene of scenes) {
+    const card = buildScene(scene.img);
+    card.addEventListener("click", () => handlePick(card, scene.isCorrect));
+    choicesEl.appendChild(card);
+  }
+}
+
+function handlePick(card, isCorrect) {
+  if (locked) return;
+  locked = true;
+
+  const allCards = document.querySelectorAll(".scene-card");
+
+  if (isCorrect) {
+    card.classList.add("correct");
+    starsEarned = Math.min(ROUNDS, starsEarned + 1);
+    playTone(true);
+    showFeedback("⭐", card);
+
+    allCards.forEach(c => {
+      c.classList.add("disabled");
+      if (c !== card) c.classList.add("dimmed");
+    });
+
+    renderStars();
+
+    setTimeout(() => {
+      currentRound++;
+      if (currentRound >= ROUNDS) {
+        endGame();
+      } else {
+        setupRound();
+      }
+    }, 1200);
+  } else {
+    card.classList.add("wrong");
+    starsEarned = Math.max(0, starsEarned - 1);
+    playTone(false);
+    showFeedback("❌", card);
+    renderStars();
+
+    // Let them try again after a brief pause
+    setTimeout(() => {
+      card.classList.add("disabled", "dimmed");
+      locked = false;
+    }, 600);
+  }
+}
+
+function showFeedback(emoji, el) {
+  const rect = el.getBoundingClientRect();
+  const wrapRect = wrapper.getBoundingClientRect();
+  const fb = document.createElement("div");
+  fb.className = "feedback-float";
+  fb.textContent = emoji;
+  fb.style.left = (rect.left - wrapRect.left + rect.width / 2 - 20) + "px";
+  fb.style.top = (rect.top - wrapRect.top - 10) + "px";
+  wrapper.appendChild(fb);
+  setTimeout(() => fb.remove(), 900);
+}
+
+function playRewardChime() {
+  const notes = [523, 659, 784, 880, 1047];
+  notes.forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    const t = audioCtx.currentTime + i * 0.12;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.15, t + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+    osc.start(t);
+    osc.stop(t + 0.5);
+  });
+}
+
+function spawnConfetti() {
+  const overlay = document.getElementById("reward-overlay");
+  overlay.innerHTML = "";
+  overlay.classList.add("active");
+
+  const colors = ["#e94560", "#ffd700", "#4caf50", "#4a90d9", "#a855f7", "#ff6b6b", "#22d3ee", "#f472b6"];
+
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement("div");
+    piece.className = "confetti";
+    piece.style.left = Math.random() * 100 + "%";
+    piece.style.top = -10 + "px";
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.width = (6 + Math.random() * 8) + "px";
+    piece.style.height = (6 + Math.random() * 8) + "px";
+    piece.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+    piece.style.animationDuration = (1.5 + Math.random() * 2) + "s";
+    piece.style.animationDelay = (Math.random() * 0.8) + "s";
+    overlay.appendChild(piece);
+  }
+
+  setTimeout(() => {
+    overlay.classList.remove("active");
+    overlay.innerHTML = "";
+  }, 4000);
+}
+
+function showReward() {
+  const emojis = ["🏆", "🎉", "👑", "🦄", "🌈", "🎊"];
+  const rewardEl = document.getElementById("reward-emoji");
+  rewardEl.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+  rewardEl.classList.remove("active");
+  void rewardEl.offsetWidth;
+  rewardEl.classList.add("active");
+  spawnConfetti();
+  playRewardChime();
+}
+
+function endGame() {
+  const showRewardNow = starsEarned === ROUNDS && Math.random() < 0.5;
+
+  if (showRewardNow) {
+    showReward();
+    setTimeout(() => {
+      endScreen.style.display = "flex";
+    }, 2800);
+  } else {
+    endScreen.style.display = "flex";
+  }
+
+  const finalStars = document.getElementById("final-stars");
+  finalStars.textContent = "";
+  for (let i = 0; i < ROUNDS; i++) {
+    finalStars.textContent += i < starsEarned ? "⭐" : "☆";
+  }
+  const title = document.getElementById("end-title");
+  const msg = document.getElementById("end-message");
+  if (starsEarned === ROUNDS) {
+    title.textContent = "Perfect!";
+    msg.textContent = "You matched every sentence!";
+  } else if (starsEarned >= 3) {
+    title.textContent = "Great Job!";
+    msg.textContent = "Keep reading and playing!";
+  } else {
+    title.textContent = "Good Try!";
+    msg.textContent = "Play again to get more stars!";
+  }
+}
+
+function startGame() {
+  startScreen.style.display = "none";
+  endScreen.style.display = "none";
+  starsEarned = 0;
+  currentRound = 0;
+  sessionSentences = pickSession();
+  renderStars();
+  setupRound();
+}
+
+document.getElementById("start-btn").addEventListener("click", startGame);
+document.getElementById("restart-btn").addEventListener("click", startGame);
+
+renderStars();
+</script>
+
+</body>
+</html>
