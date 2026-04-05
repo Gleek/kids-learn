@@ -32,7 +32,7 @@
 
     .bus {
       position: relative;
-      width: 400px;
+      width: min(400px, 100%);
       height: 200px;
     }
 
@@ -203,6 +203,17 @@
     @keyframes busArrive {
       0%   { transform: translateX(-600px); opacity: 0; }
       100% { transform: translateX(0); opacity: 1; }
+    }
+
+    @media (max-width: 500px) {
+      .bus-windows {
+        gap: 6px;
+      }
+      .window-seat {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+      }
     }
   </style>
 </head>

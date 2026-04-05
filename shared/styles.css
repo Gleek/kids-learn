@@ -26,7 +26,7 @@ body {
 /* ── Game Wrapper ── */
 #game-wrapper {
   position: relative;
-  width: var(--wrapper-width);
+  width: min(var(--wrapper-width), 100vw - 20px);
   text-align: center;
 }
 
@@ -300,4 +300,12 @@ body {
 .number-btn.disabled {
   pointer-events: none;
   opacity: 0.5;
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 500px) {
+  #word-display, .prompt-display {
+    font-size: 36px;
+    letter-spacing: 6px;
+  }
 }

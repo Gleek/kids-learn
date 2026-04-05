@@ -24,6 +24,13 @@
     height: 700px;
   }
 
+  @media (max-width: 500px) {
+    #game-wrapper {
+      transform: scale(calc(100vw / 500));
+      transform-origin: top center;
+    }
+  }
+
   #hud {
     display: flex;
     justify-content: space-between;

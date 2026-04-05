@@ -243,6 +243,15 @@
       font-size: 20px;
       padding: 10px 36px;
     }
+
+    @media (max-width: 560px) {
+      .pick-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      #build-area {
+        width: min(320px, 85vw);
+      }
+    }
   </style>
 </head>
 <body>
