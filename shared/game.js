@@ -187,6 +187,21 @@ window.KidsGame = (function () {
     pickVoice(); // try immediately in case already loaded
   }
 
+  // iOS Safari requires speechSynthesis to be triggered from a user gesture.
+  // Warm it up on the first tap so later async calls work.
+  let ttsUnlocked = false;
+  function unlockTTS() {
+    if (ttsUnlocked) return;
+    ttsUnlocked = true;
+    const u = new SpeechSynthesisUtterance("");
+    u.volume = 0;
+    speechSynthesis.speak(u);
+    document.removeEventListener("click", unlockTTS, true);
+    document.removeEventListener("touchstart", unlockTTS, true);
+  }
+  document.addEventListener("click", unlockTTS, true);
+  document.addEventListener("touchstart", unlockTTS, true);
+
   function isTTSEnabled() { return ttsEnabled; }
 
   function setTTSEnabled(on) {
@@ -202,21 +217,23 @@ window.KidsGame = (function () {
   function speak(text, options) {
     if (!ttsEnabled) return Promise.resolve();
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = (options && options.rate) || 0.85;
-    u.pitch = (options && options.pitch) || 1.1;
-    u.lang = "en-US";
-    applyVoice(u);
-    if (options && options.onend) u.onend = options.onend;
-    const promise = new Promise(resolve => {
-      u.onend = function (e) {
-        if (options && options.onend) options.onend(e);
-        resolve();
-      };
-      u.onerror = resolve;
+    return new Promise(resolve => {
+      // Short delay after cancel — Android Chrome silently drops
+      // utterances if speak() is called immediately after cancel()
+      setTimeout(() => {
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = (options && options.rate) || 0.85;
+        u.pitch = (options && options.pitch) || 1.1;
+        u.lang = "en-US";
+        applyVoice(u);
+        u.onend = function (e) {
+          if (options && options.onend) options.onend(e);
+          resolve();
+        };
+        u.onerror = resolve;
+        speechSynthesis.speak(u);
+      }, 50);
     });
-    speechSynthesis.speak(u);
-    return promise;
   }
 
   function speakWord(word, callback) {
