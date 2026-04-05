@@ -361,6 +361,8 @@
 
       renderBusWindows();
       updateCount();
+      const count = seats.filter(Boolean).length;
+      if (count > 0) KidsGame.speak(String(count));
     }
 
     function updateCount() {
