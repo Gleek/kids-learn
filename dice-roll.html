@@ -236,14 +236,16 @@
         // Disable all buttons
         document.querySelectorAll("#choices .number-btn").forEach(b => b.classList.add("disabled"));
 
-        setTimeout(() => {
-          if (round < TOTAL_ROUNDS) {
-            round++;
-            startRound();
-          } else {
-            endGame();
-          }
-        }, 1000);
+        KidsGame.speak("That is right! It is " + correctAnswer).then(() => {
+          setTimeout(() => {
+            if (round < TOTAL_ROUNDS) {
+              round++;
+              startRound();
+            } else {
+              endGame();
+            }
+          }, 400);
+        });
       } else {
         // Wrong — lose a star, grey out this button, allow retry
         stars = Math.max(0, stars - 1);
@@ -260,6 +262,7 @@
       $roundLabel.textContent = "Round " + round + " / " + TOTAL_ROUNDS;
       KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
       rollDice();
+      KidsGame.speak(die1Val + " plus " + die2Val + " equals?");
       // Render choices after dice settle
       setTimeout(renderChoices, 650);
     }
@@ -287,6 +290,7 @@
 
     KidsGame.wireStartRestart("start-btn", "restart-btn", startGame);
     KidsGame.renderStars($stars, 0, TOTAL_ROUNDS);
+    KidsGame.createMuteToggle();
   })();
   </script>
 </body>

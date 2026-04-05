@@ -51,6 +51,30 @@
   }
   .star.earned { filter: drop-shadow(0 0 6px gold); }
 
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  #hints {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  #hints span {
+    font-size: 22px;
+    transition: all 0.3s;
+  }
+  #hints span.used {
+    opacity: 0.25;
+    filter: grayscale(1);
+  }
+  #hints.shake {
+    animation: shake 0.4s ease;
+  }
+
   #game-area {
     background: #16213e;
     border: 3px solid #0f3460;
@@ -322,6 +346,7 @@
   <div id="hud">
     <div id="round-label">Round 1 / 5</div>
     <div id="stars"></div>
+    <div id="hints"></div>
   </div>
   <div id="game-area">
     <div id="sentence-display"></div>
@@ -345,81 +370,12 @@
   </div>
 </div>
 
+<script src="shared/data.js"></script>
+<script src="shared/game.js"></script>
 <script>
-// ── Sentence Data ──
-// Each entry: sentence, correct scene, wrong scene
-// Scenes use emoji compositions + background colors
-// "img" field reserved for real generated images
-const IMG = "images/sentence/";
-
-const ALL_IMAGES = [
-  IMG + "cat-on-mat.jpg",
-  IMG + "cat-in-tree.jpg",
-  IMG + "dog-in-mud.jpg",
-  IMG + "dog-on-bed.jpg",
-  IMG + "fish-in-pond.jpg",
-  IMG + "fish-in-sky.jpg",
-  IMG + "hen-on-egg.jpg",
-  IMG + "hen-on-log.jpg",
-  IMG + "sun-in-sky.jpg",
-  IMG + "moon-in-sky.jpg",
-  IMG + "boy-red-hat.jpg",
-  IMG + "girl-hat.jpg",
-  IMG + "frog-on-log.jpg",
-  IMG + "frog-in-tub.jpg",
-  IMG + "pig-in-pen.jpg",
-  IMG + "pig-in-car.jpg",
-  IMG + "bug-on-rug.jpg",
-  IMG + "bug-on-plate.jpg",
-  IMG + "cup-on-bed.jpg",
-  IMG + "cup-in-tree.jpg",
-  IMG + "van-on-hill.jpg",
-  IMG + "van-in-sea.jpg",
-  IMG + "man-with-box.jpg",
-  IMG + "man-with-balloon.jpg",
-  IMG + "bat-in-cave.jpg",
-  IMG + "bat-in-garden.jpg",
-  IMG + "fox-in-den.jpg",
-  IMG + "fox-in-house.jpg",
-  IMG + "jam-in-jar.jpg",
-  IMG + "jam-in-shoe.jpg",
-  IMG + "man-with-ball.jpg",
-  IMG + "bat-in-sun.jpg",
-  IMG + "fox-in-hut.jpg",
-];
-
-const SENTENCES = [
-  { sentence: "The cat sat on the mat.",  correct: IMG + "cat-on-mat.jpg" },
-  { sentence: "The dog ran in the mud.",   correct: IMG + "dog-in-mud.jpg" },
-  { sentence: "The fish is in the pond.",  correct: IMG + "fish-in-pond.jpg" },
-  { sentence: "The hen sat on the egg.",   correct: IMG + "hen-on-egg.jpg" },
-  { sentence: "The sun is in the sky.",    correct: IMG + "sun-in-sky.jpg" },
-  { sentence: "The boy has a red hat.",    correct: IMG + "boy-red-hat.jpg" },
-  { sentence: "The frog is on a log.",     correct: IMG + "frog-on-log.jpg" },
-  { sentence: "The pig is in the pen.",    correct: IMG + "pig-in-pen.jpg" },
-  { sentence: "The bug is on the rug.",    correct: IMG + "bug-on-rug.jpg" },
-  { sentence: "The cup is on the bed.",    correct: IMG + "cup-on-bed.jpg" },
-  { sentence: "The van is on the hill.",   correct: IMG + "van-on-hill.jpg" },
-  { sentence: "The man has a big box.",    correct: IMG + "man-with-box.jpg" },
-  { sentence: "The bat is in the cave.",   correct: IMG + "bat-in-cave.jpg" },
-  { sentence: "The fox hid in the den.",   correct: IMG + "fox-in-den.jpg" },
-  { sentence: "The jam is in the jar.",    correct: IMG + "jam-in-jar.jpg" },
-  { sentence: "The cat is in the tree.",   correct: IMG + "cat-in-tree.jpg" },
-  { sentence: "The dog is on the bed.",    correct: IMG + "dog-on-bed.jpg" },
-  { sentence: "The fish is in the sky.",   correct: IMG + "fish-in-sky.jpg" },
-  { sentence: "The hen is on the log.",    correct: IMG + "hen-on-log.jpg" },
-  { sentence: "The moon is in the sky.",   correct: IMG + "moon-in-sky.jpg" },
-  { sentence: "The girl has a hat.",       correct: IMG + "girl-hat.jpg" },
-  { sentence: "The frog is in the tub.",   correct: IMG + "frog-in-tub.jpg" },
-  { sentence: "The pig is in the car.",    correct: IMG + "pig-in-car.jpg" },
-  { sentence: "The bug is on the plate.",  correct: IMG + "bug-on-plate.jpg" },
-  { sentence: "The cup is in the tree.",   correct: IMG + "cup-in-tree.jpg" },
-  { sentence: "The van is in the sea.",    correct: IMG + "van-in-sea.jpg" },
-  { sentence: "The man has a ball.",       correct: IMG + "man-with-ball.jpg" },
-  { sentence: "The bat is in the sun.",    correct: IMG + "bat-in-sun.jpg" },
-  { sentence: "The fox is in a hut.",      correct: IMG + "fox-in-hut.jpg" },
-  { sentence: "The jam is in the shoe.",   correct: IMG + "jam-in-shoe.jpg" },
-];
+// ── Sentence Data (from shared/data.js) ──
+const ALL_IMAGES = GameData.ALL_IMAGES;
+const SENTENCES = GameData.SENTENCES;
 
 const ROUNDS = 5;
 
@@ -431,8 +387,12 @@ const startScreen = document.getElementById("start-screen");
 const endScreen = document.getElementById("end-screen");
 const wrapper = document.getElementById("game-wrapper");
 
+const TOTAL_HINTS = 3;
+const hintsEl = document.getElementById("hints");
+
 let currentRound = 0;
 let starsEarned = 0;
+let hintsLeft = TOTAL_HINTS;
 let sessionSentences = [];
 let locked = false;
 
@@ -467,6 +427,16 @@ function renderStars() {
   }
 }
 
+function renderHints() {
+  hintsEl.innerHTML = "";
+  for (let i = 0; i < TOTAL_HINTS; i++) {
+    const span = document.createElement("span");
+    span.textContent = "💬";
+    if (i >= hintsLeft) span.className = "used";
+    hintsEl.appendChild(span);
+  }
+}
+
 function pickSession() {
   const shuffled = [...SENTENCES].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, ROUNDS);
@@ -480,6 +450,27 @@ function animateSentence(text) {
     span.className = "word";
     span.textContent = word;
     span.style.animationDelay = (i * 0.12) + "s";
+    // Tap a word to hear its phonics
+    const clean = word.replace(/[^a-zA-Z]/g, "");
+    if (clean) {
+      span.style.cursor = "pointer";
+      span.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (hintsLeft > 0) {
+          hintsLeft--;
+          renderHints();
+          sentenceDisplay.querySelectorAll(".word").forEach(w => w.style.color = "");
+          span.style.color = "#ffd700";
+          KidsGame.speakWord(clean, () => {
+            span.style.color = "";
+          });
+        } else {
+          hintsEl.classList.remove("shake");
+          void hintsEl.offsetWidth;
+          hintsEl.classList.add("shake");
+        }
+      });
+    }
     sentenceDisplay.appendChild(span);
   });
 }
@@ -667,16 +658,20 @@ function startGame() {
   startScreen.style.display = "none";
   endScreen.style.display = "none";
   starsEarned = 0;
+  hintsLeft = TOTAL_HINTS;
   currentRound = 0;
   sessionSentences = pickSession();
   renderStars();
+  renderHints();
   setupRound();
 }
 
 document.getElementById("start-btn").addEventListener("click", startGame);
 document.getElementById("restart-btn").addEventListener("click", startGame);
 
+KidsGame.createMuteToggle();
 renderStars();
+renderHints();
 </script>
 
 </body>

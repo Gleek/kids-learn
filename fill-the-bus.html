@@ -268,12 +268,13 @@
     <div id="reward-emoji"></div>
   </div>
 
+  <script src="shared/data.js"></script>
   <script src="shared/game.js"></script>
   <script>
   (function () {
     const TOTAL_ROUNDS = 5;
     const TOTAL_SEATS = 5;
-    const PASSENGERS = ["😊", "😃", "🥳", "😎", "🤩", "😁", "🧒", "👧", "👦"];
+    const PASSENGERS = GameData.PASSENGERS;
 
     let round, stars, target, seats, locked;
 
@@ -320,6 +321,7 @@
       roundLabel.textContent = "Round " + round + " / " + TOTAL_ROUNDS;
       KidsGame.renderStars(starsEl, stars, TOTAL_ROUNDS);
       prompt.innerHTML = 'Put <span class="target-number">' + target + '</span> on the bus!';
+      KidsGame.speak("Put " + target + " on the bus");
       renderBusWindows();
       updateCount();
       goBtn.disabled = false;
@@ -397,14 +399,11 @@
         KidsGame.renderStars(starsEl, stars, TOTAL_ROUNDS);
         KidsGame.showFeedback("🌟", goBtn, wrapper);
 
-        // Whoosh the bus away after a brief pause
-        setTimeout(() => {
+        KidsGame.speak("Well done!").then(() => {
           playWhooshSound();
           busEl.classList.add("whoosh");
-        }, 600);
-
-        // Next round after whoosh completes
-        setTimeout(nextRound, 1600);
+          setTimeout(nextRound, 1000);
+        });
       } else {
         stars = Math.max(0, stars - 1);
         KidsGame.playTone(false);
@@ -429,6 +428,7 @@
 
     goBtn.addEventListener("click", checkAnswer);
     KidsGame.wireStartRestart("start-btn", "restart-btn", startGame);
+    KidsGame.createMuteToggle();
   })();
   </script>
 </body>

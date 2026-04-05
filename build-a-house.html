@@ -288,19 +288,13 @@
     <div id="reward-emoji"></div>
   </div>
 
+  <script src="shared/data.js"></script>
   <script src="shared/game.js"></script>
   <script>
   (function () {
     const TOTAL_ROUNDS = 5;
 
-    const SHAPES = [
-      { name: "Square",    css: "square" },
-      { name: "Triangle",  css: "triangle" },
-      { name: "Circle",    css: "circle" },
-      { name: "Rectangle", css: "rectangle" },
-      { name: "Diamond",   css: "diamond" },
-      { name: "Oval",      css: "oval" },
-    ];
+    const SHAPES = GameData.SHAPES;
 
     const SHAPE_COLORS = [
       "#e94560", "#4a90d9", "#4caf50", "#f5a623",
@@ -929,10 +923,12 @@
         KidsGame.showFeedback("\u2B50", btn, $wrapper);
         document.querySelectorAll(".shape-btn").forEach(b => b.classList.add("disabled"));
         fillFrame(frame);
-        setTimeout(() => {
-          if (round < TOTAL_ROUNDS) { round++; startRound(); }
-          else endGame();
-        }, 1000);
+        KidsGame.speak("Great! That is a " + correctName).then(() => {
+          setTimeout(() => {
+            if (round < TOTAL_ROUNDS) { round++; startRound(); }
+            else endGame();
+          }, 400);
+        });
       } else {
         stars = Math.max(0, stars - 1);
         btn.classList.add("wrong");
@@ -949,6 +945,7 @@
       $roundLabel.textContent = "Round " + round + " / " + TOTAL_ROUNDS;
       $prompt.textContent = frame.shape;
       $promptSub.textContent = "Find the " + frame.shape.toLowerCase() + " " + frame.hint + "!";
+      KidsGame.speak($promptSub.textContent);
       KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
       activateFrame(frame.id);
       renderChoices(frame.shape);
@@ -1006,6 +1003,7 @@
     $("restart-btn").addEventListener("click", showPicker);
 
     KidsGame.renderStars($stars, 0, TOTAL_ROUNDS);
+    KidsGame.createMuteToggle();
   })();
   </script>
 </body>

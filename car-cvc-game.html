@@ -201,25 +201,10 @@
   </div>
 </div>
 
+<script src="shared/data.js"></script>
 <script>
 // ── CVC Words & Emoji Mappings ──
-const CVC_WORDS = [
-  { word: "CAT", emoji: "🐱", distractors: ["🐶", "🎩", "🚗"] },
-  { word: "DOG", emoji: "🐶", distractors: ["🐱", "🐸", "🌟"] },
-  { word: "BUS", emoji: "🚌", distractors: ["🚗", "🏠", "🌳"] },
-  { word: "SUN", emoji: "☀️", distractors: ["🌙", "⭐", "🌧️"] },
-  { word: "HEN", emoji: "🐔", distractors: ["🐷", "🐮", "🦆"] },
-  { word: "PIG", emoji: "🐷", distractors: ["🐔", "🐶", "🐱"] },
-  { word: "CUP", emoji: "🥤", distractors: ["🍎", "🎂", "🍕"] },
-  { word: "HAT", emoji: "🎩", distractors: ["👟", "🧤", "🐱"] },
-  { word: "BED", emoji: "🛏️", distractors: ["🪑", "🚪", "🏠"] },
-  { word: "FAN", emoji: "🌀", distractors: ["💡", "🔔", "📦"] },
-  { word: "MAP", emoji: "🗺️", distractors: ["📖", "✏️", "🎒"] },
-  { word: "PEN", emoji: "🖊️", distractors: ["📖", "🗺️", "🎒"] },
-  { word: "VAN", emoji: "🚐", distractors: ["🚌", "🚗", "✈️"] },
-  { word: "JAM", emoji: "🍓", distractors: ["🍞", "🧈", "🥛"] },
-  { word: "BUG", emoji: "🐛", distractors: ["🐝", "🦋", "🐞"] },
-];
+const CVC_WORDS = GameData.CVC_WORDS;
 
 const WORDS_PER_SESSION = 5;
 const LANE_COUNT = 4;
@@ -513,12 +498,32 @@ function moveCar(direction) {
   if (direction === "right" && car.lane < LANE_COUNT - 1) car.lane++;
 }
 
+function moveCarToLane(lane) {
+  if (!gameRunning) return;
+  if (lane >= 0 && lane < LANE_COUNT) car.lane = lane;
+}
+
 document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft") { e.preventDefault(); moveCar("left"); }
   if (e.key === "ArrowRight") { e.preventDefault(); moveCar("right"); }
 });
 
-// Mobile controls
+// Tap on canvas to move car to that lane
+canvas.addEventListener("click", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (W / rect.width);
+  moveCarToLane(Math.floor(x / LANE_W));
+});
+
+canvas.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  const x = (touch.clientX - rect.left) * (W / rect.width);
+  moveCarToLane(Math.floor(x / LANE_W));
+});
+
+// Mobile arrow controls (kept as fallback)
 document.getElementById("left-btn").addEventListener("touchstart", (e) => { e.preventDefault(); moveCar("left"); });
 document.getElementById("right-btn").addEventListener("touchstart", (e) => { e.preventDefault(); moveCar("right"); });
 document.getElementById("left-btn").addEventListener("click", () => moveCar("left"));

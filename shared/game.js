@@ -146,6 +146,99 @@ window.KidsGame = (function () {
     document.getElementById(restartId).addEventListener("click", fn);
   }
 
+  // ── TTS ──
+  let ttsEnabled = localStorage.getItem("kidslearn-tts") !== "off";
+  let preferredVoice = null;
+
+  // Pick the best available English voice (prefer natural/premium ones)
+  function pickVoice() {
+    if (preferredVoice) return preferredVoice;
+    const voices = speechSynthesis.getVoices();
+    if (!voices.length) return null;
+
+    // Preferred voice names ranked by quality (natural-sounding first)
+    const preferred = [
+      "Samantha", "Karen", "Daniel", "Moira", "Tessa",       // macOS/iOS premium
+      "Google UK English Female", "Google UK English Male",    // Chrome
+      "Google US English",                                     // Chrome
+      "Microsoft Zira", "Microsoft David",                     // Windows
+    ];
+
+    // Try exact name matches first
+    for (const name of preferred) {
+      const v = voices.find(v => v.name.includes(name) && v.lang.startsWith("en"));
+      if (v) { preferredVoice = v; return v; }
+    }
+
+    // Fallback: any English voice that isn't the default robotic one
+    const english = voices.filter(v => v.lang.startsWith("en"));
+    if (english.length > 1) {
+      // Prefer non-default voices (they tend to be better quality)
+      const nonDefault = english.find(v => !v.default);
+      if (nonDefault) { preferredVoice = nonDefault; return nonDefault; }
+    }
+    if (english.length) { preferredVoice = english[0]; return english[0]; }
+    return null;
+  }
+
+  // Voices load asynchronously in some browsers
+  if (typeof speechSynthesis !== "undefined") {
+    speechSynthesis.onvoiceschanged = pickVoice;
+    pickVoice(); // try immediately in case already loaded
+  }
+
+  function isTTSEnabled() { return ttsEnabled; }
+
+  function setTTSEnabled(on) {
+    ttsEnabled = on;
+    localStorage.setItem("kidslearn-tts", on ? "on" : "off");
+  }
+
+  function applyVoice(utterance) {
+    const voice = pickVoice();
+    if (voice) utterance.voice = voice;
+  }
+
+  function speak(text, options) {
+    if (!ttsEnabled) return Promise.resolve();
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = (options && options.rate) || 0.85;
+    u.pitch = (options && options.pitch) || 1.1;
+    u.lang = "en-US";
+    applyVoice(u);
+    if (options && options.onend) u.onend = options.onend;
+    const promise = new Promise(resolve => {
+      u.onend = function (e) {
+        if (options && options.onend) options.onend(e);
+        resolve();
+      };
+      u.onerror = resolve;
+    });
+    speechSynthesis.speak(u);
+    return promise;
+  }
+
+  function speakWord(word, callback) {
+    speak(word, { rate: 0.8, onend: callback });
+  }
+
+  // Creates a mute toggle button and inserts into the HUD
+  function createMuteToggle() {
+    const btn = document.createElement("button");
+    btn.id = "tts-toggle";
+    btn.style.cssText = "background:none;border:none;font-size:22px;cursor:pointer;padding:4px;opacity:0.7;transition:opacity 0.2s;";
+    btn.textContent = ttsEnabled ? "\uD83D\uDD0A" : "\uD83D\uDD07";
+    btn.title = "Toggle voice";
+    btn.addEventListener("click", () => {
+      setTTSEnabled(!ttsEnabled);
+      btn.textContent = ttsEnabled ? "\uD83D\uDD0A" : "\uD83D\uDD07";
+    });
+    const hud = document.getElementById("hud");
+    if (hud) hud.appendChild(btn);
+    return btn;
+  }
+
   return {
     playTone,
     playChime,
@@ -159,5 +252,10 @@ window.KidsGame = (function () {
     showReward,
     wireStartRestart,
     getAudioCtx,
+    speak,
+    speakWord,
+    isTTSEnabled,
+    setTTSEnabled,
+    createMuteToggle,
   };
 })();

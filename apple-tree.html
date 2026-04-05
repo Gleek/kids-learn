@@ -194,6 +194,8 @@
       eq.textContent = "= ?";
       equationEl.appendChild(eq);
 
+      KidsGame.speak(problem.a + " plus " + problem.b + " equals?");
+
       // Build choices
       const choices = generateChoices(answer);
       choicesEl.innerHTML = "";
@@ -216,7 +218,9 @@
         KidsGame.playTone(true);
         KidsGame.renderStars(starsEl, stars, TOTAL_ROUNDS);
         KidsGame.showFeedback("\uD83C\uDF1F", btn, wrapper);
-        setTimeout(nextRound, 1200);
+        KidsGame.speak("Yes! It is " + answer).then(function () {
+          setTimeout(nextRound, 400);
+        });
       } else {
         stars = Math.max(0, stars - 1);
         btn.classList.add("wrong");
@@ -245,6 +249,7 @@
     }
 
     KidsGame.wireStartRestart("start-btn", "restart-btn", startGame);
+    KidsGame.createMuteToggle();
   })();
   </script>
 </body>
