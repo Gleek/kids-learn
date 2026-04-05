@@ -1,13 +1,13 @@
 /* ── Kids Learn — Shared Styles ── */
 
 :root {
-  --bg-color: #1a1a2e;
-  --panel-bg: #16213e;
-  --border-color: #0f3460;
-  --accent: #e94560;
-  --accent-dark: #c73652;
-  --text-color: #fff;
-  --text-muted: #aaa;
+  --bg-color: #f0f4ff;
+  --panel-bg: #ffffff;
+  --border-color: #c5d3f7;
+  --accent: #ff6b8a;
+  --accent-dark: #e8527a;
+  --text-color: #2d3436;
+  --text-muted: #636e72;
   --wrapper-width: 500px;
 }
 
@@ -78,7 +78,7 @@ body {
   font-weight: 900;
   color: var(--text-color);
   letter-spacing: 12px;
-  text-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent);
+  text-shadow: none;
   margin-bottom: 24px;
 }
 
@@ -87,7 +87,7 @@ body {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(22, 33, 62, 0.95);
+  background: rgba(240, 244, 255, 0.97);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -104,7 +104,7 @@ body {
 
 .overlay p {
   font-size: 22px;
-  color: #eee;
+  color: var(--text-color);
   margin-bottom: 30px;
   text-align: center;
   line-height: 1.5;
@@ -123,7 +123,7 @@ body {
   border: none;
   border-radius: 50px;
   background: var(--accent);
-  color: var(--text-color);
+  color: #fff;
   font-weight: 700;
   cursor: pointer;
   transition: transform 0.15s, background 0.2s;
@@ -187,20 +187,20 @@ body {
 .emoji-btn:hover {
   transform: scale(1.08);
   border-color: var(--accent);
-  background: #222244;
+  background: #f0e6ff;
 }
 
 .emoji-btn:active { transform: scale(0.95); }
 
 .emoji-btn.correct {
   border-color: #4caf50;
-  background: #1b3d1b;
+  background: #e8f5e9;
   animation: pop 0.4s;
 }
 
 .emoji-btn.wrong {
   border-color: var(--accent);
-  background: #3d1b1b;
+  background: #fce4ec;
   animation: shake 0.4s;
 }
 
@@ -287,13 +287,13 @@ body {
 
 .number-btn.correct {
   border-color: #4caf50;
-  background: #1b3d1b;
+  background: #e8f5e9;
   animation: pop 0.4s;
 }
 
 .number-btn.wrong {
   border-color: var(--accent);
-  background: #3d1b1b;
+  background: #fce4ec;
   animation: shake 0.4s;
 }
 

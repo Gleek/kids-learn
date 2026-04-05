@@ -8,7 +8,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: #1a1a2e;
+    background: #f0f4ff;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -28,18 +28,18 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px 16px;
-    background: #16213e;
+    background: #ffffff;
     border-radius: 16px 16px 0 0;
-    border: 3px solid #0f3460;
+    border: 3px solid #c5d3f7;
     border-bottom: none;
   }
 
   #word-display {
     font-size: 48px;
     font-weight: 900;
-    color: #fff;
+    color: #2d3436;
     letter-spacing: 12px;
-    text-shadow: 0 0 20px #e94560, 0 0 40px #e94560;
+    text-shadow: none;
   }
 
   #stars {
@@ -70,7 +70,7 @@
     display: block;
     width: 100%;
     height: auto;
-    border: 3px solid #0f3460;
+    border: 3px solid #c5d3f7;
     border-top: none;
     border-radius: 0 0 16px 16px;
     background: #4a7c59;
@@ -82,7 +82,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(22, 33, 62, 0.95);
+    background: rgba(240, 244, 255, 0.97);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -93,14 +93,14 @@
 
   #start-screen h1, #end-screen h1 {
     font-size: 42px;
-    color: #e94560;
+    color: #ff6b8a;
     margin-bottom: 16px;
     text-align: center;
   }
 
   #start-screen p, #end-screen p {
     font-size: 22px;
-    color: #eee;
+    color: #2d3436;
     margin-bottom: 30px;
     text-align: center;
     line-height: 1.5;
@@ -116,14 +116,14 @@
     padding: 14px 48px;
     border: none;
     border-radius: 50px;
-    background: #e94560;
+    background: #ff6b8a;
     color: #fff;
     font-weight: 700;
     cursor: pointer;
     transition: transform 0.15s, background 0.2s;
   }
 
-  .btn:hover { background: #c73652; transform: scale(1.05); }
+  .btn:hover { background: #e8527a; transform: scale(1.05); }
 
   #mobile-controls {
     display: none;
@@ -136,9 +136,9 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    border: 3px solid #0f3460;
-    background: #16213e;
-    color: #fff;
+    border: 3px solid #c5d3f7;
+    background: #ffffff;
+    color: #2d3436;
     font-size: 36px;
     display: flex;
     align-items: center;
@@ -147,7 +147,7 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  .mobile-btn:active { background: #0f3460; }
+  .mobile-btn:active { background: #c5d3f7; }
 
   @media (pointer: coarse) {
     #mobile-controls { display: flex; }
@@ -193,7 +193,7 @@
     <div class="final-stars" id="final-stars"></div>
     <p id="end-message"></p>
     <button class="btn" id="restart-btn">Play Again!</button>
-    <a href="index.html" class="btn" style="background:none;border:2px solid #e94560;color:#e94560;margin-top:8px;text-decoration:none;display:inline-block;text-align:center;">Home</a>
+    <a href="index.html" class="btn" style="background:none;border:2px solid #ff6b8a;color:#ff6b8a;margin-top:8px;text-decoration:none;display:inline-block;text-align:center;">Home</a>
   </div>
 
   <div id="mobile-controls">
@@ -296,7 +296,7 @@ function drawCar() {
   const h = car.height;
 
   // Car body
-  ctx.fillStyle = "#e94560";
+  ctx.fillStyle = "#ff6b8a";
   ctx.beginPath();
   ctx.roundRect(x - w / 2, y - h / 2, w, h, 10);
   ctx.fill();
@@ -343,7 +343,7 @@ function drawRoad() {
   ctx.setLineDash([]);
 
   // Road edges
-  ctx.fillStyle = "#e94560";
+  ctx.fillStyle = "#ff6b8a";
   ctx.fillRect(0, 0, 6, H);
   ctx.fillRect(W - 6, 0, 6, H);
 }

@@ -12,7 +12,7 @@
       font-size: 44px;
       font-weight: 900;
       color: var(--text-color);
-      text-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent);
+      text-shadow: none;
       margin-bottom: 8px;
       letter-spacing: 4px;
     }
@@ -25,7 +25,7 @@
 
     .scene-title {
       font-size: 15px;
-      color: #ffd700;
+      color: var(--accent);
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 2px;
@@ -164,10 +164,10 @@
       gap: 4px;
       transition: transform 0.15s, border-color 0.15s, background 0.15s;
     }
-    .shape-btn:hover { transform: scale(1.06); border-color: var(--accent); background: #222244; }
+    .shape-btn:hover { transform: scale(1.06); border-color: var(--accent); background: #fff0f3; }
     .shape-btn:active { transform: scale(0.95); }
-    .shape-btn.correct { border-color: #4caf50; background: #1b3d1b; animation: pop 0.4s; }
-    .shape-btn.wrong { border-color: var(--accent); background: #3d1b1b; animation: shake 0.4s; }
+    .shape-btn.correct { border-color: #4caf50; background: #e8f5e9; animation: pop 0.4s; }
+    .shape-btn.wrong { border-color: var(--accent); background: #fce4ec; animation: shake 0.4s; }
     .shape-btn.disabled { pointer-events: none; opacity: 0.5; }
     .shape-btn .shape-name { font-size: 13px; color: var(--text-muted); font-weight: 600; }
 
@@ -189,7 +189,7 @@
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background: rgba(22, 33, 62, 0.97);
+      background: rgba(240, 244, 255, 0.97);
       display: none;
       flex-direction: column;
       align-items: center;
@@ -202,7 +202,7 @@
 
     #pick-overlay h2 {
       font-size: 30px;
-      color: #ffd700;
+      color: var(--accent);
       margin-bottom: 16px;
     }
 
@@ -229,14 +229,14 @@
 
     .pick-card:hover {
       transform: scale(1.06);
-      border-color: #ffd700;
-      background: #222244;
+      border-color: var(--accent);
+      background: #fff0f3;
     }
 
     .pick-card:active { transform: scale(0.95); }
 
     .pick-card .pick-icon { font-size: 38px; line-height: 1; }
-    .pick-card .pick-name { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+    .pick-card .pick-name { font-size: 14px; color: var(--text-color); font-weight: 700; }
 
     .pick-random {
       margin-top: 14px;
@@ -277,7 +277,7 @@
         <div id="final-stars" class="final-stars"></div>
         <p id="end-message"></p>
         <button id="restart-btn" class="btn">Play Again</button>
-        <a href="index.html" class="btn" style="background:none;border:2px solid #e94560;color:#e94560;margin-top:8px;text-decoration:none;display:inline-block;text-align:center;">Home</a>
+        <a href="index.html" class="btn" style="background:none;border:2px solid #ff6b8a;color:#ff6b8a;margin-top:8px;text-decoration:none;display:inline-block;text-align:center;">Home</a>
       </div>
       <div class="scene-title" id="scene-title"></div>
       <div class="prompt-text" id="prompt-text">Square</div>
@@ -298,7 +298,7 @@
     const SHAPES = GameData.SHAPES;
 
     const SHAPE_COLORS = [
-      "#e94560", "#4a90d9", "#4caf50", "#f5a623",
+      "#ff6b8a", "#4a90d9", "#4caf50", "#f5a623",
       "#a855f7", "#f472b6", "#22d3ee", "#facc15",
     ];
 
