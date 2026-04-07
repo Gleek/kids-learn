@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arabic Drive!</title>
+<style>
+  @font-face {
+    font-family: "Uthmanic";
+    src: url("https://cdn.jsdelivr.net/gh/thetruetruth/quran-data-kfgqpc@main/hafs/font/hafs.18.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #e8f4fd;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none;
+    padding: 10px 0;
+  }
+
+  #game-wrapper {
+    position: relative;
+    width: min(480px, 100vw - 20px);
+    direction: ltr;
+  }
+
+  #hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: #ffffff;
+    border-radius: 16px 16px 0 0;
+    border: 3px solid #c5d3f7;
+    border-bottom: none;
+  }
+
+  #round-label {
+    font-size: 18px;
+    color: #636e72;
+    font-weight: 600;
+  }
+
+  #stars { display: flex; gap: 6px; }
+
+  .star {
+    font-size: 28px;
+    transition: all 0.3s;
+  }
+  .star.earned { filter: drop-shadow(0 0 6px gold); }
+
+  #canvas-wrap {
+    position: relative;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 3px solid #c5d3f7;
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    background: #555;
+  }
+
+  #hear-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 3px solid #c5d3f7;
+    background: rgba(255,255,255,0.92);
+    font-size: 26px;
+    cursor: pointer;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  #hear-btn:hover { border-color: #ff6b8a; transform: scale(1.08); }
+  #hear-btn:active { transform: scale(0.95); }
+  #hear-btn.playing { border-color: #4a90d9; background: #e8f0ff; }
+
+  /* Overlays */
+  .overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(240, 244, 255, 0.97);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 16px;
+    z-index: 20;
+  }
+
+  .overlay h1 {
+    font-size: 42px;
+    color: #ff6b8a;
+    margin-bottom: 16px;
+  }
+
+  .overlay p {
+    font-size: 22px;
+    color: #2d3436;
+    margin-bottom: 30px;
+    text-align: center;
+    line-height: 1.5;
+    padding: 0 20px;
+  }
+
+  .overlay .final-stars {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    font-size: 28px;
+    padding: 14px 48px;
+    border: none;
+    border-radius: 50px;
+    background: #ff6b8a;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.2s;
+  }
+  .btn:hover { background: #e8527a; transform: scale(1.05); }
+
+  /* Level Selector */
+  #level-select {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    padding: 0 24px;
+    margin-bottom: 20px;
+  }
+
+  .level-btn {
+    padding: 16px 20px;
+    border: 3px solid #c5d3f7;
+    border-radius: 14px;
+    background: #ffffff;
+    cursor: pointer;
+    text-align: left;
+    transition: transform 0.15s, border-color 0.2s, background 0.2s;
+  }
+  .level-btn:hover {
+    transform: scale(1.02);
+    border-color: #ff6b8a;
+    background: #fff0f3;
+  }
+  .level-btn .level-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2d3436;
+    margin-bottom: 4px;
+  }
+  .level-btn .level-desc {
+    font-size: 13px;
+    color: #636e72;
+  }
+  .level-btn .level-num {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ff6b8a;
+    margin-bottom: 2px;
+  }
+  .level-btn.locked {
+    opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* Mobile Controls */
+  #mobile-controls {
+    display: none;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 12px;
+  }
+
+  .mobile-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid #c5d3f7;
+    background: #ffffff;
+    color: #2d3436;
+    font-size: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-btn:active { background: #c5d3f7; }
+
+  @media (pointer: coarse) {
+    #mobile-controls { display: flex; }
+  }
+
+  @media (max-width: 500px) {
+    .star { font-size: 24px; }
+    .mobile-btn { width: 60px; height: 60px; font-size: 28px; }
+    #hear-btn { width: 44px; height: 44px; font-size: 22px; }
+  }
+
+  .feedback {
+    position: absolute;
+    font-size: 64px;
+    z-index: 5;
+    animation: floatUp 1s forwards;
+    pointer-events: none;
+  }
+
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-80px) scale(1.5); }
+  }
+</style>
+</head>
+<body>
+
+<div id="game-wrapper">
+  <div id="hud">
+    <div id="round-label">Round 1 / 5</div>
+    <div id="stars"></div>
+  </div>
+
+  <div id="canvas-wrap">
+    <canvas id="game" width="480" height="640"></canvas>
+    <button id="hear-btn">🔊</button>
+  </div>
+
+  <!-- Level Select -->
+  <div class="overlay" id="start-screen">
+    <h1>Arabic Drive!</h1>
+    <p>Listen to the word.<br>Drive into the correct Arabic text!</p>
+    <div id="level-select"></div>
+  </div>
+
+  <!-- End Screen -->
+  <div class="overlay" id="end-screen" style="display:none;">
+    <h1 id="end-title">Great Job!</h1>
+    <div class="final-stars" id="final-stars"></div>
+    <p id="end-message"></p>
+    <button class="btn" id="restart-btn">Play Again</button>
+    <button class="btn" id="change-level-btn" style="background:none;border:2px solid #ff6b8a;color:#ff6b8a;margin-top:8px;font-size:20px;padding:10px 36px;">Change Level</button>
+    <a href="index.html" class="btn" style="background:none;border:2px solid #ff6b8a;color:#ff6b8a;margin-top:8px;text-decoration:none;display:inline-block;text-align:center;font-size:20px;padding:10px 36px;">Home</a>
+  </div>
+
+  <div id="mobile-controls">
+    <button class="mobile-btn" id="left-btn">⬅️</button>
+    <button class="mobile-btn" id="right-btn">➡️</button>
+  </div>
+</div>
+
+<script src="shared/arabic-data.js"></script>
+<script>
+// ── Constants ──
+var ROUNDS = 5;
+var NUM_CHOICES = 3;
+var LANE_COUNT = 3;
+
+var canvas = document.getElementById("game");
+var ctx = canvas.getContext("2d");
+var W = canvas.width;
+var H = canvas.height;
+var LANE_W = W / LANE_COUNT;
+
+// ── DOM ──
+var starsEl = document.getElementById("stars");
+var roundLabel = document.getElementById("round-label");
+var startScreen = document.getElementById("start-screen");
+var endScreen = document.getElementById("end-screen");
+var wrapper = document.getElementById("game-wrapper");
+var levelSelect = document.getElementById("level-select");
+var hearBtn = document.getElementById("hear-btn");
+
+// ── Game State ──
+var gameRunning = false;
+var car = { lane: 1, width: 50, height: 70 };
+var objects = [];
+var currentRound = 0;
+var starsEarned = 0;
+var sessionWords = [];
+var currentWord = null;
+var activeChoices = [];
+var objectSpeed = 1.8;
+var roadLineOffset = 0;
+var roundActive = false;
+var roundCooldown = 0;
+var currentLevel = null;
+var locked = false;
+var currentAudio = null;
+var firstCorrectHit = true; // track if first attempt per round
+var audioRepeatTimer = null;
+
+// ── Audio ──
+var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playTone(success) {
+  var osc = audioCtx.createOscillator();
+  var gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  gain.gain.value = 0.15;
+  if (success) {
+    osc.frequency.value = 523; osc.type = "sine";
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+  } else {
+    osc.frequency.value = 200; osc.type = "square";
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+  }
+}
+
+// ── Arabic TTS ──
+
+function pickArabicVoice() {
+  var voices = speechSynthesis.getVoices();
+  for (var i = 0; i < voices.length; i++) {
+    if (/ar[-_]SA/i.test(voices[i].lang)) return voices[i];
+  }
+  for (var i = 0; i < voices.length; i++) {
+    if (/^ar/i.test(voices[i].lang)) return voices[i];
+  }
+  return null;
+}
+
+function speakArabic(text) {
+  return new Promise(function (resolve) {
+    speechSynthesis.cancel();
+    setTimeout(function () {
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = "ar-SA";
+      u.rate = 0.7;
+      u.pitch = 1.1;
+      var voice = pickArabicVoice();
+      if (voice) u.voice = voice;
+      u.onend = resolve;
+      u.onerror = resolve;
+      speechSynthesis.speak(u);
+    }, 50);
+  });
+}
+
+function playWordAudio(word) {
+  if (word.tts) return speakArabic(word.text);
+  return new Promise(function (resolve) {
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+    var audio = new Audio(ArabicData.getAudioURL(word));
+    currentAudio = audio;
+    audio.onended = function () { currentAudio = null; resolve(); };
+    audio.onerror = function () { currentAudio = null; resolve(); };
+    audio.play().catch(function () { resolve(); });
+  });
+}
+
+// ── Stars ──
+
+function renderStars() {
+  starsEl.innerHTML = "";
+  for (var i = 0; i < ROUNDS; i++) {
+    var span = document.createElement("span");
+    span.className = "star" + (i < starsEarned ? " earned" : "");
+    span.textContent = i < starsEarned ? "\u2B50" : "\u2606";
+    span.style.color = i < starsEarned ? "gold" : "#555";
+    starsEl.appendChild(span);
+  }
+}
+
+// ── Shuffle ──
+
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+
+// ── Level Selector ──
+
+function buildLevelSelector() {
+  levelSelect.innerHTML = "";
+  var keys = Object.keys(ArabicData.LEVELS);
+  keys.forEach(function (key, i) {
+    var level = ArabicData.LEVELS[key];
+    var isLocked = level.locked;
+    var btn = document.createElement("button");
+    btn.className = "level-btn" + (isLocked ? " locked" : "");
+    btn.innerHTML =
+      '<div class="level-num">Level ' + (i + 2) + '</div>' +
+      '<div class="level-name">' + level.name + (isLocked ? ' 🔒' : '') + '</div>' +
+      '<div class="level-desc">' + (isLocked ? level.lockedReason : level.description) + '</div>';
+    if (!isLocked) {
+      btn.addEventListener("click", function () { startGame(key); });
+    }
+    levelSelect.appendChild(btn);
+  });
+}
+
+// ── Word Selection ──
+
+function pickSessionWords(levelKey) {
+  var words = ArabicData.LEVELS[levelKey].words;
+  return shuffle(words).slice(0, ROUNDS);
+}
+
+function pickDistractors(correctWord, levelKey) {
+  var allWords = ArabicData.LEVELS[levelKey].words;
+  var pool;
+  if (levelKey === "level2") {
+    var vowel = correctWord.transliteration.slice(-1);
+    pool = allWords.filter(function (w) {
+      return w.text !== correctWord.text && w.transliteration.slice(-1) === vowel;
+    });
+  } else {
+    pool = allWords.filter(function (w) { return w.text !== correctWord.text; });
+  }
+  return shuffle(pool).slice(0, NUM_CHOICES - 1);
+}
+
+// ── Spawn Word Objects ──
+
+function spawnObjects() {
+  objects = [];
+  if (activeChoices.length === 0) return;
+
+  var lanes = shuffle([0, 1, 2]).slice(0, activeChoices.length);
+
+  // Stagger vertically so they don't all appear at once
+  for (var i = 0; i < activeChoices.length; i++) {
+    objects.push({
+      word: activeChoices[i],
+      lane: lanes[i],
+      y: -100 - (i * 160),
+      correct: activeChoices[i].text === currentWord.text,
+      hit: false
+    });
+  }
+}
+
+// ── Drawing ──
+
+function drawRoad() {
+  ctx.fillStyle = "#555";
+  ctx.fillRect(0, 0, W, H);
+
+  roadLineOffset = (roadLineOffset + objectSpeed) % 40;
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = 3;
+  ctx.setLineDash([20, 20]);
+  for (var i = 1; i < LANE_COUNT; i++) {
+    ctx.beginPath();
+    ctx.lineDashOffset = -roadLineOffset;
+    ctx.moveTo(i * LANE_W, 0);
+    ctx.lineTo(i * LANE_W, H);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Road edges
+  ctx.fillStyle = "#ff6b8a";
+  ctx.fillRect(0, 0, 6, H);
+  ctx.fillRect(W - 6, 0, 6, H);
+}
+
+function drawCar() {
+  var x = car.lane * LANE_W + LANE_W / 2;
+  var y = H - 100;
+  var w = car.width;
+  var h = car.height;
+
+  ctx.fillStyle = "#ff6b8a";
+  ctx.beginPath();
+  ctx.roundRect(x - w / 2, y - h / 2, w, h, 10);
+  ctx.fill();
+
+  // Windshield
+  ctx.fillStyle = "#7ec8e3";
+  ctx.beginPath();
+  ctx.roundRect(x - w / 2 + 8, y - h / 2 + 8, w - 16, 18, 5);
+  ctx.fill();
+
+  // Wheels
+  ctx.fillStyle = "#222";
+  ctx.fillRect(x - w / 2 - 5, y - h / 2 + 5, 8, 16);
+  ctx.fillRect(x + w / 2 - 3, y - h / 2 + 5, 8, 16);
+  ctx.fillRect(x - w / 2 - 5, y + h / 2 - 21, 8, 16);
+  ctx.fillRect(x + w / 2 - 3, y + h / 2 - 21, 8, 16);
+
+  // Headlights
+  ctx.fillStyle = "#ffd700";
+  ctx.beginPath();
+  ctx.arc(x - w / 2 + 10, y - h / 2 + 2, 4, 0, Math.PI * 2);
+  ctx.arc(x + w / 2 - 10, y - h / 2 + 2, 4, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// Font loaded flag
+var fontReady = false;
+
+function drawWordObjects() {
+  for (var i = 0; i < objects.length; i++) {
+    var obj = objects[i];
+    if (obj.hit) continue;
+
+    var x = obj.lane * LANE_W + LANE_W / 2;
+    var y = obj.y;
+
+    // Draw card background
+    var cardW = LANE_W - 20;
+    var cardH = 64;
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
+    ctx.beginPath();
+    ctx.roundRect(x - cardW / 2, y - cardH / 2, cardW, cardH, 12);
+    ctx.fill();
+    ctx.strokeStyle = "#c5d3f7";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(x - cardW / 2, y - cardH / 2, cardW, cardH, 12);
+    ctx.stroke();
+
+    // Draw Arabic text
+    if (currentLevel === "level2") {
+      ctx.font = '44px "Segoe UI", "Noto Naskh Arabic", "Traditional Arabic", serif';
+    } else {
+      ctx.font = '36px "Uthmanic", "Traditional Arabic", "Noto Naskh Arabic", serif';
+    }
+    ctx.fillStyle = "#2d3436";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.direction = "rtl";
+    ctx.fillText(obj.word.text, x, y + 2);
+  }
+}
+
+// ── Collision ──
+
+function checkCollisions() {
+  var carX = car.lane * LANE_W + LANE_W / 2;
+  var carY = H - 100;
+
+  for (var i = objects.length - 1; i >= 0; i--) {
+    var obj = objects[i];
+    if (obj.hit) continue;
+
+    var objX = obj.lane * LANE_W + LANE_W / 2;
+    var dx = Math.abs(carX - objX);
+    var dy = Math.abs(carY - obj.y);
+
+    if (dx < LANE_W * 0.4 && dy < 50) {
+      if (obj.correct) {
+        // Correct!
+        if (firstCorrectHit) {
+          starsEarned = Math.min(ROUNDS, starsEarned + 1);
+        }
+        playTone(true);
+        renderStars();
+        showFeedback("\u2B50", carX, carY - 60);
+
+        stopAudioRepeat();
+        objects = [];
+        roundActive = false;
+        roundCooldown = 70;
+        return;
+      } else {
+        // Wrong — eliminate this choice
+        obj.hit = true;
+        firstCorrectHit = false;
+        playTone(false);
+        showFeedback("\u274C", objX, obj.y - 40);
+
+        // Remove from activeChoices
+        var wrongText = obj.word.text;
+        activeChoices = activeChoices.filter(function (c) { return c.text !== wrongText; });
+      }
+    }
+  }
+}
+
+// ── Feedback ──
+
+function showFeedback(emoji, x, y) {
+  var el = document.createElement("div");
+  el.className = "feedback";
+  el.textContent = emoji;
+  var rect = canvas.getBoundingClientRect();
+  var scaleX = rect.width / W;
+  var scaleY = rect.height / H;
+  el.style.left = (canvas.offsetLeft + x * scaleX) + "px";
+  el.style.top = (canvas.offsetTop + y * scaleY) + "px";
+  wrapper.appendChild(el);
+  setTimeout(function () { el.remove(); }, 1000);
+}
+
+// ── Round Flow ──
+
+function nextRound() {
+  currentRound++;
+  if (currentRound > ROUNDS) {
+    launchCelebration();
+    return;
+  }
+  currentWord = sessionWords[currentRound - 1];
+  roundLabel.textContent = "Round " + currentRound + " / " + ROUNDS;
+  firstCorrectHit = true;
+
+  var distractors = pickDistractors(currentWord, currentLevel);
+  activeChoices = shuffle([currentWord].concat(distractors));
+
+  // Play the word audio on repeat
+  startAudioRepeat();
+
+  spawnObjects();
+  roundActive = true;
+}
+
+function startAudioRepeat() {
+  stopAudioRepeat();
+  playWordAudio(currentWord);
+  audioRepeatTimer = setInterval(function () {
+    if (currentWord && roundActive) {
+      playWordAudio(currentWord);
+    }
+  }, 3000);
+}
+
+function stopAudioRepeat() {
+  if (audioRepeatTimer) {
+    clearInterval(audioRepeatTimer);
+    audioRepeatTimer = null;
+  }
+}
+
+// ── Celebration ──
+
+function launchCelebration() {
+  stopAudioRepeat();
+  gameRunning = false;
+  drawRoad();
+  drawCar();
+  endGame();
+}
+
+function endGame() {
+  endScreen.style.display = "flex";
+  var finalStars = document.getElementById("final-stars");
+  finalStars.textContent = "";
+  for (var i = 0; i < ROUNDS; i++) {
+    finalStars.textContent += i < starsEarned ? "\u2B50" : "\u2606";
+  }
+  var title = document.getElementById("end-title");
+  var msg = document.getElementById("end-message");
+  if (starsEarned === ROUNDS) {
+    title.textContent = "Perfect Drive!";
+    msg.textContent = "You matched all the words!";
+  } else if (starsEarned >= 3) {
+    title.textContent = "Great Job!";
+    msg.textContent = "Nice driving! Keep practicing!";
+  } else {
+    title.textContent = "Good Try!";
+    msg.textContent = "Play again to get more stars!";
+  }
+}
+
+// ── Game Loop ──
+
+function gameLoop() {
+  if (!gameRunning) return;
+
+  drawRoad();
+  drawCar();
+
+  if (roundActive) {
+    for (var i = 0; i < objects.length; i++) {
+      if (!objects[i].hit) objects[i].y += objectSpeed;
+    }
+
+    drawWordObjects();
+    checkCollisions();
+
+    // Check if all non-hit objects passed the screen — loop them
+    var remaining = objects.filter(function (o) { return !o.hit; });
+    if (remaining.length > 0 && remaining.every(function (o) { return o.y > H + 60; })) {
+      spawnObjects();
+    }
+  } else {
+    if (roundCooldown > 0) {
+      roundCooldown--;
+    } else {
+      nextRound();
+    }
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+// ── Input ──
+
+function moveCar(direction) {
+  if (!gameRunning) return;
+  if (direction === "left" && car.lane > 0) car.lane--;
+  if (direction === "right" && car.lane < LANE_COUNT - 1) car.lane++;
+}
+
+function moveCarToLane(lane) {
+  if (!gameRunning) return;
+  if (lane >= 0 && lane < LANE_COUNT) car.lane = lane;
+}
+
+document.addEventListener("keydown", function (e) {
+  if (e.key === "ArrowLeft") { e.preventDefault(); moveCar("left"); }
+  if (e.key === "ArrowRight") { e.preventDefault(); moveCar("right"); }
+});
+
+canvas.addEventListener("click", function (e) {
+  var rect = canvas.getBoundingClientRect();
+  var x = (e.clientX - rect.left) * (W / rect.width);
+  moveCarToLane(Math.floor(x / LANE_W));
+});
+
+canvas.addEventListener("touchstart", function (e) {
+  e.preventDefault();
+  var rect = canvas.getBoundingClientRect();
+  var touch = e.touches[0];
+  var x = (touch.clientX - rect.left) * (W / rect.width);
+  moveCarToLane(Math.floor(x / LANE_W));
+});
+
+document.getElementById("left-btn").addEventListener("touchstart", function (e) { e.preventDefault(); moveCar("left"); });
+document.getElementById("right-btn").addEventListener("touchstart", function (e) { e.preventDefault(); moveCar("right"); });
+document.getElementById("left-btn").addEventListener("click", function () { moveCar("left"); });
+document.getElementById("right-btn").addEventListener("click", function () { moveCar("right"); });
+
+// ── Hear Again ──
+
+hearBtn.addEventListener("click", function (e) {
+  e.stopPropagation();
+  if (currentWord && gameRunning) {
+    hearBtn.classList.add("playing");
+    playWordAudio(currentWord).then(function () {
+      hearBtn.classList.remove("playing");
+    });
+  }
+});
+
+// ── Start / Restart ──
+
+function startGame(levelKey) {
+  currentLevel = levelKey;
+  startScreen.style.display = "none";
+  endScreen.style.display = "none";
+  starsEarned = 0;
+  currentRound = 0;
+  objects = [];
+  roundActive = false;
+  roundCooldown = 50;
+  car.lane = 1;
+  sessionWords = pickSessionWords(levelKey);
+  renderStars();
+  gameRunning = true;
+  gameLoop();
+}
+
+function showLevelSelect() {
+  endScreen.style.display = "none";
+  startScreen.style.display = "flex";
+}
+
+document.getElementById("restart-btn").addEventListener("click", function () { startGame(currentLevel); });
+document.getElementById("change-level-btn").addEventListener("click", showLevelSelect);
+
+// ── Init ──
+if (speechSynthesis.onvoiceschanged !== undefined) {
+  speechSynthesis.onvoiceschanged = function () { speechSynthesis.getVoices(); };
+}
+speechSynthesis.getVoices();
+
+// Preload Uthmanic font for canvas rendering
+document.fonts.ready.then(function () { fontReady = true; });
+
+buildLevelSelector();
+renderStars();
+</script>
+
+</body>
+</html>

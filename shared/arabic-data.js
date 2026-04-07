@@ -98,7 +98,7 @@ window.ArabicData = (function () {
         { text: "بَخِلَ", transliteration: "bakhila", translation: "withholds", audio_url: "wbw/092_008_003.mp3", verse: "92:8" },
         { text: "خُلِقَ", transliteration: "khuliqa", translation: "he is created", audio_url: "wbw/086_005_004.mp3", verse: "86:5" },
         { text: "وَذَكَرَ", transliteration: "wadhakara", translation: "and remembers", audio_url: "wbw/087_015_001.mp3", verse: "87:15" },
-        { text: "دِينُ", transliteration: "dinu", translation: "religion", audio_url: "wbw/098_005_016.mp3", verse: "98:5" },
+        { text: "بِرَبِّ", transliteration: "birabbi", translation: "in the Lord", audio_url: "wbw/113_001_003.mp3", verse: "113:1" },
       ]
     },
 
@@ -153,7 +153,7 @@ window.ArabicData = (function () {
         { text: "إِنَّآ", transliteration: "inna", translation: "Indeed, We", audio_url: "wbw/108_001_001.mp3", verse: "108:1" },
         { text: "لِكُلِّ", transliteration: "likulli", translation: "to every", audio_url: "wbw/104_001_002.mp3", verse: "104:1" },
         { text: "لِحُبِّ", transliteration: "lihubbi", translation: "in the love", audio_url: "wbw/100_008_002.mp3", verse: "100:8" },
-        { text: "رَبَّهُۥ", transliteration: "rabbahu", translation: "his Lord", audio_url: "wbw/098_008_023.mp3", verse: "98:8" },
+        { text: "رَبُّهُۥ", transliteration: "rabbuhu", translation: "his Lord", audio_url: "wbw/089_015_006.mp3", verse: "89:15" },
         { text: "إِنَّهُۥ", transliteration: "innahu", translation: "Indeed, He", audio_url: "wbw/110_003_006.mp3", verse: "110:3" },
         { text: "بِأَنَّ", transliteration: "bi-anna", translation: "that", audio_url: "wbw/096_014_003.mp3", verse: "96:14" },
         { text: "وَدَّعَكَ", transliteration: "waddaʿaka", translation: "has forsaken you", audio_url: "wbw/093_003_002.mp3", verse: "93:3" },
