@@ -97,6 +97,159 @@
     padding: 10px;
   }
 
+  /* ── Rocket ── */
+  #rocket-area {
+    position: relative;
+    height: 200px;
+    margin: 0 auto 16px;
+    width: 120px;
+  }
+
+  .rocket-part {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: opacity 0.5s, transform 0.5s;
+    opacity: 0;
+    filter: drop-shadow(0 0 6px rgba(255,255,255,0.3));
+  }
+
+  .rocket-part.built {
+    opacity: 1;
+    animation: rocketPartPop 0.5s ease-out;
+  }
+
+  @keyframes rocketPartPop {
+    0% { transform: translateX(-50%) scale(0.3) rotate(-10deg); opacity: 0; }
+    60% { transform: translateX(-50%) scale(1.1) rotate(3deg); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  #rp-engine { bottom: 0; width: 70px; height: 42px; }
+  #rp-engine .rp-base {
+    width: 70px; height: 26px;
+    background: #555;
+    border-radius: 0 0 8px 8px;
+    margin: 0 auto;
+  }
+  #rp-engine .rp-nozzle {
+    width: 26px; height: 16px;
+    background: #333;
+    border-radius: 0 0 6px 6px;
+    margin: 0 auto;
+  }
+
+  #rp-lower {
+    bottom: 38px; width: 60px; height: 58px;
+    background: linear-gradient(135deg, var(--rocket-main), var(--rocket-dark));
+    border-radius: 3px;
+  }
+
+  #rp-upper {
+    bottom: 92px; width: 60px; height: 58px;
+    background: linear-gradient(135deg, var(--rocket-main), var(--rocket-dark));
+    border-radius: 3px;
+  }
+
+  #rp-window {
+    bottom: 100px; width: 26px; height: 26px;
+    background: radial-gradient(circle at 40% 35%, #a8e6ff, #4a9cc7);
+    border: 3px solid #ddd;
+    border-radius: 50%;
+    z-index: 2;
+  }
+
+  #rp-nose {
+    bottom: 146px;
+    width: 0; height: 0;
+    border-left: 30px solid transparent;
+    border-right: 30px solid transparent;
+    border-bottom: 50px solid var(--rocket-dark);
+    border-radius: 3px;
+  }
+
+  #rp-lower::before, #rp-lower::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: 0; height: 0;
+  }
+  #rp-lower::before {
+    left: -15px;
+    border-left: 15px solid transparent;
+    border-bottom: 34px solid var(--rocket-fin);
+  }
+  #rp-lower::after {
+    right: -15px;
+    border-right: 15px solid transparent;
+    border-bottom: 34px solid var(--rocket-fin);
+  }
+
+  #rp-flame {
+    position: absolute;
+    bottom: -65px; left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  #rp-flame.active { opacity: 1; animation: rFlicker 0.15s infinite alternate; }
+
+  @keyframes rFlicker {
+    0% { transform: translateX(-50%) scaleY(1) scaleX(1); }
+    100% { transform: translateX(-50%) scaleY(1.15) scaleX(0.9); }
+  }
+
+  .rp-flame-outer {
+    width: 34px; height: 58px;
+    background: linear-gradient(to top, transparent, #ff6600, #ff9900);
+    border-radius: 50% 50% 30% 30%;
+    position: relative;
+  }
+  .rp-flame-inner {
+    position: absolute; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 16px; height: 38px;
+    background: linear-gradient(to top, transparent, #ffcc00, #fff);
+    border-radius: 50% 50% 30% 30%;
+  }
+
+  #rocket-area.launching { animation: rLaunch 2.5s ease-in forwards; }
+
+  @keyframes rLaunch {
+    0% { transform: translateY(0); }
+    10% { transform: translateY(5px); }
+    100% { transform: translateY(-700px); }
+  }
+
+  #launch-msg {
+    position: absolute;
+    top: 30%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 42px;
+    font-weight: 900;
+    color: #ffd700;
+    z-index: 15;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #launch-msg.show { animation: launchText 2.5s forwards; }
+
+  @keyframes launchText {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -80%) scale(1.3); }
+  }
+
+  .smoke {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(200,200,200,0.6);
+    pointer-events: none;
+    z-index: 0;
+  }
+
   #choices {
     display: flex;
     gap: 24px;
@@ -350,6 +503,24 @@
   </div>
   <div id="game-area">
     <div id="sentence-display"></div>
+
+    <div id="rocket-area">
+      <div class="rocket-part" id="rp-nose"></div>
+      <div class="rocket-part" id="rp-window"></div>
+      <div class="rocket-part" id="rp-upper"></div>
+      <div class="rocket-part" id="rp-lower"></div>
+      <div class="rocket-part" id="rp-engine">
+        <div class="rp-base"></div>
+        <div class="rp-nozzle"></div>
+      </div>
+      <div id="rp-flame">
+        <div class="rp-flame-outer">
+          <div class="rp-flame-inner"></div>
+        </div>
+      </div>
+    </div>
+    <div id="launch-msg">LIFTOFF!</div>
+
     <div id="choices"></div>
   </div>
 
@@ -415,6 +586,106 @@ function playTone(success) {
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
     osc.start(); osc.stop(audioCtx.currentTime + 0.3);
   }
+}
+
+// ── Rocket ──
+const ROCKET_PARTS = ["rp-engine", "rp-lower", "rp-upper", "rp-window", "rp-nose"];
+const rocketArea = document.getElementById("rocket-area");
+const rocketFlame = document.getElementById("rp-flame");
+const launchMsg = document.getElementById("launch-msg");
+let partsBuilt = 0;
+
+const ROCKET_COLORS = [
+  { main: "#ff6b8a", dark: "#e8527a", fin: "#b52e45" },
+  { main: "#4a90d9", dark: "#2e6bb5", fin: "#245a9e" },
+  { main: "#45c945", dark: "#2ea82e", fin: "#238f23" },
+  { main: "#f5a623", dark: "#d4891a", fin: "#b87315" },
+  { main: "#a855f7", dark: "#8b3fd9", fin: "#7630bc" },
+  { main: "#f472b6", dark: "#d94f9a", fin: "#c03d84" },
+  { main: "#facc15", dark: "#d4a90e", fin: "#b8920a" },
+  { main: "#22d3ee", dark: "#18a8be", fin: "#1290a3" },
+];
+
+function resetRocket() {
+  partsBuilt = 0;
+  for (var i = 0; i < ROCKET_PARTS.length; i++) {
+    document.getElementById(ROCKET_PARTS[i]).classList.remove("built");
+  }
+  rocketFlame.classList.remove("active");
+  rocketArea.classList.remove("launching");
+  launchMsg.classList.remove("show");
+  var color = ROCKET_COLORS[Math.floor(Math.random() * ROCKET_COLORS.length)];
+  rocketArea.style.setProperty("--rocket-main", color.main);
+  rocketArea.style.setProperty("--rocket-dark", color.dark);
+  rocketArea.style.setProperty("--rocket-fin", color.fin);
+}
+
+function addRocketPart() {
+  if (partsBuilt < ROCKET_PARTS.length) {
+    document.getElementById(ROCKET_PARTS[partsBuilt]).classList.add("built");
+    partsBuilt++;
+  }
+}
+
+function playLaunchSound() {
+  var noise = audioCtx.createOscillator();
+  var noiseGain = audioCtx.createGain();
+  noise.type = "sawtooth";
+  noise.frequency.value = 80;
+  noise.connect(noiseGain);
+  noiseGain.connect(audioCtx.destination);
+  noiseGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+  noiseGain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.5);
+  noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 2.5);
+  noise.start();
+  noise.stop(audioCtx.currentTime + 2.5);
+}
+
+function spawnSmoke() {
+  var gameArea = document.getElementById("game-area");
+  var rRect = rocketArea.getBoundingClientRect();
+  var aRect = gameArea.getBoundingClientRect();
+  var baseX = rRect.left - aRect.left + rRect.width / 2;
+  var baseY = rRect.top - aRect.top + rRect.height;
+  var count = 0;
+  var interval = setInterval(function () {
+    if (count > 15) { clearInterval(interval); return; }
+    var smoke = document.createElement("div");
+    smoke.className = "smoke";
+    var size = 12 + Math.random() * 25;
+    smoke.style.width = size + "px";
+    smoke.style.height = size + "px";
+    smoke.style.left = (baseX - size / 2 + (Math.random() - 0.5) * 50) + "px";
+    smoke.style.top = (baseY - size / 2) + "px";
+    smoke.style.transition = "all 1.5s ease-out";
+    gameArea.appendChild(smoke);
+    requestAnimationFrame(function () {
+      smoke.style.top = (baseY + 40 + Math.random() * 60) + "px";
+      smoke.style.left = (baseX - size / 2 + (Math.random() - 0.5) * 120) + "px";
+      smoke.style.opacity = "0";
+      smoke.style.transform = "scale(" + (1.5 + Math.random()) + ")";
+    });
+    setTimeout(function () { smoke.remove(); }, 1600);
+    count++;
+  }, 100);
+}
+
+function launchRocket(callback) {
+  sentenceDisplay.style.visibility = "hidden";
+  choicesEl.style.visibility = "hidden";
+
+  rocketFlame.classList.add("active");
+  playLaunchSound();
+  spawnSmoke();
+
+  setTimeout(function () {
+    rocketArea.classList.add("launching");
+    launchMsg.classList.add("show");
+  }, 600);
+
+  setTimeout(function () {
+    callback();
+  }, 3500);
 }
 
 function renderStars() {
@@ -525,6 +796,7 @@ function handlePick(card, isCorrect) {
     starsEarned = Math.min(ROUNDS, starsEarned + 1);
     playTone(true);
     showFeedback("⭐", card);
+    addRocketPart();
 
     allCards.forEach(c => {
       c.classList.add("disabled");
@@ -625,16 +897,19 @@ function showReward() {
 }
 
 function endGame() {
-  const showRewardNow = starsEarned === ROUNDS && Math.random() < 0.5;
+  // Launch rocket first, then show end screen
+  launchRocket(function () {
+    sentenceDisplay.style.visibility = "visible";
+    choicesEl.style.visibility = "visible";
 
-  if (showRewardNow) {
-    showReward();
-    setTimeout(() => {
+    const showRewardNow = starsEarned === ROUNDS && Math.random() < 0.5;
+    if (showRewardNow) {
+      showReward();
+      setTimeout(() => { endScreen.style.display = "flex"; }, 2800);
+    } else {
       endScreen.style.display = "flex";
-    }, 2800);
-  } else {
-    endScreen.style.display = "flex";
-  }
+    }
+  });
 
   const finalStars = document.getElementById("final-stars");
   finalStars.textContent = "";
@@ -662,6 +937,7 @@ function startGame() {
   hintsLeft = TOTAL_HINTS;
   currentRound = 0;
   sessionSentences = pickSession();
+  resetRocket();
   renderStars();
   renderHints();
   setupRound();
@@ -671,6 +947,7 @@ document.getElementById("start-btn").addEventListener("click", startGame);
 document.getElementById("restart-btn").addEventListener("click", startGame);
 
 KidsGame.createMuteToggle();
+resetRocket();
 renderStars();
 renderHints();
 </script>
