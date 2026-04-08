@@ -231,6 +231,7 @@ let roadLineOffset = 0;
 let feedbacks = [];
 let roundActive = false;
 let roundCooldown = 0;
+let firstCorrectHit = true;
 
 // ── DOM Elements ──
 const wordDisplay = document.getElementById("word-display");
@@ -265,12 +266,13 @@ function spawnObjects() {
   const lanes = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
   const correctLane = lanes[0];
 
-  // Place correct emoji
+  // Place correct emoji — stagger vertically so they don't all appear at once
   objects.push({
     emoji: currentWord.emoji,
     lane: correctLane,
-    y: -80,
+    y: -80 - (0 * 160),
     correct: true,
+    hit: false,
     size: 50,
   });
 
@@ -279,12 +281,16 @@ function spawnObjects() {
     objects.push({
       emoji: currentWord.distractors[i],
       lane: lanes[i + 1],
-      y: -80,
+      y: -80 - ((i + 1) * 160),
       correct: false,
+      hit: false,
       size: 50,
     });
   }
 
+  // Shuffle so correct isn't always first in the array
+  objects.sort(() => Math.random() - 0.5);
+  firstCorrectHit = true;
   roundActive = true;
 }
 
@@ -351,6 +357,7 @@ function drawRoad() {
 // ── Object Drawing ──
 function drawObjects() {
   for (const obj of objects) {
+    if (obj.hit) continue;
     const x = obj.lane * LANE_W + LANE_W / 2;
     ctx.font = `${obj.size}px serif`;
     ctx.textAlign = "center";
@@ -366,6 +373,7 @@ function checkCollisions() {
 
   for (let i = objects.length - 1; i >= 0; i--) {
     const obj = objects[i];
+    if (obj.hit) continue;
     const objX = obj.lane * LANE_W + LANE_W / 2;
 
     const dx = Math.abs(carX - objX);
@@ -373,19 +381,24 @@ function checkCollisions() {
 
     if (dx < 45 && dy < 45) {
       if (obj.correct) {
-        starsEarned = Math.min(WORDS_PER_SESSION, starsEarned + 1);
+        // Correct — earn star only on first correct hit
+        if (firstCorrectHit) {
+          starsEarned = Math.min(WORDS_PER_SESSION, starsEarned + 1);
+        }
         showFeedback("⭐", carX, carY - 60);
         playTone(true);
+        renderStars();
+        objects = [];
+        roundActive = false;
+        roundCooldown = 60;
+        return;
       } else {
-        starsEarned = Math.max(0, starsEarned - 1);
-        showFeedback("❌", carX, carY - 60);
+        // Wrong — just disappear, round continues
+        obj.hit = true;
+        firstCorrectHit = false;
+        showFeedback("❌", objX, obj.y - 40);
         playTone(false);
       }
-      renderStars();
-      objects = [];
-      roundActive = false;
-      roundCooldown = 60; // ~1 second pause before next word
-      return;
     }
   }
 }
@@ -468,19 +481,28 @@ function gameLoop() {
   if (roundActive) {
     // Move objects down
     for (const obj of objects) {
-      obj.y += objectSpeed;
+      if (!obj.hit) obj.y += objectSpeed;
+    }
+
+    // Loop objects back to top when they pass the bottom
+    for (const obj of objects) {
+      if (!obj.hit && obj.y > H + 50) {
+        // Find the highest (most negative / closest to top) visible object
+        let minY = 0;
+        for (const o of objects) {
+          if (!o.hit && o.y < minY) minY = o.y;
+        }
+        obj.y = minY - 160;
+        // Randomize lane on respawn
+        const usedLanes = objects.filter(o => o !== obj && !o.hit && Math.abs(o.y - obj.y) < 100).map(o => o.lane);
+        let newLane;
+        do { newLane = Math.floor(Math.random() * LANE_COUNT); } while (usedLanes.includes(newLane));
+        obj.lane = newLane;
+      }
     }
 
     drawObjects();
     checkCollisions();
-
-    // If objects pass the screen, treat as a miss — move to next round
-    const allPassed = objects.length > 0 && objects.every(o => o.y > H + 50);
-    if (allPassed) {
-      objects = [];
-      roundActive = false;
-      roundCooldown = 40;
-    }
   } else {
     if (roundCooldown > 0) {
       roundCooldown--;

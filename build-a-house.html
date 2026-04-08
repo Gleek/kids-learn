@@ -307,7 +307,7 @@
     // frames: 5 dotted frames the kid fills with simple shapes
     const SCENES = [
       {
-        name: "House", icon: "\uD83C\uDFE0",
+        name: "House", icon: "\uD83C\uDFE0", sound: "audio/scenes/house-birds.mp3",
         prebuilt: [
           // Grass ground
           { css: "bottom:0;left:0;width:320px;height:28px;background:linear-gradient(to top,#1b5e20,#4caf50);border-radius:0 0 4px 4px;" },
@@ -341,7 +341,7 @@
         ]
       },
       {
-        name: "Train", icon: "\uD83D\uDE82",
+        name: "Train", icon: "\uD83D\uDE82", sound: "audio/scenes/train-whistle.mp3",
         prebuilt: [
           // Ground/track
           { css: "bottom:0;left:0;width:320px;height:18px;background:linear-gradient(to top,#5d4037,#795548);border-radius:0 0 4px 4px;" },
@@ -375,7 +375,7 @@
         ]
       },
       {
-        name: "Robot", icon: "\uD83E\uDD16",
+        name: "Robot", icon: "\uD83E\uDD16", sound: "audio/scenes/robot-beeps.mp3",
         prebuilt: [
           // Ground
           { css: "bottom:0;left:0;width:320px;height:16px;background:linear-gradient(to top,#37474f,#546e7a);border-radius:0 0 4px 4px;" },
@@ -414,7 +414,7 @@
         ]
       },
       {
-        name: "Snowman", icon: "\u26C4",
+        name: "Snowman", icon: "\u26C4", sound: "audio/scenes/snowman-wind.mp3",
         prebuilt: [
           // Snow ground
           { css: "bottom:0;left:0;width:320px;height:24px;background:linear-gradient(to top,#e0e0e0,#f5f5f5);border-radius:0 0 4px 4px;" },
@@ -451,7 +451,7 @@
         ]
       },
       {
-        name: "Boat", icon: "\u26F5",
+        name: "Boat", icon: "\u26F5", sound: "audio/scenes/boat-horn.mp3",
         prebuilt: [
           // Sky gradient
           { css: "top:0;left:0;width:320px;height:120px;background:linear-gradient(180deg,#1565c0,#42a5f5);border-radius:4px 4px 0 0;z-index:0;" },
@@ -486,7 +486,7 @@
         ]
       },
       {
-        name: "Truck", icon: "\uD83D\uDE9B",
+        name: "Truck", icon: "\uD83D\uDE9B", sound: "audio/scenes/truck-engine.mp3",
         prebuilt: [
           // Road
           { css: "bottom:0;left:0;width:320px;height:24px;background:linear-gradient(to top,#424242,#616161);border-radius:0 0 4px 4px;" },
@@ -522,7 +522,7 @@
         ]
       },
       {
-        name: "Dog", icon: "\uD83D\uDC36",
+        name: "Dog", icon: "\uD83D\uDC36", sound: "audio/scenes/dog-bark.mp3",
         prebuilt: [
           // Ground
           { css: "bottom:0;left:0;width:320px;height:16px;background:linear-gradient(to top,#2e7d32,#4caf50);border-radius:0 0 4px 4px;" },
@@ -556,7 +556,7 @@
         ]
       },
       {
-        name: "Fish", icon: "\uD83D\uDC1F",
+        name: "Fish", icon: "\uD83D\uDC1F", sound: "audio/scenes/fish-splash.mp3",
         prebuilt: [
           // Water background
           { css: "top:0;left:0;width:320px;height:270px;background:linear-gradient(180deg,#0277bd,#01579b);border-radius:4px;z-index:0;" },
@@ -595,7 +595,7 @@
         ]
       },
       {
-        name: "Flower", icon: "\uD83C\uDF3B",
+        name: "Flower", icon: "\uD83C\uDF3B", sound: "audio/scenes/flower-bee.mp3",
         prebuilt: [
           // Ground
           { css: "bottom:0;left:0;width:320px;height:24px;background:linear-gradient(to top,#1b5e20,#4caf50);border-radius:0 0 4px 4px;" },
@@ -627,7 +627,7 @@
         ]
       },
       {
-        name: "Tree", icon: "\uD83C\uDF32",
+        name: "Tree", icon: "\uD83C\uDF32", sound: "audio/scenes/tree-leaves.mp3",
         prebuilt: [
           // Ground
           { css: "bottom:0;left:0;width:320px;height:20px;background:linear-gradient(to top,#1b5e20,#4caf50);border-radius:0 0 4px 4px;" },
@@ -660,7 +660,7 @@
         ]
       },
       {
-        name: "Mouse", icon: "\uD83D\uDC2D",
+        name: "Mouse", icon: "\uD83D\uDC2D", sound: "audio/scenes/mouse-squeak.mp3",
         prebuilt: [
           // Whiskers left
           { css: "bottom:92px;left:60px;width:44px;height:2px;background:#555;transform:rotate(-8deg);z-index:4;" },
@@ -695,7 +695,7 @@
         ]
       },
       {
-        name: "Car", icon: "\uD83D\uDE97",
+        name: "Car", icon: "\uD83D\uDE97", sound: "audio/scenes/car-vroom.mp3",
         prebuilt: [
           // Road
           { css: "bottom:0;left:0;width:320px;height:22px;background:linear-gradient(to top,#424242,#616161);border-radius:0 0 4px 4px;" },
@@ -731,7 +731,7 @@
         ]
       },
       {
-        name: "Butterfly", icon: "\uD83E\uDD8B",
+        name: "Butterfly", icon: "\uD83E\uDD8B", sound: "audio/scenes/butterfly-sparkle.mp3",
         prebuilt: [
           // Sky
           { css: "top:0;left:0;width:320px;height:270px;background:linear-gradient(180deg,#e1f5fe,#b3e5fc);border-radius:4px;z-index:0;" },
@@ -952,8 +952,18 @@
       renderChoices(frame.shape);
     }
 
+    var sceneAudio = null;
+    function playSceneSound() {
+      if (sceneAudio) { sceneAudio.pause(); sceneAudio = null; }
+      if (currentScene && currentScene.sound) {
+        sceneAudio = new Audio(currentScene.sound);
+        sceneAudio.play().catch(function () {});
+      }
+    }
+
     function endGame() {
       Object.values(frameEls).forEach(el => el.classList.remove("active"));
+      playSceneSound();
       const msg = KidsGame.endGameMessage(stars, TOTAL_ROUNDS);
       $endTitle.textContent = msg.title;
       $endMsg.textContent = msg.message;
@@ -982,6 +992,7 @@
     }
 
     function beginGame(sceneIndex) {
+      if (sceneAudio) { sceneAudio.pause(); sceneAudio = null; }
       round = 1;
       stars = 0;
       answered = false;
