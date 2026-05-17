@@ -42,6 +42,19 @@ window.GameData = (function () {
     { word: "NUT", emoji: "🥜", distractors: ["🌰", "🥥", "🍎"] },
   ];
 
+  const WORD_BUILD_WORDS = CVC_WORDS.concat([
+    { word: "FISH", emoji: "🐟" },
+    { word: "DUCK", emoji: "🦆" },
+    { word: "BIRD", emoji: "🐦" },
+    { word: "FROG", emoji: "🐸" },
+    { word: "MOON", emoji: "🌙" },
+    { word: "STAR", emoji: "⭐" },
+    { word: "TREE", emoji: "🌳" },
+    { word: "CAKE", emoji: "🎂" },
+    { word: "BALL", emoji: "⚽" },
+    { word: "BOOK", emoji: "📖" },
+  ]);
+
   // ── Sentence Scene Data ──
   const IMG = "images/sentence/";
 
@@ -172,6 +185,7 @@ window.GameData = (function () {
 
   return {
     CVC_WORDS,
+    WORD_BUILD_WORDS,
     ALL_IMAGES,
     SENTENCES,
     SHAPES,

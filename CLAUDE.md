@@ -49,6 +49,8 @@ Prefer using `KidsGame` helpers instead of reimplementing:
 
 Use `Builder.init(vehicleArea, "random")`, `Builder.addPart()`, and `Builder.celebrate(callback)` for builder-based games. Random builder vehicles respect settings from `settings.html`.
 
+Every game should use the shared vehicle builder celebration and shared random reward/present logic unless it does not make sense for that game or the user explicitly asks otherwise. Do not reimplement local boy-surprise or present-surprise timing when `Builder.celebrate()` and `KidsGame.showEndScreen()` can provide the shared behavior.
+
 ## Implementation Notes
 
 - Keep game pages self-contained unless code is clearly common across games.

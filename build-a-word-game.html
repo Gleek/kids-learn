@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build a Word</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #f0f8f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none;
+    color: #2d3436;
+  }
+
+  #game-wrapper {
+    position: relative;
+    width: min(520px, 100vw - 20px);
+    text-align: center;
+  }
+
+  #hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: #ffffff;
+    border-radius: 16px 16px 0 0;
+    border: 3px solid #b9dbc8;
+    border-bottom: none;
+  }
+
+  #round-label {
+    font-size: 18px;
+    color: #557063;
+    font-weight: 700;
+  }
+
+  #stars {
+    display: flex;
+    gap: 6px;
+  }
+
+  .star {
+    font-size: 28px;
+    transition: all 0.3s;
+  }
+
+  .star.earned { filter: drop-shadow(0 0 6px gold); }
+
+  #game-area {
+    background: linear-gradient(180deg, #dff7eb 0%, #fff7df 100%);
+    border: 3px solid #b9dbc8;
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 24px 18px 30px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #word-emoji {
+    font-size: 48px;
+    line-height: 1;
+    width: 58px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #vehicle-area {
+    position: relative;
+    margin: 0 auto 20px;
+    z-index: 1;
+  }
+
+  #word-prompt {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 0 auto 24px;
+  }
+
+  #word-blocks {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 0;
+    min-height: 68px;
+  }
+
+  .letter-block {
+    width: 62px;
+    height: 68px;
+    border-radius: 8px;
+    border: 4px solid #7bb696;
+    background: rgba(255, 255, 255, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    font-weight: 900;
+    color: #2d3436;
+    text-transform: uppercase;
+  }
+
+  .letter-block.filled {
+    background: #ffffff;
+    border-color: #ffb84d;
+    animation: pop 0.25s ease-out;
+  }
+
+  #letter-options {
+    display: grid;
+    grid-template-columns: repeat(3, 82px);
+    justify-content: center;
+    gap: 12px;
+    margin: 0 auto;
+  }
+
+  .letter-btn {
+    width: 82px;
+    height: 74px;
+    border-radius: 8px;
+    border: 4px solid #b9dbc8;
+    background: #ffffff;
+    color: #2d3436;
+    font-size: 36px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s, background 0.15s;
+  }
+
+  .letter-btn:hover {
+    transform: scale(1.06);
+    border-color: #ff6b8a;
+    background: #fff0f3;
+  }
+
+  .letter-btn:active { transform: scale(0.96); }
+
+  .letter-btn.correct {
+    border-color: #4caf50;
+    background: #e8f5e9;
+  }
+
+  .letter-btn.wrong {
+    border-color: #ff6b8a;
+    background: #fce4ec;
+    animation: shake 0.35s;
+  }
+
+  .letter-btn.used,
+  .letter-btn.disabled {
+    pointer-events: none;
+    opacity: 0.45;
+  }
+
+  .overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(240, 248, 244, 0.97);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 16px;
+    z-index: 20;
+    padding: 20px;
+  }
+
+  .overlay h1 {
+    font-size: 42px;
+    color: #ff6b8a;
+    margin-bottom: 16px;
+  }
+
+  .overlay p {
+    font-size: 22px;
+    color: #2d3436;
+    margin-bottom: 30px;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .overlay .final-stars {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    font-size: 28px;
+    padding: 14px 44px;
+    border: none;
+    border-radius: 50px;
+    background: #ff6b8a;
+    color: #fff;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn:hover { background: #e8527a; transform: scale(1.05); }
+
+  .home-btn {
+    background: none;
+    border: 2px solid #ff6b8a;
+    color: #ff6b8a;
+    margin-top: 8px;
+  }
+
+  .feedback-float {
+    position: absolute;
+    font-size: 56px;
+    z-index: 15;
+    animation: floatUp 0.8s forwards;
+    pointer-events: none;
+  }
+
+  #reward-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 25;
+    pointer-events: none;
+    display: none;
+  }
+
+  #reward-overlay.active {
+    display: block;
+  }
+
+  .confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+    pointer-events: none;
+  }
+
+  #reward-emoji {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    font-size: 100px;
+    z-index: 26;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #reward-emoji.active {
+    animation: rewardPop 2.5s ease-out forwards;
+  }
+
+  @keyframes pop {
+    0% { transform: scale(0.9); }
+    60% { transform: scale(1.12); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-60px) scale(1.4); }
+  }
+
+  @keyframes confettiFall {
+    0% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(600px) rotate(720deg) scale(0.5); }
+  }
+
+  @keyframes rewardPop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(-20deg); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(5deg); }
+    35% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5) rotate(10deg); }
+  }
+
+  @media (max-width: 420px) {
+    #word-emoji {
+      width: 48px;
+      height: 48px;
+      font-size: 40px;
+    }
+    #word-prompt {
+      gap: 8px;
+    }
+    .letter-block {
+      width: 48px;
+      height: 58px;
+      font-size: 32px;
+    }
+    #letter-options {
+      grid-template-columns: repeat(3, 74px);
+      gap: 10px;
+    }
+    .letter-btn {
+      width: 74px;
+      height: 66px;
+      font-size: 32px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="game-wrapper">
+  <div id="hud">
+    <div id="round-label">Round 1 / 5</div>
+    <div id="stars"></div>
+  </div>
+  <div id="game-area">
+    <div id="vehicle-area"></div>
+
+    <div id="word-prompt">
+      <div id="word-emoji">🐱</div>
+      <div id="word-blocks" aria-label="Word blocks"></div>
+    </div>
+    <div id="letter-options" aria-label="Letter options"></div>
+  </div>
+
+  <div id="reward-overlay"></div>
+  <div id="reward-emoji">🎁</div>
+
+  <div class="overlay" id="start-screen">
+    <h1>🔤 Build a Word</h1>
+    <p>Look at the picture.<br>Tap the letters in order<br>to build the word!</p>
+    <button class="btn" id="start-btn">GO!</button>
+  </div>
+
+  <div class="overlay" id="end-screen" style="display:none;">
+    <h1 id="end-title">Great Job!</h1>
+    <div class="final-stars" id="final-stars"></div>
+    <p id="end-message"></p>
+    <button class="btn" id="restart-btn">Play Again!</button>
+    <a href="index.html" class="btn home-btn">Home</a>
+  </div>
+</div>
+
+<script src="shared/data.js"></script>
+<script src="shared/game.js"></script>
+<script src="shared/builder.js"></script>
+<script>
+const WORDS = GameData.WORD_BUILD_WORDS || GameData.CVC_WORDS;
+const ROUNDS = 5;
+const EXTRA_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "R", "S", "T", "U", "W", "Y"];
+
+const roundLabel = document.getElementById("round-label");
+const starsEl = document.getElementById("stars");
+const wordEmoji = document.getElementById("word-emoji");
+const wordPrompt = document.getElementById("word-prompt");
+const wordBlocks = document.getElementById("word-blocks");
+const letterOptions = document.getElementById("letter-options");
+const startScreen = document.getElementById("start-screen");
+const endScreen = document.getElementById("end-screen");
+const wrapper = document.getElementById("game-wrapper");
+const vehicleArea = document.getElementById("vehicle-area");
+
+let currentRound = 0;
+let starsEarned = 0;
+let sessionWords = [];
+let currentWord = null;
+let nextLetterIndex = 0;
+let locked = false;
+
+function renderStars() {
+  KidsGame.renderStars(starsEl, starsEarned, ROUNDS);
+}
+
+function pickSessionWords() {
+  return KidsGame.pickRandom(WORDS, ROUNDS);
+}
+
+function pickExtraLetters(word) {
+  const wordLetters = word.split("");
+  const count = Math.random() < 0.5 ? 1 : 2;
+  return KidsGame.shuffle(EXTRA_LETTERS.filter(letter => !wordLetters.includes(letter))).slice(0, count);
+}
+
+function renderBlocks(word) {
+  wordBlocks.innerHTML = "";
+  for (let i = 0; i < word.length; i++) {
+    const block = document.createElement("div");
+    block.className = "letter-block";
+    block.setAttribute("aria-label", `Letter ${i + 1}`);
+    wordBlocks.appendChild(block);
+  }
+}
+
+function renderLetterOptions(word) {
+  const letters = KidsGame.shuffle(word.split("").concat(pickExtraLetters(word)));
+  letterOptions.innerHTML = "";
+
+  letters.forEach(letter => {
+    const btn = document.createElement("button");
+    btn.className = "letter-btn";
+    btn.type = "button";
+    btn.textContent = letter;
+    btn.addEventListener("click", () => handleLetterPick(btn, letter));
+    letterOptions.appendChild(btn);
+  });
+}
+
+function setupRound() {
+  currentWord = sessionWords[currentRound];
+  nextLetterIndex = 0;
+  locked = false;
+  roundLabel.textContent = `Round ${currentRound + 1} / ${ROUNDS}`;
+  wordEmoji.textContent = currentWord.emoji;
+  renderBlocks(currentWord.word);
+  renderLetterOptions(currentWord.word);
+  speakCurrentWord();
+}
+
+function fillNextBlock(letter) {
+  const block = wordBlocks.children[nextLetterIndex];
+  block.textContent = letter;
+  block.classList.add("filled");
+}
+
+function disableLetterButtons() {
+  document.querySelectorAll(".letter-btn").forEach(btn => btn.classList.add("disabled"));
+}
+
+function handleLetterPick(btn, letter) {
+  if (locked || btn.classList.contains("used")) return;
+
+  const expected = currentWord.word[nextLetterIndex];
+  if (letter === expected) {
+    btn.classList.add("correct", "used");
+    KidsGame.playTone(true);
+    fillNextBlock(letter);
+    nextLetterIndex++;
+
+    if (nextLetterIndex >= currentWord.word.length) {
+      locked = true;
+      starsEarned = Math.min(ROUNDS, starsEarned + 1);
+      renderStars();
+      KidsGame.showFeedback("⭐", wordBlocks, wrapper, 800);
+      Builder.addPart();
+      disableLetterButtons();
+
+      setTimeout(() => {
+        currentRound++;
+        if (currentRound >= ROUNDS) celebrateAndEnd();
+        else setupRound();
+      }, 1100);
+    }
+  } else {
+    btn.classList.add("wrong");
+    KidsGame.playTone(false);
+    KidsGame.showFeedback("❌", btn, wrapper, 800);
+    setTimeout(() => btn.classList.remove("wrong"), 450);
+  }
+}
+
+function speakCurrentWord() {
+  KidsGame.speakWord(currentWord.word.toLowerCase());
+}
+
+function celebrateAndEnd() {
+  wordPrompt.style.visibility = "hidden";
+  letterOptions.style.visibility = "hidden";
+
+  Builder.celebrate(function () {
+    endGame();
+  });
+}
+
+function endGame() {
+  KidsGame.showEndScreen({
+    screenEl: endScreen,
+    titleEl: document.getElementById("end-title"),
+    messageEl: document.getElementById("end-message"),
+    finalStarsEl: document.getElementById("final-stars"),
+    earned: starsEarned,
+    total: ROUNDS,
+    reward: {
+      rewardEl: document.getElementById("reward-emoji"),
+      overlayEl: document.getElementById("reward-overlay"),
+      delayScreen: 2800,
+    },
+    messages: {
+      perfect: { title: "Perfect Words!", message: "You built every word and finished your vehicle!" },
+      good: { title: "Great Reading!", message: "You built lots of words!" },
+      try: { title: "Good Try!", message: "Play again to build more words!" },
+    },
+  });
+}
+
+function startGame() {
+  startScreen.style.display = "none";
+  endScreen.style.display = "none";
+  wordPrompt.style.visibility = "visible";
+  letterOptions.style.visibility = "visible";
+  currentRound = 0;
+  starsEarned = 0;
+  sessionWords = pickSessionWords();
+  Builder.init(vehicleArea, "random");
+  renderStars();
+  setupRound();
+}
+
+document.getElementById("start-btn").addEventListener("click", startGame);
+document.getElementById("restart-btn").addEventListener("click", startGame);
+
+KidsGame.createMuteToggle();
+Builder.init(vehicleArea, "random");
+renderStars();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Picture Patch - Kids Learn</title>
+  <link rel="stylesheet" href="shared/styles.css">
+  <style>
+    :root {
+      --wrapper-width: 620px;
+      --sentence-image-ratio: 1024 / 559;
+    }
+
+    #game-area {
+      padding-top: 24px;
+    }
+
+    .prompt-text {
+      font-size: 23px;
+      font-weight: 800;
+      color: var(--text-color);
+      margin-bottom: 18px;
+    }
+
+    .puzzle-frame {
+      width: min(100%, 420px);
+      margin: 0 auto 22px;
+      padding: 10px;
+      border: 3px solid var(--border-color);
+      border-radius: 16px;
+      background: #ffffff;
+    }
+
+    #puzzle-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      aspect-ratio: var(--sentence-image-ratio);
+      overflow: hidden;
+      border-radius: 10px;
+      background: #dfe7fb;
+    }
+
+    .puzzle-cell,
+    .tile-preview {
+      background-repeat: no-repeat;
+      background-size: 300% 300%;
+    }
+
+    .puzzle-cell {
+      border: 2px solid rgba(255,255,255,0.9);
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .puzzle-cell.missing {
+      background: repeating-linear-gradient(
+        45deg,
+        #ffffff 0,
+        #ffffff 10px,
+        #eef3ff 10px,
+        #eef3ff 20px
+      );
+      border: 4px dashed var(--accent);
+      position: relative;
+    }
+
+    .puzzle-cell.missing::after {
+      content: "?";
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      font-size: 56px;
+      font-weight: 900;
+    }
+
+    .puzzle-cell.filled {
+      animation: pop 0.4s;
+    }
+
+    #choices {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .tile-btn {
+      border: 4px solid var(--border-color);
+      border-radius: 16px;
+      background: var(--bg-color);
+      padding: 6px;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s, background 0.15s;
+      touch-action: manipulation;
+    }
+
+    .tile-btn:hover {
+      transform: scale(1.05);
+      border-color: var(--accent);
+      background: #fff0f3;
+    }
+
+    .tile-btn:active { transform: scale(0.96); }
+
+    .tile-btn.correct {
+      border-color: #4caf50;
+      background: #e8f5e9;
+      animation: pop 0.4s;
+    }
+
+    .tile-btn.wrong {
+      border-color: var(--accent);
+      background: #fce4ec;
+      animation: shake 0.4s;
+    }
+
+    .tile-btn.disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .tile-preview {
+      width: 100%;
+      aspect-ratio: var(--sentence-image-ratio);
+      border-radius: 10px;
+      box-shadow: inset 0 0 0 1px rgba(45,52,54,0.12);
+    }
+
+    @media (max-width: 520px) {
+      #game-area { padding: 22px 14px 30px; }
+      .prompt-text { font-size: 20px; }
+      .puzzle-frame { padding: 8px; }
+      #choices { gap: 8px; }
+      .tile-btn { padding: 4px; border-radius: 12px; }
+      .tile-preview { border-radius: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrapper">
+    <div id="hud">
+      <span id="round-label">Round 1 / 5</span>
+      <div id="stars"></div>
+    </div>
+
+    <div id="game-area">
+      <div id="start-screen" class="overlay">
+        <h1>Picture Patch</h1>
+        <p>Tap the square that completes the picture.</p>
+        <button id="start-btn" class="btn">Play</button>
+      </div>
+
+      <div id="end-screen" class="overlay" style="display:none">
+        <h1 id="end-title"></h1>
+        <div id="final-stars" class="final-stars"></div>
+        <p id="end-message"></p>
+        <button id="restart-btn" class="btn">Play Again</button>
+        <a href="index.html" class="btn" style="background:none;border:2px solid #ff6b8a;color:#ff6b8a;margin-top:8px;text-decoration:none;display:inline-block;text-align:center;">Home</a>
+      </div>
+
+      <div class="prompt-text">Which square is missing?</div>
+      <div class="puzzle-frame">
+        <div id="puzzle-grid"></div>
+      </div>
+      <div id="choices"></div>
+    </div>
+
+    <div id="reward-overlay"></div>
+    <div id="reward-emoji">🎁</div>
+  </div>
+
+  <script src="shared/game.js"></script>
+  <script>
+  (function () {
+    const GRID_SIZE = 3;
+    const TOTAL_ROUNDS = 5;
+    const IMAGE_DIR = "images/sentence/";
+
+    const ROUNDS = [
+      { image: "cat-in-box.jpg", missing: [1, 1] },
+      { image: "dog-on-bed.jpg", missing: [1, 1] },
+      { image: "frog-on-log.jpg", missing: [1, 1] },
+      { image: "boy-on-bike.jpg", missing: [1, 1] },
+      { image: "bee-on-flower.jpg", missing: [1, 1] },
+      { image: "duck-in-lake.jpg", missing: [1, 1] },
+      { image: "pig-in-car.jpg", missing: [1, 1] },
+      { image: "fish-in-pond.jpg", missing: [1, 1] },
+    ];
+
+    const DISTRACTOR_IMAGES = [
+      "ant-on-cake.jpg",
+      "bird-in-nest.jpg",
+      "bug-on-rug.jpg",
+      "cow-on-grass.jpg",
+      "fox-in-house.jpg",
+      "girl-in-pool.jpg",
+      "hen-on-log.jpg",
+      "jam-in-jar.jpg",
+      "man-with-balloon.jpg",
+      "mouse-in-cup.jpg",
+      "owl-in-tree.jpg",
+      "snail-on-leaf.jpg",
+    ];
+
+    let round = 1;
+    let stars = 0;
+    let locked = false;
+    let rounds = [];
+    let currentRound = null;
+    let transitionTimer = null;
+
+    const $roundLabel = document.getElementById("round-label");
+    const $stars = document.getElementById("stars");
+    const $grid = document.getElementById("puzzle-grid");
+    const $choices = document.getElementById("choices");
+    const $startOv = document.getElementById("start-screen");
+    const $endOv = document.getElementById("end-screen");
+    const $wrapper = document.getElementById("game-wrapper");
+    const $rewardOv = document.getElementById("reward-overlay");
+    const $rewardEmoji = document.getElementById("reward-emoji");
+
+    function imageUrl(name) {
+      return IMAGE_DIR + name;
+    }
+
+    function tilePosition(row, col) {
+      return (col * 50) + "% " + (row * 50) + "%";
+    }
+
+    function applyTileBackground(el, image, row, col) {
+      el.style.backgroundImage = 'url("' + imageUrl(image) + '")';
+      el.style.backgroundPosition = tilePosition(row, col);
+    }
+
+    function renderPuzzle(filled) {
+      const missingRow = currentRound.missing[0];
+      const missingCol = currentRound.missing[1];
+      $grid.innerHTML = "";
+
+      for (let row = 0; row < GRID_SIZE; row++) {
+        for (let col = 0; col < GRID_SIZE; col++) {
+          const cell = document.createElement("div");
+          const isMissing = row === missingRow && col === missingCol;
+          cell.className = "puzzle-cell";
+
+          if (isMissing && !filled) {
+            cell.classList.add("missing");
+          } else {
+            if (isMissing) cell.classList.add("filled");
+            applyTileBackground(cell, currentRound.image, row, col);
+          }
+
+          $grid.appendChild(cell);
+        }
+      }
+    }
+
+    function makeCorrectChoice() {
+      return {
+        id: "correct",
+        image: currentRound.image,
+        row: currentRound.missing[0],
+        col: currentRound.missing[1],
+      };
+    }
+
+    function makeDistractors() {
+      const cells = [
+        [0, 0], [0, 1], [0, 2],
+        [1, 0], [1, 1], [1, 2],
+        [2, 0], [2, 1], [2, 2],
+      ];
+
+      return KidsGame.shuffle(DISTRACTOR_IMAGES)
+        .slice(0, 3)
+        .map((image, index) => {
+          const cell = cells[(round + index * 2) % cells.length];
+          return { id: "wrong-" + index, image: image, row: cell[0], col: cell[1] };
+        });
+    }
+
+    function renderChoices() {
+      const choices = KidsGame.shuffle([makeCorrectChoice()].concat(makeDistractors()));
+      $choices.innerHTML = "";
+
+      choices.forEach(choice => {
+        const btn = document.createElement("button");
+        const preview = document.createElement("div");
+        btn.type = "button";
+        btn.className = "tile-btn";
+        btn.dataset.id = choice.id;
+        btn.setAttribute("aria-label", "Picture square choice");
+        preview.className = "tile-preview";
+        applyTileBackground(preview, choice.image, choice.row, choice.col);
+        btn.appendChild(preview);
+        btn.addEventListener("click", () => handlePick(btn, choice));
+        $choices.appendChild(btn);
+      });
+    }
+
+    function renderRound() {
+      locked = false;
+      currentRound = rounds[round - 1];
+      $roundLabel.textContent = "Round " + round + " / " + TOTAL_ROUNDS;
+      KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+      renderPuzzle(false);
+      renderChoices();
+    }
+
+    function handlePick(btn, choice) {
+      if (locked || btn.classList.contains("disabled")) return;
+
+      if (choice.id === "correct") {
+        locked = true;
+        stars++;
+        btn.classList.add("correct");
+        KidsGame.playTone(true);
+        KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+        KidsGame.showFeedback("⭐", btn, $wrapper);
+        document.querySelectorAll(".tile-btn").forEach(choiceBtn => choiceBtn.classList.add("disabled"));
+        renderPuzzle(true);
+
+        transitionTimer = setTimeout(() => {
+          if (round < TOTAL_ROUNDS) {
+            round++;
+            renderRound();
+          } else {
+            finishGame();
+          }
+        }, 850);
+      } else {
+        btn.classList.add("wrong");
+        stars = Math.max(0, stars - 1);
+        KidsGame.playTone(false);
+        KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+        KidsGame.showFeedback("❌", btn, $wrapper);
+        transitionTimer = setTimeout(() => {
+          btn.classList.remove("wrong");
+          btn.classList.add("disabled");
+        }, 500);
+      }
+    }
+
+    function finishGame() {
+      KidsGame.showEndScreen({
+        screenEl: $endOv,
+        titleEl: document.getElementById("end-title"),
+        messageEl: document.getElementById("end-message"),
+        finalStarsEl: document.getElementById("final-stars"),
+        earned: stars,
+        total: TOTAL_ROUNDS,
+        reward: { rewardEl: $rewardEmoji, overlayEl: $rewardOv },
+        messages: {
+          perfect: { title: "Perfect!", message: "You fixed every picture!" },
+          good: { title: "Great Job!", message: "You found the missing picture squares!" },
+          try: { title: "Good Try!", message: "Play again to patch more pictures!" },
+        },
+      });
+    }
+
+    function startGame() {
+      clearTimeout(transitionTimer);
+      round = 1;
+      stars = 0;
+      locked = false;
+      rounds = KidsGame.shuffle(ROUNDS).slice(0, TOTAL_ROUNDS);
+      $startOv.style.display = "none";
+      $endOv.style.display = "none";
+      renderRound();
+      KidsGame.speak("Which square is missing?");
+    }
+
+    KidsGame.wireStartRestart("start-btn", "restart-btn", startGame);
+    KidsGame.renderStars($stars, 0, TOTAL_ROUNDS);
+    KidsGame.createMuteToggle();
+  })();
+  </script>
+</body>
+</html>

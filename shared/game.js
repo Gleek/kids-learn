@@ -142,7 +142,7 @@ window.KidsGame = (function () {
   }
 
   function showReward(rewardEl, overlayEl) {
-    const emojis = ["\uD83C\uDFC6", "\uD83C\uDF89", "\uD83D\uDC51", "\uD83E\uDD84", "\uD83C\uDF08", "\uD83C\uDF8A"];
+    const emojis = ["\uD83C\uDFC6", "\uD83C\uDF89", "\uD83D\uDC51", "\uD83E\uDD84", "\uD83C\uDF08", "\uD83C\uDF8A", "\uD83C\uDF81"];
     rewardEl.textContent = emojis[Math.floor(Math.random() * emojis.length)];
     rewardEl.classList.remove("active");
     void rewardEl.offsetWidth;

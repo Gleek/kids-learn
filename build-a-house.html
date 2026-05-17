@@ -462,26 +462,30 @@
           // Water
           { css: "bottom:0;left:0;width:320px;height:80px;background:linear-gradient(180deg,#1e88e5,#0d47a1);border-radius:0 0 4px 4px;z-index:0;" },
           // Wave lines
-          { css: "bottom:55px;left:0;width:320px;height:12px;background:rgba(255,255,255,0.08);border-radius:6px;z-index:1;" },
-          { css: "bottom:30px;left:0;width:320px;height:10px;background:rgba(255,255,255,0.06);border-radius:6px;z-index:1;" },
+          { css: "bottom:62px;left:0;width:320px;height:14px;background:rgba(255,255,255,0.12);border-radius:7px;z-index:5;" },
+          { css: "bottom:36px;left:0;width:320px;height:10px;background:rgba(255,255,255,0.08);border-radius:6px;z-index:5;" },
+          { css: "bottom:56px;left:34px;width:84px;height:6px;background:rgba(255,255,255,0.35);border-radius:6px;z-index:6;" },
+          { css: "bottom:48px;left:204px;width:70px;height:5px;background:rgba(255,255,255,0.28);border-radius:6px;z-index:6;" },
           // Flag pole top
-          { css: "bottom:188px;left:158px;width:8px;height:8px;background:#ffd600;border-radius:50%;z-index:4;" },
+          { css: "bottom:203px;left:158px;width:8px;height:8px;background:#ffd600;border-radius:50%;z-index:4;" },
         ],
         frames: [
-          { id: "f0", shape: "Triangle", hint: "for the hull", type: "tri",
-            css: "bottom:50px;left:55px;width:210px;height:70px;z-index:2;",
-            filledColor: "" },
+          { id: "f0", shape: "Rectangle", hint: "for the hull", type: "rect",
+            css: "bottom:58px;left:45px;width:230px;height:56px;border-radius:8px 8px 34px 34px;z-index:2;",
+            filledCSS: "background:linear-gradient(180deg,#8d6e63 0%,#6d4c41 58%,#4e342e 100%);border:3px solid #3e2723;border-radius:8px 8px 34px 34px;box-shadow:inset 0 -8px 12px rgba(0,0,0,0.18),0 5px 10px rgba(0,0,0,0.25);" },
           { id: "f1", shape: "Square", hint: "for the cabin", type: "rect",
-            css: "bottom:115px;left:110px;width:80px;height:68px;border-radius:6px;z-index:2;",
+            css: "bottom:112px;left:92px;width:70px;height:64px;border-radius:6px;z-index:2;",
             filledCSS: "background:linear-gradient(180deg,#ffcc80,#ffb74d);border:3px solid #f9a825;border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,0.2);" },
           { id: "f2", shape: "Rectangle", hint: "for the mast", type: "rect",
-            css: "bottom:115px;left:155px;width:10px;height:82px;z-index:3;",
+            css: "bottom:112px;left:156px;width:10px;height:100px;z-index:3;",
             filledCSS: "background:linear-gradient(180deg,#8d6e63,#6d4c41);box-shadow:1px 0 3px rgba(0,0,0,0.2);" },
           { id: "f3", shape: "Circle", hint: "for the porthole", type: "circle",
-            css: "bottom:130px;left:133px;width:32px;height:32px;z-index:3;",
+            css: "bottom:126px;left:111px;width:32px;height:32px;z-index:3;",
             filledCSS: "background:radial-gradient(circle at 35% 30%,#e1f5fe,#4fc3f7);border:3px solid #e0e0e0;box-shadow:inset 0 0 6px rgba(255,255,255,0.5);" },
           { id: "f4", shape: "Triangle", hint: "for the sail", type: "tri",
-            css: "bottom:130px;left:168px;width:70px;height:66px;z-index:2;",
+            css: "bottom:126px;left:164px;width:92px;height:82px;z-index:2;",
+            triPoints: "0,0 0,100 100,100",
+            clipPath: "polygon(0% 0%, 0% 100%, 100% 100%)",
             filledColor: "" },
         ]
       },
@@ -827,7 +831,8 @@
           el.classList.add("tri-frame");
           const outline = document.createElement("div");
           outline.className = "tri-outline";
-          outline.innerHTML = '<svg viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="50,2 2,98 98,98"/></svg>';
+          const points = f.triPoints || "50,2 2,98 98,98";
+          outline.innerHTML = '<svg viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="' + points + '"/></svg>';
           el.appendChild(outline);
         }
 
@@ -863,7 +868,7 @@
         const fill = triFills[frame.id] || "linear-gradient(180deg,#78909c,#607d8b)";
         const outline = el.querySelector(".tri-outline");
         outline.style.background = fill;
-        outline.style.clipPath = "polygon(50% 0%, 0% 100%, 100% 100%)";
+        outline.style.clipPath = frame.clipPath || "polygon(50% 0%, 0% 100%, 100% 100%)";
       } else if (frame.type === "diamond") {
         const outline = el.querySelector(".diamond-outline");
         if (frame.filledCSS) outline.setAttribute("style", "width:100%;height:100%;transform:rotate(45deg);" + frame.filledCSS);
