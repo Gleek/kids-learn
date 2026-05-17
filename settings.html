@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kids Learn - Settings</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #f0f4ff;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #2d3436;
+    padding: 32px 18px 48px;
+  }
+
+  main {
+    width: min(760px, 100%);
+    margin: 0 auto;
+  }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  h1 {
+    color: #ff6b8a;
+    font-size: 40px;
+    line-height: 1.1;
+  }
+
+  .home-link {
+    color: #2d3436;
+    background: #ffffff;
+    border: 3px solid #c5d3f7;
+    border-radius: 12px;
+    padding: 10px 16px;
+    text-decoration: none;
+    font-weight: 800;
+  }
+
+  .panel {
+    background: #ffffff;
+    border: 3px solid #c5d3f7;
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .panel h2 {
+    font-size: 26px;
+    margin-bottom: 8px;
+  }
+
+  .panel p {
+    color: #636e72;
+    font-size: 17px;
+    line-height: 1.45;
+    margin-bottom: 22px;
+  }
+
+  .vehicle-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+
+  .vehicle-option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 76px;
+    background: #f8faff;
+    border: 3px solid #d8e2fb;
+    border-radius: 12px;
+    padding: 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.15s, background 0.15s;
+  }
+
+  .vehicle-option:hover {
+    border-color: #ff6b8a;
+    transform: translateY(-2px);
+  }
+
+  .vehicle-option input {
+    width: 28px;
+    height: 28px;
+    accent-color: #ff6b8a;
+    flex: 0 0 auto;
+  }
+
+  .vehicle-icon {
+    font-size: 36px;
+    line-height: 1;
+    width: 44px;
+    text-align: center;
+  }
+
+  .vehicle-label {
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 22px;
+  }
+
+  button {
+    border: none;
+    border-radius: 50px;
+    padding: 12px 24px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #ffffff;
+    background: #ff6b8a;
+    cursor: pointer;
+  }
+
+  button:hover { background: #e8527a; }
+
+  #save-status {
+    min-height: 24px;
+    color: #238f23;
+    font-weight: 700;
+  }
+
+  @media (max-width: 560px) {
+    body { padding-top: 20px; }
+    .topbar { align-items: flex-start; flex-direction: column; }
+    h1 { font-size: 34px; }
+    .panel { padding: 18px; }
+    .actions { align-items: flex-start; flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="topbar">
+    <h1>Settings</h1>
+    <a class="home-link" href="index.html">Back to Games</a>
+  </div>
+
+  <section class="panel" aria-labelledby="vehicle-settings-title">
+    <h2 id="vehicle-settings-title">Vehicles</h2>
+    <p>Choose which vehicles can appear in build-and-celebrate games.</p>
+    <div class="vehicle-list" id="vehicle-list"></div>
+    <div class="actions">
+      <button type="button" id="select-all-btn">Select All</button>
+      <div id="save-status" role="status" aria-live="polite"></div>
+    </div>
+  </section>
+</main>
+
+<script src="shared/builder.js"></script>
+<script>
+  const vehicleList = document.getElementById("vehicle-list");
+  const saveStatus = document.getElementById("save-status");
+  const selectAllBtn = document.getElementById("select-all-btn");
+  const options = Builder.getVehicleOptions();
+
+  function getCheckedKeys() {
+    return Array.from(vehicleList.querySelectorAll("input[type='checkbox']:checked"))
+      .map((input) => input.value);
+  }
+
+  function saveSelection() {
+    const checked = getCheckedKeys();
+    if (!checked.length) {
+      saveStatus.textContent = "Pick at least one vehicle.";
+      return;
+    }
+
+    Builder.setAllowedVehicles(checked);
+    saveStatus.textContent = checked.length === options.length
+      ? "All vehicles selected. Default settings restored."
+      : "Vehicle settings saved.";
+  }
+
+  function renderVehicles() {
+    const allowed = Builder.getAllowedVehicles();
+    vehicleList.innerHTML = "";
+
+    options.forEach((vehicle) => {
+      const label = document.createElement("label");
+      label.className = "vehicle-option";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = vehicle.key;
+      checkbox.checked = allowed.includes(vehicle.key);
+      checkbox.addEventListener("change", () => {
+        if (!getCheckedKeys().length) {
+          checkbox.checked = true;
+          saveStatus.textContent = "Pick at least one vehicle.";
+          return;
+        }
+        saveSelection();
+      });
+
+      const icon = document.createElement("span");
+      icon.className = "vehicle-icon";
+      icon.textContent = vehicle.icon;
+
+      const name = document.createElement("span");
+      name.className = "vehicle-label";
+      name.textContent = vehicle.label;
+
+      label.append(checkbox, icon, name);
+      vehicleList.appendChild(label);
+    });
+  }
+
+  selectAllBtn.addEventListener("click", () => {
+    vehicleList.querySelectorAll("input[type='checkbox']").forEach((input) => {
+      input.checked = true;
+    });
+    saveSelection();
+  });
+
+  renderVehicles();
+</script>
+</body>
+</html>

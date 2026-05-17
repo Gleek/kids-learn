@@ -269,15 +269,15 @@
     }
 
     function endGame() {
-      const msg = KidsGame.endGameMessage(stars, TOTAL_ROUNDS);
-      $endTitle.textContent = msg.title;
-      $endMsg.textContent = msg.message;
-      KidsGame.renderFinalStars($finalStars, stars, TOTAL_ROUNDS);
-      $endOv.style.display = "flex";
-
-      if (stars === TOTAL_ROUNDS && Math.random() < 0.5) {
-        KidsGame.showReward($rewardEmoji, $rewardOv);
-      }
+      KidsGame.showEndScreen({
+        screenEl: $endOv,
+        titleEl: $endTitle,
+        messageEl: $endMsg,
+        finalStarsEl: $finalStars,
+        earned: stars,
+        total: TOTAL_ROUNDS,
+        reward: { rewardEl: $rewardEmoji, overlayEl: $rewardOv },
+      });
     }
 
     function startGame() {

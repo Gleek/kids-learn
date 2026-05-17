@@ -237,16 +237,15 @@
     }
 
     function endGame() {
-      const result = KidsGame.endGameMessage(stars, TOTAL_ROUNDS);
-      endTitle.textContent = result.title;
-      endMsg.textContent   = result.message;
-      KidsGame.renderFinalStars(finalStars, stars, TOTAL_ROUNDS);
-      endScr.style.display = "flex";
-
-      // 50% chance reward on perfect score
-      if (stars === TOTAL_ROUNDS && Math.random() < 0.5) {
-        KidsGame.showReward(rewardEl, overlayEl);
-      }
+      KidsGame.showEndScreen({
+        screenEl: endScr,
+        titleEl: endTitle,
+        messageEl: endMsg,
+        finalStarsEl: finalStars,
+        earned: stars,
+        total: TOTAL_ROUNDS,
+        reward: { rewardEl: rewardEl, overlayEl: overlayEl },
+      });
     }
 
     KidsGame.wireStartRestart("start-btn", "restart-btn", startGame);

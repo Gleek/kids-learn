@@ -203,6 +203,7 @@
 </div>
 
 <script src="shared/data.js"></script>
+<script src="shared/game.js"></script>
 <script>
 // ── CVC Words & Emoji Mappings ──
 const CVC_WORDS = GameData.CVC_WORDS;
@@ -242,20 +243,12 @@ const wrapper = document.getElementById("game-wrapper");
 
 // ── Stars Rendering ──
 function renderStars() {
-  starsEl.innerHTML = "";
-  for (let i = 0; i < WORDS_PER_SESSION; i++) {
-    const span = document.createElement("span");
-    span.className = "star" + (i < starsEarned ? " earned" : "");
-    span.textContent = i < starsEarned ? "⭐" : "☆";
-    span.style.color = i < starsEarned ? "gold" : "#555";
-    starsEl.appendChild(span);
-  }
+  KidsGame.renderStars(starsEl, starsEarned, WORDS_PER_SESSION);
 }
 
 // ── Pick Session Words ──
 function pickSessionWords() {
-  const shuffled = [...CVC_WORDS].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, WORDS_PER_SESSION);
+  return KidsGame.pickRandom(CVC_WORDS, WORDS_PER_SESSION);
 }
 
 // ── Spawn Objects for Current Word ──
@@ -263,7 +256,7 @@ function spawnObjects() {
   objects = [];
   if (!currentWord) return;
 
-  const lanes = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+  const lanes = KidsGame.shuffle([0, 1, 2, 3]);
   const correctLane = lanes[0];
 
   // Place correct emoji — stagger vertically so they don't all appear at once
@@ -289,7 +282,7 @@ function spawnObjects() {
   }
 
   // Shuffle so correct isn't always first in the array
-  objects.sort(() => Math.random() - 0.5);
+  objects = KidsGame.shuffle(objects);
   firstCorrectHit = true;
   roundActive = true;
 }
@@ -385,8 +378,8 @@ function checkCollisions() {
         if (firstCorrectHit) {
           starsEarned = Math.min(WORDS_PER_SESSION, starsEarned + 1);
         }
-        showFeedback("⭐", carX, carY - 60);
-        playTone(true);
+        KidsGame.showCanvasFeedback("⭐", carX, carY - 60, canvas, wrapper, { className: "feedback", offsetY: 60 });
+        KidsGame.playTone(true);
         renderStars();
         objects = [];
         roundActive = false;
@@ -396,47 +389,10 @@ function checkCollisions() {
         // Wrong — just disappear, round continues
         obj.hit = true;
         firstCorrectHit = false;
-        showFeedback("❌", objX, obj.y - 40);
-        playTone(false);
+        KidsGame.showCanvasFeedback("❌", objX, obj.y - 40, canvas, wrapper, { className: "feedback", offsetY: 60 });
+        KidsGame.playTone(false);
       }
     }
-  }
-}
-
-// ── Feedback Popup ──
-function showFeedback(emoji, x, y) {
-  const el = document.createElement("div");
-  el.className = "feedback";
-  el.textContent = emoji;
-  el.style.left = (x + canvas.offsetLeft) + "px";
-  el.style.top = (y + canvas.offsetTop + 60) + "px";
-  wrapper.appendChild(el);
-  setTimeout(() => el.remove(), 1000);
-}
-
-// ── Simple Audio Feedback ──
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playTone(success) {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  gain.gain.value = 0.15;
-
-  if (success) {
-    osc.frequency.value = 523;
-    osc.type = "sine";
-    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.4);
-  } else {
-    osc.frequency.value = 200;
-    osc.type = "square";
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.3);
   }
 }
 
@@ -455,20 +411,19 @@ function nextRound() {
 // ── End Game ──
 function endGame() {
   gameRunning = false;
-  endScreen.style.display = "flex";
-  const finalStars = document.getElementById("final-stars");
-  finalStars.textContent = "";
-  for (let i = 0; i < WORDS_PER_SESSION; i++) {
-    finalStars.textContent += i < starsEarned ? "⭐" : "☆";
-  }
-  const msg = document.getElementById("end-message");
-  if (starsEarned === WORDS_PER_SESSION) {
-    msg.textContent = "Perfect! You got all the stars!";
-  } else if (starsEarned >= 3) {
-    msg.textContent = "Great driving! Keep it up!";
-  } else {
-    msg.textContent = "Good try! Play again to get more stars!";
-  }
+  KidsGame.showEndScreen({
+    screenEl: endScreen,
+    messageEl: document.getElementById("end-message"),
+    finalStarsEl: document.getElementById("final-stars"),
+    earned: starsEarned,
+    total: WORDS_PER_SESSION,
+    reward: { enabled: false },
+    messages: {
+      perfect: { message: "Perfect! You got all the stars!" },
+      good: { message: "Great driving! Keep it up!" },
+      try: { message: "Good try! Play again to get more stars!" },
+    },
+  });
 }
 
 // ── Main Game Loop ──

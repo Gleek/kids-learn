@@ -249,6 +249,7 @@
 </div>
 
 <script src="shared/data.js"></script>
+<script src="shared/game.js"></script>
 <script src="shared/builder.js"></script>
 <script>
 const CVC_WORDS = GameData.CVC_WORDS;
@@ -269,49 +270,18 @@ let starsEarned = 0;
 let sessionWords = [];
 let locked = false;
 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-function playTone(success) {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  gain.gain.value = 0.15;
-  if (success) {
-    osc.frequency.value = 523;
-    osc.type = "sine";
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-  } else {
-    osc.frequency.value = 200;
-    osc.type = "square";
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-  }
-}
-
 function renderStars() {
-  starsEl.innerHTML = "";
-  for (let i = 0; i < ROUNDS; i++) {
-    const span = document.createElement("span");
-    span.className = "star" + (i < starsEarned ? " earned" : "");
-    span.textContent = i < starsEarned ? "⭐" : "☆";
-    span.style.color = i < starsEarned ? "gold" : "#555";
-    starsEl.appendChild(span);
-  }
+  KidsGame.renderStars(starsEl, starsEarned, ROUNDS);
 }
 
 function pickSessionWords() {
-  const shuffled = [...CVC_WORDS].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, ROUNDS);
+  return KidsGame.pickRandom(CVC_WORDS, ROUNDS);
 }
 
 function pickDistractors(correctEmoji, count) {
-  const pool = CVC_WORDS.filter(w => w.emoji !== correctEmoji)
-    .map(w => w.emoji)
-    .sort(() => Math.random() - 0.5);
-  return pool.slice(0, count);
+  return KidsGame.pickDistractors(CVC_WORDS, { emoji: correctEmoji }, count, {
+    getKey: w => w.emoji,
+  }).map(w => w.emoji);
 }
 
 function setupRound() {
@@ -320,7 +290,7 @@ function setupRound() {
   roundLabel.textContent = `Round ${currentRound + 1} / ${ROUNDS}`;
 
   const distractors = pickDistractors(word.emoji, GRID_SIZE - 1);
-  const allEmojis = [word.emoji, ...distractors].sort(() => Math.random() - 0.5);
+  const allEmojis = KidsGame.shuffle([word.emoji, ...distractors]);
 
   emojiGrid.innerHTML = "";
   locked = false;
@@ -341,10 +311,10 @@ function handlePick(btn, picked, correct) {
     locked = true;
     btn.classList.add("correct");
     starsEarned = Math.min(ROUNDS, starsEarned + 1);
-    playTone(true);
+    KidsGame.playTone(true);
     renderStars();
     Builder.addPart();
-    showFeedback("⭐", btn);
+    KidsGame.showFeedback("⭐", btn, wrapper, 800);
 
     document.querySelectorAll(".emoji-btn").forEach(b => b.classList.add("disabled"));
 
@@ -359,23 +329,11 @@ function handlePick(btn, picked, correct) {
   } else {
     btn.classList.add("wrong");
     starsEarned = Math.max(0, starsEarned - 1);
-    playTone(false);
+    KidsGame.playTone(false);
     renderStars();
-    showFeedback("❌", btn);
+    KidsGame.showFeedback("❌", btn, wrapper, 800);
     btn.classList.add("disabled");
   }
-}
-
-function showFeedback(emoji, btn) {
-  const rect = btn.getBoundingClientRect();
-  const wrapRect = wrapper.getBoundingClientRect();
-  const el = document.createElement("div");
-  el.className = "feedback-float";
-  el.textContent = emoji;
-  el.style.left = (rect.left - wrapRect.left + rect.width / 2 - 20) + "px";
-  el.style.top = (rect.top - wrapRect.top - 10) + "px";
-  wrapper.appendChild(el);
-  setTimeout(() => el.remove(), 800);
 }
 
 function celebrateAndEnd() {
@@ -388,24 +346,20 @@ function celebrateAndEnd() {
 }
 
 function endGame() {
-  endScreen.style.display = "flex";
-  const finalStars = document.getElementById("final-stars");
-  finalStars.textContent = "";
-  for (let i = 0; i < ROUNDS; i++) {
-    finalStars.textContent += i < starsEarned ? "⭐" : "☆";
-  }
-  const title = document.getElementById("end-title");
-  const msg = document.getElementById("end-message");
-  if (starsEarned === ROUNDS) {
-    title.textContent = "Perfect Launch! 🚀";
-    msg.textContent = "You built the whole rocket and got all stars!";
-  } else if (starsEarned >= 3) {
-    title.textContent = "Great Job! 🚀";
-    msg.textContent = "Your rocket took off! Keep practicing!";
-  } else {
-    title.textContent = "Good Try!";
-    msg.textContent = "Play again to build a bigger rocket!";
-  }
+  KidsGame.showEndScreen({
+    screenEl: endScreen,
+    titleEl: document.getElementById("end-title"),
+    messageEl: document.getElementById("end-message"),
+    finalStarsEl: document.getElementById("final-stars"),
+    earned: starsEarned,
+    total: ROUNDS,
+    reward: { enabled: false },
+    messages: {
+      perfect: { title: "Perfect Launch! 🚀", message: "You built the whole rocket and got all stars!" },
+      good: { title: "Great Job! 🚀", message: "Your rocket took off! Keep practicing!" },
+      try: { title: "Good Try!", message: "Play again to build a bigger rocket!" },
+    },
+  });
 }
 
 function startGame() {

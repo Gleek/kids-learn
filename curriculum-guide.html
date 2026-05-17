@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Year 4–5 Curriculum Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #FDFAF5;
+    --ink: #1C1A16;
+    --ink-2: #4A4640;
+    --ink-3: #8A847A;
+    --border: #E8E2D8;
+    --border-strong: #CFC8BA;
+    --amber-light: #FEF3DC;
+    --amber: #E8A020;
+    --amber-dark: #7A4E10;
+    --teal-light: #E0F3ED;
+    --teal: #1A9B72;
+    --teal-dark: #0A5740;
+    --blue-light: #E4EEF8;
+    --blue: #2D6BB0;
+    --blue-dark: #153860;
+    --purple-light: #EEEDfE;
+    --purple: #6058C8;
+    --purple-dark: #2E2870;
+    --coral-light: #FDEAE4;
+    --coral: #C85030;
+    --coral-dark: #6A2010;
+    --green-light: #E8F5E0;
+    --green: #4A8A20;
+    --green-dark: #244810;
+    --pink-light: #FCE8F0;
+    --pink: #B84070;
+    --pink-dark: #601838;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --serif: 'Lora', Georgia, serif;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  html { font-size: 15px; scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .page-header {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 1.5rem 1.25rem 1.25rem;
+  }
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .header-title h1 {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .header-title p {
+    font-size: 0.75rem;
+    color: #A09890;
+    margin-top: 2px;
+    font-weight: 300;
+  }
+  .q-nav {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .q-btn {
+    background: transparent;
+    color: #A09890;
+    border: 1px solid #3A3630;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .q-btn:hover { border-color: #7A7060; color: #D0C8B8; }
+  .q-btn.active { background: var(--amber); border-color: var(--amber); color: var(--ink); }
+
+  /* ── LAYOUT ── */
+  .page-body {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 4rem;
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: static;
+  }
+  .q-goal-card {
+    background: var(--amber-light);
+    border: 1px solid #F0D090;
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 1rem;
+  }
+  .q-goal-card .label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--amber-dark);
+    margin-bottom: 4px;
+  }
+  .q-goal-card p {
+    font-size: 0.75rem;
+    color: var(--amber-dark);
+    line-height: 1.5;
+    font-style: italic;
+    font-family: var(--serif);
+  }
+  .subject-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .subj-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    color: var(--ink-2);
+    font-weight: 400;
+    transition: all 0.12s;
+    width: 100%;
+  }
+  .subj-btn:hover { background: var(--border); }
+  .subj-btn.active { font-weight: 600; }
+  .subj-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── MAIN CONTENT ── */
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    min-width: 0;
+  }
+  .subject-panel { display: none; }
+  .subject-panel.active { display: block; }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .panel-header h2 {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .panel-header .quarter-badge {
+    margin-left: auto;
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--amber-light);
+    color: var(--amber-dark);
+    border: 1px solid #F0D090;
+    white-space: nowrap;
+  }
+
+  /* ── ACCORDION ── */
+  .accordion { margin-bottom: 10px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .acc-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    background: #FDFBF8;
+    user-select: none;
+    transition: background 0.12s;
+  }
+  .acc-head:hover { background: var(--border); }
+  .acc-head-left { display: flex; align-items: center; gap: 8px; }
+  .acc-icon { font-size: 0.85rem; opacity: 0.6; }
+  .acc-title { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); }
+  .acc-arrow { font-size: 0.7rem; color: var(--ink-3); transition: transform 0.2s; }
+  .acc-arrow.open { transform: rotate(180deg); }
+  .acc-body { display: none; padding: 14px 16px; border-top: 1px solid var(--border); background: #fff; }
+  .acc-body.open { display: block; }
+
+  /* ── OBJECTIVES ── */
+  .obj-list { list-style: none; }
+  .obj-list li {
+    font-size: 0.82rem;
+    color: var(--ink);
+    padding: 5px 0 5px 16px;
+    position: relative;
+    line-height: 1.55;
+    border-bottom: 1px solid var(--border);
+  }
+  .obj-list li:last-child { border-bottom: none; }
+  .obj-list li::before { content: '→'; position: absolute; left: 0; color: var(--ink-3); font-size: 0.7rem; top: 7px; }
+
+  /* ── PROMPTS ── */
+  .prompt-card {
+    background: #F8F5F0;
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--border-strong);
+  }
+  .prompt-card:last-child { margin-bottom: 0; }
+  .prompt-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-3);
+    margin-bottom: 5px;
+  }
+  .prompt-text {
+    font-family: var(--serif);
+    font-size: 0.85rem;
+    color: var(--ink);
+    font-style: italic;
+    line-height: 1.55;
+  }
+
+  /* ── EXERCISES ── */
+  .exercise-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: #FDFBF8;
+  }
+  .exercise-card:last-child { margin-bottom: 0; }
+  .exercise-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .exercise-body {
+    font-size: 0.78rem;
+    color: var(--ink-2);
+    line-height: 1.6;
+  }
+  .tip-card {
+    background: var(--teal-light);
+    border: 1px solid #90D8BC;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-top: 10px;
+    font-size: 0.78rem;
+    color: var(--teal-dark);
+    line-height: 1.55;
+  }
+  .tip-card strong { font-weight: 600; }
+
+  /* ── RESOURCES SECTION ── */
+  .resources-section {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid var(--border);
+  }
+  .resources-section h3 {
+    font-family: var(--serif);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .res-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: var(--ink-2);
+    padding: 8px 10px;
+    background: #FDFBF8;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .res-item a { color: var(--blue); text-decoration: none; }
+  .res-item a:hover { text-decoration: underline; }
+  .res-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); flex-shrink: 0; margin-top: 4px; }
+
+  /* ── BASELINE BOX ── */
+  .baseline-card {
+    background: var(--ink);
+    color: var(--cream);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 1.5rem;
+  }
+  .baseline-card h3 { font-family: var(--serif); font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; color: #E8E0D0; }
+  .baseline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .baseline-item { font-size: 0.72rem; color: #B0A890; line-height: 1.5; }
+  .baseline-item strong { color: #E8E0D0; display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; font-weight: 600; }
+
+  /* ── PRINT ── */
+  @media print {
+    .page-header { position: relative; }
+    .page-body { display: block; padding: 1rem; }
+    .sidebar { position: relative; top: 0; margin-bottom: 1rem; }
+    .subject-panel { display: block !important; break-inside: avoid; margin-bottom: 2rem; }
+    .acc-body { display: block !important; }
+    .q-nav { display: none; }
+    .subj-btn.active { background: transparent; }
+  }
+
+  /* ── MOBILE SUBJECT STRIP ── */
+  .mobile-subj-strip {
+    display: none;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px 1rem;
+    gap: 6px;
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+  .mobile-subj-strip::-webkit-scrollbar { display: none; }
+  .mobile-subj-strip .m-subj-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: #fff;
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--ink-2);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.12s;
+  }
+  .mobile-subj-strip .m-subj-btn.active {
+    border-color: transparent;
+    font-weight: 600;
+  }
+
+  @media (max-width: 700px) {
+    .mobile-subj-strip { display: flex; }
+    .sidebar { display: none; }
+    .page-body {
+      grid-template-columns: 1fr;
+      padding: 1rem 1rem 4rem;
+    }
+    .res-grid { grid-template-columns: 1fr; }
+    .baseline-grid { grid-template-columns: 1fr; }
+    .panel-header h2 { font-size: 1rem; }
+    .header-title h1 { font-size: 1.1rem; }
+    .baseline-card { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="header-inner">
+    <div class="header-title">
+      <h1>Year 4–5 Curriculum Guide</h1>
+      <p>Parent reference · prompts, activities &amp; exercises for each subject</p>
+    </div>
+    <nav class="q-nav" aria-label="Quarter navigation">
+      <button class="q-btn active" onclick="selectQ('q1',this)">Quarter 1</button>
+      <button class="q-btn" onclick="selectQ('q2',this)">Quarter 2</button>
+      <button class="q-btn" onclick="selectQ('q3',this)">Quarter 3</button>
+      <button class="q-btn" onclick="selectQ('q4',this)">Quarter 4</button>
+    </nav>
+  </div>
+</header>
+
+<div class="mobile-subj-strip" id="mobileSubjStrip"></div>
+
+<div class="page-body">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="q-goal-card">
+      <div class="label">Quarter goal</div>
+      <p id="qGoalText"></p>
+    </div>
+    <nav class="subject-nav" aria-label="Subject navigation" id="subjectNav"></nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content" id="mainOuter">
+    <div id="baselineSlot"></div>
+    <div id="mainContent"></div>
+  </main>
+
+</div>
+
+<script>
+const QUARTERS = {
+  q1: { label: 'Quarter 1', goal: 'Stabilize existing abilities, start English speaking and listening deliberately, and establish adab and practical-life routines.' },
+  q2: { label: 'Quarter 2', goal: 'Move from isolated skills to fluency, responsibility, and simple independent routines.' },
+  q3: { label: 'Quarter 3', goal: 'Expand reasoning, narration, responsibility, and practical problem-solving.' },
+  q4: { label: 'Quarter 4', goal: 'Consolidate the year and prepare for more formal reading, math, Arabic, and independence next year.' },
+};
+
+const SUBJECTS = [
+  { id: 'quran',     label: 'Quran & Islam',      dot: '#E8A020', icon: '☪',  bg: '#FEF3DC', color: '#7A4E10' },
+  { id: 'character', label: 'Character & Adab',    dot: '#1A9B72', icon: '✦',  bg: '#E0F3ED', color: '#0A5740' },
+  { id: 'english',   label: 'English',             dot: '#2D6BB0', icon: '📖', bg: '#E4EEF8', color: '#153860' },
+  { id: 'hindi',     label: 'Hindi',               dot: '#6058C8', icon: 'अ',  bg: '#EEEDFB', color: '#2E2870' },
+  { id: 'arabic',    label: 'Arabic',              dot: '#C85030', icon: 'ع',  bg: '#FDEAE4', color: '#6A2010' },
+  { id: 'numeracy',  label: 'Numeracy',            dot: '#4A8A20', icon: '⊕',  bg: '#E8F5E0', color: '#244810' },
+  { id: 'practical', label: 'Practical Life',      dot: '#B84070', icon: '🏡', bg: '#FCE8F0', color: '#601838' },
+  { id: 'world',     label: 'World Around Us',     dot: '#0A7A8A', icon: '🌱', bg: '#E0F3F5', color: '#044A54' },
+  { id: 'art',       label: 'Art & Fine Motor',    dot: '#8858C0', icon: '✏',  bg: '#F0EAFA', color: '#401860' },
+  { id: 'physical',  label: 'Physical',            dot: '#C84820', icon: '⚡', bg: '#FDE8E0', color: '#601808' },
+];
+
+const DATA = {
+  q1: {
+    quran: {
+      objectives: [
+        'Complete Al-Fatiha with decreasing help across the quarter',
+        'Use eating, sleeping, and waking duas in real daily routines',
+        'Learn meanings of: Allah, Rabb, Rahman, Malik, Alhamdulillah, Sirat',
+        'Continue Prophet stories (Nuh, Yunus, Ibrahim); begin simple Sahabah stories',
+        'Revise through Anki prompts for story recall'
+      ],
+      prompts: [
+        { label: 'Dua in routine', text: '"Before we eat, what do we say? Say it with me slowly."' },
+        { label: 'Meaning check', text: '"What does Alhamdulillah mean? When do we say it?"' },
+        { label: 'Story recall', text: '"Tell me what happened to Prophet Yunus — what did he do and what happened next?"' },
+        { label: 'Al-Fatiha prompt', text: '"Let\'s say Al-Fatiha together. I\'ll start and you join in — I\'ll slow down where you need help."' },
+      ],
+      exercises: [
+        { title: 'Al-Fatiha fade-out', body: 'Say Al-Fatiha together. On each repetition, go quieter on one more ayah. Count how many ayaat he can say alone by end of week.' },
+        { title: 'Dua anchor cards', body: 'Make small cards for eating, sleeping, and waking duas. Stick them where the routine happens. Point to the card and let him say it himself.' },
+        { title: 'Story sequence drawings', body: 'After telling a Prophet story, ask him to draw 3 scenes: beginning, middle, end. He narrates; you write his words below each drawing.' },
+        { title: 'Meaning treasure hunt', body: 'Say a word (e.g. Rahman). He explains what it means and where he heard it in salah or dua. Celebrate every correct match.' },
+      ],
+      tip: 'Keep Al-Fatiha practice short — 2 minutes maximum. Repetition across the day matters more than one long session.'
+    },
+    character: {
+      objectives: [
+        'Focus themes: truth, gratitude, gentle words, cleanup after play',
+        'Weekly adab theme: one story, one roleplay, one real-life practice, one parent observation',
+        'Scenario questions to build moral reasoning'
+      ],
+      prompts: [
+        { label: 'Scenario question', text: '"Hamza broke his friend\'s toy by accident. What should he do now? What would make Allah pleased?"' },
+        { label: 'After misbehaviour', text: '"What happened? How do you think your friend felt? How can you fix it?"' },
+        { label: 'Gratitude prompt', text: '"Name three things you are happy Allah gave you today."' },
+      ],
+      exercises: [
+        { title: 'Weekly adab theme', body: 'Pick one theme (e.g. truthfulness). Day 1: short story. Day 2: roleplay a scenario together. Day 3: notice a real-life moment and name it. Day 7: "Did you have a chance to be truthful this week?"' },
+        { title: 'Cleanup as ibadah', body: 'Frame tidying toys as "taking care of what Allah gave us." Do it together and narrate: "We\'re putting books back so we can find them tomorrow."' },
+        { title: 'Gentle words chart', body: 'Keep a small tally of gentle words used in the day (please, thank you, sorry, jazakallah). Child marks a sticker at bedtime.' },
+      ],
+      tip: 'Observe quietly before correcting. When you see adab happening naturally, name it warmly: "That was really honest of you just now."'
+    },
+    english: {
+      objectives: [
+        'CVC fluency across all main word families (-at, -an, -it, -og, -ug, etc.)',
+        'Read simple decodable sentences',
+        'Begin spoken English routine phrases: "I want…", "I see…", "Can you…", "Please give me…", "I am feeling…"',
+        'Parent read-aloud above independent reading level with picture talk, prediction, and retelling'
+      ],
+      prompts: [
+        { label: 'Sentence starter', text: '"Can you tell me what you see in this picture? Start with: I see a…"' },
+        { label: 'Feeling prompt', text: '"How are you feeling right now? Try saying it in English — I am feeling…"' },
+        { label: 'After read-aloud', text: '"What happened at the beginning? What happened at the end? What was the most surprising part?"' },
+        { label: 'CVC warm-up', text: '"I\'m thinking of a word that rhymes with \'hat\'. It starts with c… what is it?"' },
+      ],
+      exercises: [
+        { title: 'CVC word family sets', body: 'Work through one word family per session (e.g. -at: cat, bat, hat, rat, mat). Use letter cards to build each word. He reads and you confirm. Move to next family when 4/5 are fluent.' },
+        { title: 'Morning phrase routine', body: 'Each morning, ask "How are you feeling?" and wait for an English response. Accept single words at first; model full sentences — "I am feeling happy because…"' },
+        { title: 'Picture walk prediction', body: 'Before reading, go through every picture without text. Ask: "What do you think is happening? What might happen next?" Then read and compare his prediction.' },
+        { title: 'Sight word sentences', body: 'Write a simple sentence using known sight words and one CVC word (e.g. "I see a big cat"). He reads it; you act it out together.' },
+      ],
+      tip: 'Keep spoken English low-pressure. Never force a full English sentence when he gives a Hindi/Urdu word — model the English and move on.'
+    },
+    hindi: {
+      objectives: [
+        'Start varnamala recognition and sounds',
+        'Simple akshar-to-picture association',
+        'Focus on ka-varga (क ख ग घ ङ) this quarter'
+      ],
+      prompts: [
+        { label: 'Letter intro', text: '"This letter is क — its sound is \'ka\'. Can you think of something that starts with that sound? कमल… कप… what else?"' },
+        { label: 'Picture match', text: '"Point to the letter that starts the name of this picture."' },
+      ],
+      exercises: [
+        { title: 'Varnamala card introduction', body: 'Introduce 2–3 letters per week using picture cards. Keep sessions under 5 minutes. Focus on ka-varga (क ख ग घ) in Q1.' },
+        { title: 'Akshar tracing', body: 'Write a large letter on a whiteboard. He traces with finger first, then marker. Say the sound together each time.' },
+        { title: 'Sound hunt', body: 'Pick one Hindi sound (e.g. क). Walk around the room — what words start with that sound? Point and name objects together.' },
+      ],
+      tip: 'Hindi is secondary in Q1. If sessions feel forced, reduce to 2x per week. The goal is pleasant exposure, not mastery.'
+    },
+    arabic: {
+      objectives: [
+        'Recognise a small set of Arabic letters by name and shape',
+        'Begin harakat sounds: fathah (a), kasrah (i), dammah (u)',
+        'Listen to accurate Quran recitation daily — parent voice preferred over TTS'
+      ],
+      prompts: [
+        { label: 'Harakat check', text: '"This letter has a fathah on top — what sound does it make? Now with a kasrah — how does the sound change?"' },
+        { label: 'Letter name', text: '"I\'m pointing to this letter — what is its name? What sound does it make?"' },
+      ],
+      exercises: [
+        { title: 'Harakat introduction', body: 'Draw Alif (ا) on whiteboard. Add fathah above → "a". Then kasrah below → "i". Then dammah → "u". Practice reading the same letter with each vowel marker.' },
+        { title: 'Arabic letter matching game', body: 'Write 4–5 known Arabic letters on cards. Say a letter name; he finds the matching card. Increase number of cards each week.' },
+        { title: 'Listening session', body: 'Play 3 minutes of Quran recitation daily at a fixed time (e.g. after Fajr or before bed). No task — just listening together.' },
+      ],
+      tip: 'Arabic readiness right now is about ears and letter recognition. Do not rush letter-sound blending — that comes in Q2 and beyond.'
+    },
+    numeracy: {
+      objectives: [
+        'Accurate one-to-one object counting to 20',
+        'Understand one more / one less',
+        'Compare quantities: more, less, equal',
+        'Subitize 1–3 using fingers, dots, dice, and ten-frames'
+      ],
+      prompts: [
+        { label: 'Counting check', text: '"Can you count these out one by one and put them in a line as you go? Touch each one."' },
+        { label: 'One more', text: '"You have 7 blocks. If I give you one more, how many now? Let\'s check by counting."' },
+        { label: 'Subitizing', text: '"I\'m going to show the dice very quickly — don\'t count, just tell me how many dots you see." (Flash for 1 second)' },
+      ],
+      exercises: [
+        { title: 'Object count to 20', body: 'Use small household objects (buttons, pasta, coins). He counts aloud while moving each object. Recount together if he makes an error — no shame, just recount.' },
+        { title: 'Ten-frame fill', body: 'Draw a 2×5 grid. Place objects one at a time while counting aloud. Ask: "How many empty spaces are left? How many filled?"' },
+        { title: 'One more / one less game', body: 'Place 8 blocks. Ask "one less than this?" He removes one and says the number. Ask "one more than this?" He adds one. Use numbers 3–15.' },
+        { title: 'Dot flash cards', body: 'Make cards with 1–5 dot patterns (like dice). Flash each card for 1 second. He calls out the number without counting. Praise instant recognition.' },
+      ],
+      tip: 'Always use physical objects in Q1 — no worksheets yet. Counting must involve touching and moving things.'
+    },
+    practical: {
+      objectives: [
+        'Shoes in correct place after removing',
+        'Clear own plate after eating',
+        'Pour water independently',
+        'Dirty clothes in basket without being told'
+      ],
+      prompts: [
+        { label: 'Routine nudge', text: '"You just finished eating — what do we do with our plate?" (Pause, wait, only help if needed)' },
+        { label: 'Competence affirmation', text: '"You poured that all by yourself — that\'s real independence."' },
+      ],
+      exercises: [
+        { title: 'Routine anchor strip', body: 'Make a 4-picture strip for one routine (e.g. after eating: clear plate → wash hands → dry hands → back to play). He follows the strip without being told. Fade the strip once it\'s automatic.' },
+        { title: 'Pouring practice', body: 'Set out a small jug and cup. Practice pouring water slowly. Let him pour his own drink at mealtimes this quarter.' },
+        { title: 'Shoes placement habit', body: 'Mark a specific spot for shoes with tape or a small mat. After every outing, he places shoes there himself before anything else happens.' },
+      ],
+      tip: 'Frame all practical-life tasks as "your job" — not a favour or chore. Consistent language builds ownership.'
+    },
+    world: {
+      objectives: [
+        'Topics: senses, body, weather, plants',
+        'Build observation habits with guided questions',
+        'Connect observations to Allah as creator'
+      ],
+      prompts: [
+        { label: 'Observation', text: '"Look at this plant. What do you notice today compared to yesterday? What does it need to stay alive?"' },
+        { label: 'Senses check', text: '"Close your eyes. What can you hear? What can you smell? Open your eyes — what do you see?"' },
+        { label: 'Creator connection', text: '"We didn\'t make this rain — who did? What does rain do for us and for plants?"' },
+      ],
+      exercises: [
+        { title: 'Senses walk', body: 'On any walk, stop and ask him to identify one thing for each sense: "I see… I hear… I feel… I smell…" Link to discussion of who created each thing.' },
+        { title: 'Weather chart', body: 'Keep a simple weather chart (drawn sun, cloud, rain, wind). He marks it each morning. After a week, discuss: "Which weather appeared most? What do you think will come tomorrow?"' },
+        { title: 'Plant watch', body: 'Grow a seed in a cup or small pot. He is responsible for watering it. Observe and describe changes once a week.' },
+      ],
+      tip: 'End every world-around-us activity with "Who made this?" — building the habit of attributing creation to Allah.'
+    },
+    art: {
+      objectives: [
+        'Free drawing, colouring, cutting, stickers, playdough, blocks, puzzles',
+        'Pre-writing patterns: lines, curves, circles, spirals, waves, mazes',
+        'Fine motor readiness — no formal letters yet'
+      ],
+      prompts: [
+        { label: 'After drawing', text: '"Tell me about your drawing — what is happening here? Who is this?"' },
+        { label: 'Encourage process', text: '"I love how carefully you cut along that line. How did you do it?"' },
+      ],
+      exercises: [
+        { title: 'Pre-writing pattern sheets', body: 'Draw a row of each pattern: straight lines, curves, circles, waves, spirals. He traces with finger first, then copies below. No letters yet — pure motor preparation.' },
+        { title: 'Playdough shapes', body: 'Roll, pinch, flatten, cut with a plastic knife. Name shapes as he makes them. Ask him to make a circle/snake/ball on request.' },
+        { title: 'Cutting practice', body: 'Draw thick lines (straight, then curved) on paper. He cuts along the line. Praise accuracy. Progress to cutting out simple shapes after 4–5 sessions.' },
+        { title: 'Free draw + narrate', body: '3 times a week: free drawing time with no instructions. Afterward, he tells you what he drew. Write his exact words at the bottom. Keep these — they are early literacy records.' },
+      ],
+      tip: 'Never correct a drawing for accuracy. "What is this?" is fine; "That doesn\'t look like a tree" stops creativity.'
+    },
+    physical: {
+      objectives: [
+        'Continue active play: running, jumping, sliding, swinging, sand play',
+        'Water comfort: feet in water, splashing, blowing bubbles, holding pool edge',
+        'Goal is comfort — not swimming skill'
+      ],
+      prompts: [
+        { label: 'Water comfort', text: '"Let\'s sit at the edge and let our feet touch the water. Can you make a big splash with your feet?"' },
+        { label: 'Encourage bravery', text: '"I noticed you went closer to the water today than last time. That was brave."' },
+      ],
+      exercises: [
+        { title: 'Water comfort progression', body: 'Week 1–2: sit at pool edge, feet dangling. Week 3–4: stand in shallow water ankle deep. Week 5–6: walk across shallow end holding your hand. Never push — let him lead the pace.' },
+        { title: 'Active play structure', body: 'At least 30 minutes of outdoor play daily. Vary between structured (obstacle course, target throwing) and free play. No screens as substitute for outdoor time.' },
+        { title: 'Balance games', body: 'Walk along a low wall, balance beam, or taped line on the floor. Hop on one foot. These build body confidence that transfers to water comfort.' },
+      ],
+      tip: 'Water fear is real. The goal this quarter is comfort, not swimming. Celebrate any voluntary water contact without minimising his fear.'
+    },
+  },
+  q2: {
+    quran: {
+      objectives: [
+        'Al-Fatiha independent or near-independent by end of quarter',
+        'Start Al-Ikhlas with meaning (one line per day)',
+        'Daily duas continue in real context — do not drill separately',
+        'Taharah and salah readiness through simple vocabulary and roleplay'
+      ],
+      prompts: [
+        { label: 'Al-Ikhlas meaning', text: '"Qul hu-wallahu Ahad — what does Ahad mean? Is there anything like Allah? How do we know?"' },
+        { label: 'Salah roleplay', text: '"Let\'s practise like we\'re going to pray. First what do we do? Show me wudu — which part do we wash first?"' },
+        { label: 'Dua check', text: '"We\'re about to leave the house — which dua do we say? Say it, then we\'ll go."' },
+      ],
+      exercises: [
+        { title: 'Al-Fatiha solo test', body: 'Ask him to say Al-Fatiha alone, eyes open. Note which ayaat still need support. Work only on those — don\'t restart from the beginning each time.' },
+        { title: 'Al-Ikhlas in pieces', body: 'Teach one line per day with meaning. Day 1: Qul hu-wallahu Ahad. Day 2: Allahus-Samad. Day 3–4: review and add rest. By end of week: full surah.' },
+        { title: 'Wudu roleplay', body: 'Narrate each step of wudu as you do it: "Hands, mouth, nose, face, arms, head, ears, feet." He copies and repeats the step name. Joyful play at the sink, not formal instruction.' },
+        { title: 'Sahabah story round-up', body: 'After a Sahabah story, ask: "What did he love about Allah? What hard thing did he do? What can I learn from him?"' },
+      ],
+      tip: 'When he recites Al-Fatiha well, tell him: "You just recited what is said in every rakat of salah — millions of Muslims say these same words."'
+    },
+    character: {
+      objectives: [
+        'Focus themes: sabr, sharing, saying sorry, guest manners',
+        'Practice repair: apologize, return, fix, clean, or help',
+        'Connect character growth to pleasing Allah'
+      ],
+      prompts: [
+        { label: 'Sabr moment', text: '"I know you want it right now. Can you wait for three minutes? What can you do while you wait to make it easier?"' },
+        { label: 'Repair prompt', text: '"You hurt your sister\'s feelings. Saying sorry is the first step — what\'s the next step to actually fix it?"' },
+        { label: 'Guest manners', text: '"If a guest comes to our home, what are three things we do to make them feel welcome?"' },
+      ],
+      exercises: [
+        { title: 'Sabr practice', body: 'When he is waiting for something (food, a turn, an outing), name it: "This is a chance to practise sabr." Give him a small task or breathing exercise during the wait.' },
+        { title: '3-step repair script', body: 'Teach: (1) Say sorry and mean it. (2) Name what you did wrong. (3) Do something to fix it. Roleplay common scenarios: breaking a toy, hitting, saying mean words.' },
+        { title: 'Guest welcome prep', body: 'Before a family visit, ask him: "What will we do when they arrive? What will we offer them?" Let him carry out one welcome action (offer water, say salaam first).' },
+      ],
+      tip: 'When he resists saying sorry, don\'t force the words — ask "What do you think she needs from you right now?" The action often comes naturally.'
+    },
+    english: {
+      objectives: [
+        'Short decodable readers — one book per day or every other day',
+        'Answer simple what/where/who questions in English',
+        'Use 1–2 sentence English responses in predictable routines',
+        'Sight words only inside meaningful sentences — never drilled in isolation'
+      ],
+      prompts: [
+        { label: 'Comprehension', text: '"Who was in that story? Where did it happen? What was the problem?"' },
+        { label: 'Sentence nudge', text: '"Can you tell me that in a full sentence? Start with: The cat was…"' },
+        { label: 'Reader encouragement', text: '"Read this page to me. Take your time — if you get stuck, look at the first sound and the picture."' },
+      ],
+      exercises: [
+        { title: 'Decodable reader routine', body: 'Choose a reader at his exact decoding level (all words readable with current phonics). 5 minutes maximum daily. He reads; you listen. On errors: tap the first letter and wait before correcting.' },
+        { title: 'What/who/where question game', body: 'After any story or activity, ask one comprehension question. He answers in English. Accept short answers — "the cat" is valid. Model the full sentence back: "Yes — the cat was hiding in the box!"' },
+        { title: 'Daily English exchange', body: 'Pick one fixed routine (e.g. after lunch) for a short English-only exchange: "What did you eat? Was it good? What are you going to do now?" 3–4 questions at a patient pace.' },
+      ],
+      tip: 'If he switches to Hindi/Urdu mid-sentence, don\'t stop him — finish the exchange, then offer the English version: "In English we say…"'
+    },
+    hindi: {
+      objectives: [
+        'Continue varnamala — match letters to familiar words and pictures',
+        'No matras yet — stable letter-sound association is the only goal'
+      ],
+      prompts: [
+        { label: 'Review', text: '"Which letters do we know so far? Say the sound and show me the letter card."' },
+        { label: 'Word match', text: '"This picture is of a कमल — which letter does कमल start with? Can you find it?"' },
+      ],
+      exercises: [
+        { title: 'Varnamala review game', body: 'Lay out 8–10 letter cards he has learned. Call a sound; he finds the card. Then reverse: you hold up a card, he says the sound.' },
+        { title: 'Picture-letter matching', body: 'Cut out 8 pictures of familiar objects. He matches each picture to its starting Hindi letter card. Begin with easy, distinct sounds.' },
+        { title: 'Akshar book', body: 'Make a small handmade book: one page per letter with a picture he draws of something starting with that sound. He narrates — you write the word in Hindi below.' },
+      ],
+      tip: 'Do not introduce matras yet. Stable letter-sound association is the only goal in Q2.'
+    },
+    arabic: {
+      objectives: [
+        'Harakat practice: fathah, kasrah, dammah with selected letters',
+        'Continue Quran listening daily',
+        'Use Arabic revision games as supplemental when ready'
+      ],
+      prompts: [
+        { label: 'Harakat reading', text: '"This is بَ — what sound does it make? Now بِ — now بُ. Can you hear how the vowel changes?"' },
+        { label: 'Letter in Quran', text: '"Look at this line from Al-Fatiha — can you find the letter Ba? Put your finger on it."' },
+      ],
+      exercises: [
+        { title: 'Harakat drill (short)', body: 'Choose 3 letters he knows. Write each with fathah, kasrah, dammah. He reads all 9 combinations aloud. 3 minutes maximum. Repeat 3x per week.' },
+        { title: 'Letter hunt in Quran page', body: 'Print a page from a simple Quran. Ask him to circle or point to one specific letter (e.g. all the ب letters). Count them together.' },
+        { title: 'Arabic memory game', body: 'Make pairs of cards (letter name card + letter shape card). Memory-match: flip two at a time, keep pair if they match. 6–8 pairs maximum.' },
+      ],
+      tip: 'Arabic progress at this age is non-linear. Some weeks feel like regression — that is normal. Consistency of short sessions matters far more than session length.'
+    },
+    numeracy: {
+      objectives: [
+        'Addition and subtraction within 10 using objects, fingers, stories, dice, ten-frames',
+        'Subitize 1–5',
+        'Number bonds to 5 — all combinations'
+      ],
+      prompts: [
+        { label: 'Story math', text: '"3 birds were sitting on a tree. 2 more came. How many birds are there now? Let\'s use your fingers to check."' },
+        { label: 'Number bond', text: '"5 can be split into 2 and… what? How else can we split 5? Can you find all the ways?"' },
+        { label: 'Subtraction', text: '"You have 8 grapes. You eat 3. How many are left? Count what\'s left — let\'s check."' },
+      ],
+      exercises: [
+        { title: 'Story math with objects', body: 'Create tiny math stories using household objects. He acts them out physically. Write the number sentence together after: 3 + 2 = 5. No worksheets — objects only.' },
+        { title: 'Number bond to 5 with blocks', body: 'Show 5 blocks. Split into two groups in different ways. He calls out both numbers: "2 and 3". Record all combinations together. Praise when he finds a new split.' },
+        { title: 'Dice addition', body: 'Roll two dice. He counts both sets of dots and adds them. Stay within 10. 5 minutes, 3x per week.' },
+        { title: 'Ten-frame subtraction', body: 'Fill 8 spaces on a ten-frame. Remove objects one by one while counting down. He states what\'s left each time.' },
+      ],
+      tip: 'When he makes an error, do not correct immediately — say "Let\'s check with our fingers/objects" and work through it together.'
+    },
+    practical: {
+      objectives: [
+        'Set the table for a meal',
+        'Wipe spills independently',
+        'Wash fruit before eating',
+        'Match and fold socks'
+      ],
+      prompts: [
+        { label: 'Table setting', text: '"We\'re about to have lunch — can you set the table? What does each person need?"' },
+        { label: 'Spill', text: '"There\'s a spill — what do you need to clean it up? Go and do it."' },
+      ],
+      exercises: [
+        { title: 'Table setting sequence', body: 'Show him once where each item goes. Then let him do it alone before every meal. If he forgets a step, ask "what are we missing?" not "you forgot the cup."' },
+        { title: 'Fruit washing station', body: 'Designate a low spot near the tap with a small colander. When fruit is needed, he washes it. One real job, done regularly.' },
+        { title: 'Sock sorting basket', body: 'Empty clean socks into a basket. He matches pairs and attempts a basic fold. Focus on matching — the fold is a bonus.' },
+      ],
+      tip: 'Allow extra time for him to complete practical tasks. Rushing in to help sends the message that he can\'t do it.'
+    },
+    world: {
+      objectives: [
+        'Topics: animals, habitats, food sources, caring for plants',
+        'Build chains of curiosity: where does food come from before the shop?'
+      ],
+      prompts: [
+        { label: 'Habitat', text: '"Where does a fish live? What does it need to survive there? What would happen if we moved it to the desert?"' },
+        { label: 'Food source', text: '"Where does bread come from — before the shop? And before the factory? And before that?"' },
+        { label: 'Creator connection', text: '"Who gave the fish the ability to breathe underwater? Could we make something like that?"' },
+      ],
+      exercises: [
+        { title: 'Habitat sorting', body: 'Draw or print pictures of animals and environments. He matches each animal to its home. Discuss: "Why does this animal live here? What does it need?"' },
+        { title: 'Food chain backwards', body: 'Start with something he eats. Walk the chain backwards: bread → wheat → farm → seed → soil → rain → sun. Connect to Allah\'s provision.' },
+        { title: 'Plant responsibility', body: 'He continues watering his Q1 plant. New observation: "Is it growing? Measure its height against a finger. What does it need more of this week?"' },
+      ],
+      tip: 'Encourage wonder questions — "I wonder why…" — and answer them together through observation rather than just providing facts.'
+    },
+    art: {
+      objectives: [
+        'Weekly craft linked to a story, nature, or Islamic theme',
+        'Sand tracing and large-movement letter formation if enjoyable',
+        'Child narrates every completed piece'
+      ],
+      prompts: [
+        { label: 'Craft extension', text: '"You made a bird — which bird is your favourite? Tell me three things about it."' },
+        { label: 'Letter formation', text: '"Let\'s trace this curve in the sand with our finger — make it big and smooth."' },
+      ],
+      exercises: [
+        { title: 'Story-linked craft', body: 'After a Prophet story, make a simple craft connecting to it (e.g. paper boat after Prophet Nuh). He narrates the story while doing the craft.' },
+        { title: 'Sand tray letter tracing', body: 'Fill a shallow tray with sand or rice. He traces large shapes, then letters he knows. Shake to erase and repeat. No pressure — only if enjoyable.' },
+        { title: 'Nature art', body: 'On an outdoor walk, collect leaves, petals, or pebbles. Arrange on paper to make a picture. He tells you what it is; you write the title.' },
+      ],
+      tip: 'Craft quality does not matter. Process and narration are the goals. Resist the urge to "help" it look better.'
+    },
+    physical: {
+      objectives: [
+        'Supported floating if water comfort has improved from Q1',
+        'Safety rules: road, strangers, water, fire, sharp objects',
+        'Practise safety rules through roleplay — not just telling'
+      ],
+      prompts: [
+        { label: 'Water milestone', text: '"Last time you stood in the water up to your knees. Do you want to try a little further today? Only if you feel ready."' },
+        { label: 'Safety rule check', text: '"If we\'re at a road — what do we do before crossing? Why? What happens if we don\'t?"' },
+      ],
+      exercises: [
+        { title: 'Safety roleplay scenarios', body: 'Role-play safety situations: at the road, meeting a stranger, near water, near fire. Ask "What do you do?" He answers and acts out the correct behaviour. Calm and matter-of-fact — no fear framing.' },
+        { title: 'Water comfort step', body: 'If comfortable at ankle depth from Q1, try knee depth this quarter. Let him choose the pace. Blowing bubbles in water is a major milestone — celebrate it fully.' },
+        { title: 'Obstacle course', body: 'Set up a simple indoor/outdoor course (crawl under table, jump over a line, balance on a plank). Change it weekly. Encourages coordination and safe risk-taking.' },
+      ],
+      tip: 'Safety rules should be practised, not just stated. A child who has role-played a stranger scenario responds better under real pressure.'
+    },
+  },
+  q3: {
+    quran: {
+      objectives: [
+        'Al-Ikhlas stronger — recite alone without prompts',
+        'Al-Falaq: listen, repeat, begin memorising',
+        'Continue Prophet and Sahabah stories',
+        'Learn Quranic word meanings from known surahs and duas'
+      ],
+      prompts: [
+        { label: 'Al-Falaq intro', text: '"This surah is about asking Allah\'s protection. What do we need protection from? Let\'s listen to it first."' },
+        { label: 'Word meaning check', text: '"In Bismillah — what does Rahman mean? What does Raheem mean? How are they different?"' },
+        { label: 'Story connection', text: '"The Sahabah faced very hard tests. What is a hard thing you had to do? How did you get through it?"' },
+      ],
+      exercises: [
+        { title: 'Al-Falaq listening and repetition', body: 'Play correct recitation of Al-Falaq. Listen 3 times. Day 2: repeat line by line. Day 3–4: say it together from memory. Week 2: he attempts alone.' },
+        { title: 'Quranic word bank booklet', body: 'Make a small booklet of Quranic words he knows with simple illustrations (e.g. Al-hamd = all praise, with raised hands). He adds new words as he learns them.' },
+        { title: 'Prophet story narration', body: 'He tells you a Prophet story from memory. You listen, ask one clarifying question, then summarise: "So the main thing Prophet Yunus learned was…?" He completes the sentence.' },
+      ],
+      tip: 'By Q3 he should know Al-Fatiha and Al-Ikhlas well. Praise fluency and meaning together — not just memorisation speed.'
+    },
+    character: {
+      objectives: [
+        'Honesty under pressure: telling the truth even when afraid',
+        'Kindness to younger children and people who need help',
+        'Amanah: taking care of toys, books, food, water, plants, and others\' things'
+      ],
+      prompts: [
+        { label: 'Honesty scenario', text: '"Bilal broke something and is scared to tell his father. What do you think he should do? What will happen if he tells the truth? What if he doesn\'t?"' },
+        { label: 'Kindness prompt', text: '"Your baby cousin is feeling scared. What are three things you could do to help her feel safe?"' },
+        { label: 'Amanah check', text: '"This book belongs to our friend. How should we take care of it? What would happen if we lost it?"' },
+      ],
+      exercises: [
+        { title: 'Honesty under pressure roleplay', body: 'Act out a scenario where telling the truth is scary (spilled something, broke a rule). He practises saying the truth. Respond with: "Thank you for telling me the truth. That was brave."' },
+        { title: 'Kindness to younger children', body: 'When around younger children, give him a specific role: "You\'re the older one here — what can you do to help?" Debrief: "How did they feel when you helped?"' },
+        { title: 'Amanah audit', body: 'Walk through his room together. For each item: "Whose is this? Is it being taken care of? What does it need?" He takes one action to improve the care of something.' },
+      ],
+      tip: 'When he tells the truth about something difficult, never punish the honesty — respond to the action separately. If honesty is punished, he learns to hide.'
+    },
+    english: {
+      objectives: [
+        'Introduce early consonant blends if CVC is fluent (sl, st, bl, cr, tr)',
+        'Story narration with beginning, middle, and end',
+        'Answer why and how questions in English with support',
+        'Continue read-alouds above independent reading level to build listening vocabulary'
+      ],
+      prompts: [
+        { label: 'Blend practice', text: '"This word starts with two sounds together — sl… slag, sl… slip. Try it: what does sl sound like?"' },
+        { label: 'Story narration', text: '"Tell me the story of what we just read. Start with: First… then tell me the middle… then how did it end?"' },
+        { label: 'Why question', text: '"Why did the character do that? Was it a good choice? What would you have done?"' },
+      ],
+      exercises: [
+        { title: 'Blend introduction', body: 'One blend per week when CVC is solid: sl, st, bl, cr, tr. Build 4–5 words per blend using letter cards.' },
+        { title: 'Narration practice', body: 'After any story, he narrates in order: beginning, middle, end. Prompt with "and then what happened?" if he gets stuck. Praise completeness over language quality.' },
+        { title: 'Why/how discussion', body: 'Read a short passage. Ask one "why" and one "how" question. Accept Hindi/Urdu answers and model back in English: "So you\'re saying he ran because he was scared — that\'s right!"' },
+      ],
+      tip: 'Narration is one of the most powerful comprehension tools. Even two sentences (beginning + end) is meaningful progress.'
+    },
+    hindi: {
+      objectives: [
+        'Begin simple matra-free word reading only if varnamala is fully stable',
+        'Do not introduce matras — stable letter-sound mapping must come first'
+      ],
+      prompts: [
+        { label: 'Stability check', text: '"Let\'s go through all our letters. Say the sound for each one I hold up." (Check all 10+ letters covered)' },
+        { label: 'Word reading', text: '"This word is made of क + ल = कल. Can you read it? What does it mean?"' },
+      ],
+      exercises: [
+        { title: 'Varnamala stability test', body: 'Before introducing words: lay out all letters covered. He reads each one without hints. If fewer than 4/5 correct, continue letter work before moving to words.' },
+        { title: 'Simple matra-free word reading', body: 'When stable: show simple 2-akshar words (कप, जल, नल, मन). He reads each one. Start with words he already knows in speech.' },
+        { title: 'Word-picture match', body: 'Print or draw pictures of simple matra-free word objects. He matches each picture to its written word. Correct with re-reading, not by telling the answer.' },
+      ],
+      tip: 'It is fine to end Q3 still on varnamala if letter-sound mapping is not solid. A stable foundation prevents confusion later.'
+    },
+    arabic: {
+      objectives: [
+        'Quranic word recognition from known surahs and duas',
+        'Match heard Arabic sound to written letter or word',
+        'Connect letter learning to surahs he already knows'
+      ],
+      prompts: [
+        { label: 'Listening match', text: '"I\'m going to say a sound — بَ. Can you point to it on this card? Now I\'ll say كَ — find it."' },
+        { label: 'Surah word', text: '"In Bismillah, the first word is بِسْمِ — can you find the letter Ba in it?"' },
+      ],
+      exercises: [
+        { title: 'Surah word recognition', body: 'Print Al-Fatiha or Al-Ikhlas in large clear text. Point to a word and read it aloud; he echoes. Next session: point and let him attempt to read. Focus on first letters of each word.' },
+        { title: 'Hear and point', body: 'Read a short list of Arabic sounds (letters + harakat). He points to the matching card. Increase speed gradually as accuracy improves.' },
+        { title: 'Quran letter find', body: 'Give him a printed surah page and one letter to find (e.g. all ر letters in Al-Fatiha). He circles or points to every occurrence. Count together.' },
+      ],
+      tip: 'This is early Quranic Arabic readiness — not formal Qaida yet. Keep it joyful and connected to surahs he already knows.'
+    },
+    numeracy: {
+      objectives: [
+        'Number bonds to 10 — all pairs',
+        'Compare quantities with reasoning',
+        'Measurement through real objects: longer/shorter, heavier/lighter, full/empty'
+      ],
+      prompts: [
+        { label: 'Number bond to 10', text: '"10 can be split how many ways? You found 3 + 7. What other ways are there? Can you find all of them?"' },
+        { label: 'Measurement', text: '"Which of these two sticks is longer? How much longer? How do we check?"' },
+        { label: 'Compare', text: '"There are 7 apples and 4 oranges. Which has more? How many more? How do you know?"' },
+      ],
+      exercises: [
+        { title: 'Number bond to 10 — all pairs', body: 'Use two colours of blocks: find all pairs that make 10 (1+9, 2+8, 3+7, 4+6, 5+5). Record each pair. Goal: recall all pairs without objects by end of quarter.' },
+        { title: 'Measurement with body', body: 'Use hands, feet, and arm spans to measure objects around the house. "The table is 4 arm spans wide. The door is 3. Which is wider?" Record in a simple notebook.' },
+        { title: 'Balance comparison', body: 'Hold one object in each hand. He predicts which is heavier, then tests. Record: heavier/lighter/same. Discuss why.' },
+      ],
+      tip: 'Number bonds to 10 are the most important arithmetic foundation. Spend as much time here as needed — do not rush to the next stage.'
+    },
+    practical: {
+      objectives: [
+        'Fold small clothes independently',
+        'Pack a small outing bag without help',
+        'Help prepare a simple snack from start to finish'
+      ],
+      prompts: [
+        { label: 'Outing prep', text: '"We\'re going to the park. What do you need to bring? Go and get everything and pack it yourself."' },
+        { label: 'Snack prep', text: '"Can you make yourself a snack? What do you need? Where do you get each thing?"' },
+      ],
+      exercises: [
+        { title: 'Outing bag routine', body: 'Before every outing, he packs his own small bag: water bottle, one snack, one activity item. No help unless asked. Debrief: "Did you have everything you needed?"' },
+        { title: 'Simple snack prep', body: 'Teach one simple snack: sliced banana + crackers, or bread + spread. He does every step; you supervise from a distance. Build to doing it without supervision.' },
+        { title: 'Clothes folding', body: 'Start with face cloths (easiest). Teach a simple fold (in half, then in half again). He folds 3–5 each laundry day. Progress to small T-shirts later in the quarter.' },
+      ],
+      tip: 'The snack may not look perfect — it doesn\'t need to. Praise effort and initiative, not the result.'
+    },
+    world: {
+      objectives: [
+        'Simple experiments: floating/sinking, plant needs, light and shadow',
+        'Problem-solving through story-based science questions',
+        'Build prediction and observation habit: predict → test → explain'
+      ],
+      prompts: [
+        { label: 'Before experiment', text: '"Before we try it — what do you predict will happen? Why do you think so?"' },
+        { label: 'After experiment', text: '"Was your prediction right? What actually happened? Why do you think it happened that way?"' },
+        { label: 'Problem question', text: '"If the plant had no sunlight for one week, what do you think would happen? How could we help it?"' },
+      ],
+      exercises: [
+        { title: 'Float or sink', body: 'Gather 10 household objects. He predicts float/sink before each test, then tests in a basin of water. Discuss: "What do the things that float have in common?"' },
+        { title: 'Light and shadow walk', body: 'On a sunny day, trace shadows of objects on paper. Check at a different time — did the shadow move? Why? Connect to the sun\'s movement and Allah\'s signs.' },
+        { title: 'Plant experiment', body: 'Cover one half of his plant with a box for 3 days. Observe changes. Uncover and observe recovery. Record with drawings.' },
+      ],
+      tip: 'When an experiment gives unexpected results, celebrate it: "That\'s interesting — that means we learned something we didn\'t expect!"'
+    },
+    art: {
+      objectives: [
+        'More detailed drawing and craft',
+        'Child narrates what he made in full sentences',
+        'Story-illustration sequences (3 panels)'
+      ],
+      prompts: [
+        { label: 'Narration after craft', text: '"Tell me everything about what you made. What is it? What is it doing? What is the story?"' },
+        { label: 'Detail prompt', text: '"What else could you add to your drawing to make it more complete? What is missing?"' },
+      ],
+      exercises: [
+        { title: 'Detailed scene drawing', body: 'Give a prompt: "Draw our home from the outside." After he finishes, ask "what else is in the garden?" The second round of details is often the richest.' },
+        { title: 'Story-illustration sequence', body: 'He draws 3 panels of a story he invented. Then narrates aloud while pointing to each panel. You write his narration below. This is early creative writing.' },
+        { title: 'Islamic geometry intro', body: 'Use a compass and ruler to draw simple geometric patterns. Colour them in. Discuss: "Muslims have made beautiful patterns like this in masjids for hundreds of years."' },
+      ],
+      tip: 'Narrating artwork is pre-writing. The habit of explaining his creations verbally will transfer to written composition later.'
+    },
+    physical: {
+      objectives: [
+        'Continue water comfort at child\'s pace — never force',
+        'Build coordination through games: throwing, catching, kicking',
+        'Gross motor obstacle course — update weekly'
+      ],
+      prompts: [
+        { label: 'Progress check', text: '"What part of the water feels okay now? What part still feels scary? Let\'s only do what feels okay today."' },
+      ],
+      exercises: [
+        { title: 'Water comfort continuation', body: 'If at knee depth from Q2, try waist depth only if he wants to. Introduce "blowing bubbles" as a game (face near water, blow). No pressure on putting face in.' },
+        { title: 'Coordination games', body: 'Throwing and catching at increasing distances. Kicking a ball at a target. Jumping rope. These build body awareness useful for eventual swimming.' },
+        { title: 'Gross motor obstacle course', body: 'Update the Q2 course with new challenges: hop on one foot 5 times, crawl through a tunnel, throw a ball through a hoop.' },
+      ],
+      tip: 'Note any progress, however small, and share it warmly at the end of each water session. Progress happens in millimetres at this stage.'
+    },
+  },
+  q4: {
+    quran: {
+      objectives: [
+        'Al-Fatiha and Al-Ikhlas recited strongly from memory',
+        'Al-Falaq and An-Nas: continued exposure',
+        '8–10 duas used in context without prompting',
+        'Develop correct respect and handling of the Quran'
+      ],
+      prompts: [
+        { label: 'Year review', text: '"Which surahs do you know now? Say each one for me. Which one do you know best?"' },
+        { label: 'Dua count', text: '"Let\'s count the duas you know — morning, eating, sleeping, leaving home, entering home, sneezing… how many is that?"' },
+        { label: 'Quran respect', text: '"How do we treat the Quran? Why do we treat it differently from other books?"' },
+      ],
+      exercises: [
+        { title: 'Year-end surah check', body: 'He recites Al-Fatiha, Al-Ikhlas, Al-Falaq alone — no prompts. Note any gaps; spend final weeks reinforcing only those gaps.' },
+        { title: 'Dua visual map', body: 'Make a visual "day map" showing all routines with their duas. He reviews and uses without prompting. Celebrate self-initiated duas.' },
+        { title: 'Quran handling lesson', body: 'Show how to hold, place, and store the Quran. He demonstrates the correct way. Discuss: "Why is the Quran special?" Accept his answer; add if needed.' },
+      ],
+      tip: 'End-of-year consolidation is not about adding new content — it is about making what he knows feel natural, joyful, and owned by him.'
+    },
+    character: {
+      objectives: [
+        'Helping parents and doing household tasks willingly',
+        'Masjid manners: quiet, respectful, aware',
+        'Self-control in challenging moments',
+        'Continue sabr, repair, honesty, kindness, and amanah through real situations'
+      ],
+      prompts: [
+        { label: 'Helping frame', text: '"I need help with something — can you do this one part for me? You\'re big enough now."' },
+        { label: 'Masjid prep', text: '"We\'re going to the masjid — what are the rules? Why do we have those rules?"' },
+        { label: 'Self-control', text: '"You really wanted to say something, but you waited. That was self-control. How did it feel to wait?"' },
+      ],
+      exercises: [
+        { title: 'One daily household task', body: 'Assign one real household task every day without being asked (e.g. put laundry in basket, water the plant, set water glasses). Track consistency — not perfection.' },
+        { title: 'Masjid visit preparation', body: 'Before visiting: review rules together. He states the rules; you confirm. Debrief after the visit: "What did you do well?"' },
+        { title: 'Year-end character review', body: 'Together, name one thing he has genuinely improved: "This year I noticed you became much better at ___." Ask him: "What do you want to improve next year?" Write it down together.' },
+      ],
+      tip: 'Frame the year-end as achievement, not deficiency. He has grown — name that growth specifically and connect it to effort, not just outcome.'
+    },
+    english: {
+      objectives: [
+        'Read short decodable books with confidence and fluency',
+        'Understand and retell simple stories',
+        'Dictate a story for parent to write; child illustrates it',
+        'Use English in short daily exchanges without making home English-only'
+      ],
+      prompts: [
+        { label: 'Confident reading', text: '"Read this to me like you\'re reading to someone who doesn\'t know the story. Slow and clear."' },
+        { label: 'Story dictation', text: '"Tell me a story and I\'ll write every word you say. You can tell me anything — made up, real, whatever you want."' },
+        { label: 'Comprehension', text: '"What was the most important part of the story? If you had to tell it to a friend in just two sentences, what would you say?"' },
+      ],
+      exercises: [
+        { title: 'Confident reader re-read', body: 'Choose a book he has read once before. He rereads it independently or to you. Focus on fluency and confidence — not decoding. This builds reading-as-pleasure.' },
+        { title: 'Story dictation book', body: 'Once a week: he tells you a story, you write it word for word. He illustrates each part. Collect these into "his book." At year-end, read the whole collection together.' },
+        { title: 'Daily English exchange', body: 'Maintain a 5-minute daily English routine at breakfast: "What did you dream? What will you do today?" Conversational, not a test.' },
+      ],
+      tip: 'When he sees his own words written down, he understands that writing is just speech made permanent. The dictation exercise is one of the most powerful literacy activities you can do.'
+    },
+    hindi: {
+      objectives: [
+        'Continue reading foundation — do not rush if letter-sound mapping is not solid',
+        'Stable varnamala is the correct end-of-year outcome at this age'
+      ],
+      prompts: [
+        { label: 'Stability check', text: '"Read these 10 letters for me — just the sounds, no pictures." (Check speed and confidence)' },
+        { label: 'Word attempt', text: '"This word is made of two letters you know — can you try to read it?"' },
+      ],
+      exercises: [
+        { title: 'Final varnamala review', body: 'Test all letters covered across the year. Note any uncertain sounds. Spend remaining sessions on those specific letters only.' },
+        { title: 'Simple word reading if stable', body: 'If all varnamala sounds are reliable: attempt 5-word reading sessions with matra-free words. No time pressure.' },
+        { title: 'Hindi story time', body: 'Read a simple Hindi picture book aloud. He follows along. Point to words as you read them. No decoding pressure — joyful exposure to written Hindi.' },
+      ],
+      tip: 'It is perfectly acceptable to end Year 4–5 with varnamala solid but words not yet fluent. A stable foundation is the correct outcome at this age.'
+    },
+    arabic: {
+      objectives: [
+        'Gentle Qaida progression only if readiness is clearly demonstrated',
+        'Readiness means: reads all covered letters + harakat without hesitation'
+      ],
+      prompts: [
+        { label: 'Readiness check', text: '"Read these letters for me — each one with fathah, kasrah, dammah." (Check all covered letters + harakat)' },
+        { label: 'Qaida first page', text: '"This is the Qaida. Let\'s read the first line slowly together — you lead, I\'ll help."' },
+      ],
+      exercises: [
+        { title: 'Readiness assessment', body: 'Before any Qaida: he should read all covered letters with correct harakat without hesitation. If not fluent, continue harakat practice — do not begin Qaida.' },
+        { title: 'Qaida first steps', body: 'If ready: Qaida page 1 only. Read together, 5 minutes maximum, daily. Repeat the same page until fluent before turning to page 2. Completely child-paced.' },
+        { title: 'Quran listening continues', body: 'Continue daily recitation listening. Connect it to Qaida: "The sounds you\'re learning now are the same sounds in the Quran."' },
+      ],
+      tip: 'There is no rush to begin Qaida. A child who begins at 5 with a strong foundation progresses faster than one who begins at 4 with a shaky one.'
+    },
+    numeracy: {
+      objectives: [
+        'Addition and subtraction stories within 10',
+        'Count to 30+ accurately',
+        'Time words: yesterday/today/tomorrow, morning/evening',
+        'Patterns, measurement, comparison, board and dice games'
+      ],
+      prompts: [
+        { label: 'Story math', text: '"Make up your own maths story for me. Tell me a story about numbers and I\'ll solve it."' },
+        { label: 'Count to 30', text: '"Count from 15 all the way to 30 — keep going even if it feels like a long time."' },
+        { label: 'Time words', text: '"What did we do yesterday? What are we doing today? What do you think we will do tomorrow?"' },
+      ],
+      exercises: [
+        { title: 'Child-invented math stories', body: 'He creates the story; you solve it, deliberately making a mistake. He corrects you. Role reversal makes the concept solid and the session fun.' },
+        { title: 'Count to 30+ with objects', body: 'Count large collections: pasta, blocks, small toys. He counts by touching each object. Try counting on from a mid-number: "Start from 17 and count to 30."' },
+        { title: 'Calendar time words', body: 'Each morning, point to the calendar: "Yesterday was ___, today is ___, tomorrow will be ___." He says all three. He makes a daily mark himself.' },
+        { title: 'Board game session', body: '3x per week: board or dice game requiring counting moves, adding dots, or number recognition. Snakes and Ladders, Ludo, or a simple number card game all work well.' },
+      ],
+      tip: 'By end of Q4, the goal is reliable addition/subtraction within 10 with understanding — not speed. Accuracy matters more than pace.'
+    },
+    practical: {
+      objectives: [
+        'Dress with less help — lay clothes out night before',
+        'Organise toys and books independently',
+        'Help with one household task daily, unprompted'
+      ],
+      prompts: [
+        { label: 'Getting dressed', text: '"You have 5 minutes to get dressed by yourself before we leave. I won\'t help unless you ask."' },
+        { label: 'Tidying', text: '"Before we do the next thing, your books need to go back. How would you like to organise them?"' },
+      ],
+      exercises: [
+        { title: 'Getting dressed independently', body: 'Lay out clothes the night before. In the morning, he dresses himself — you are available but not intervening unless asked. Track how many items he manages alone each week.' },
+        { title: 'Toy/book organisation', body: 'Give him ownership of one shelf or box. He decides how to organise it. Once a week, 10-minute tidy: he does it alone; you notice: "It looks like you organised this by colour — that was smart."' },
+        { title: 'Daily household contribution', body: 'One task every day, non-negotiable but non-punitive: water the plant, wipe the table, bring in shoes, check the door is closed. Build it into the before-bed routine.' },
+      ],
+      tip: 'Independence in practical life is the single biggest predictor of school readiness. A child who can manage himself in a room is ready for a classroom.'
+    },
+    world: {
+      objectives: [
+        'Nature scrapbook or observation journal through drawings and narration',
+        'Year-end review of all observations',
+        'Record open questions for next year'
+      ],
+      prompts: [
+        { label: 'Journal prompt', text: '"What did you notice outside today that was different from yesterday? Draw it and tell me about it."' },
+        { label: 'Year reflection', text: '"What is the most interesting thing you learned about the world this year? Why is it interesting to you?"' },
+      ],
+      exercises: [
+        { title: 'Nature journal', body: 'Weekly outdoor observation: he draws one thing he noticed (plant, insect, weather, sky). You write his narration beside the drawing. Date each entry. At year-end, read through all entries together.' },
+        { title: 'Year-end science review', body: 'Go through drawings from Q1–Q4. Ask: "What questions do you still have? What do you want to learn about next year?" Write these questions in the back of the journal.' },
+      ],
+      tip: 'The questions he asks at the end of the year are more valuable than the answers he knows.'
+    },
+    art: {
+      objectives: [
+        'Continue free drawing, colouring, cutting, puzzles, playdough, and craft',
+        'Year-end portfolio: he selects his favourite 5 pieces',
+        'Gift-making for someone he loves'
+      ],
+      prompts: [
+        { label: 'Year review', text: '"Look at all the drawings you made this year. Which one do you like most? What has changed about your drawings?"' },
+      ],
+      exercises: [
+        { title: 'Portfolio review', body: 'Gather drawings and crafts from across the year. Look through together. He picks his favourite 5. Mount them simply on card or in a small folder — his first portfolio.' },
+        { title: 'Free creation session', body: 'Each week: 20–30 minutes of completely free art. No theme, no prompt, no direction. This builds creative confidence and intrinsic motivation.' },
+        { title: 'Gift making', body: 'He makes a gift for someone he loves (grandparent, friend). Chosen by him, made by him, explained by him when given. Fine motor, creativity, and character — all in one.' },
+      ],
+      tip: 'If he resists an art session, skip it. The goal is a love of creating, not compliance.'
+    },
+    physical: {
+      objectives: [
+        'Water confidence continues at child\'s pace',
+        'Introduce a new physical activity this quarter',
+        'Celebrate the full year of physical growth'
+      ],
+      prompts: [
+        { label: 'Year review', text: '"Remember at the start of the year you were scared to even put your feet in. Look at what you can do now. How does it feel?"' },
+      ],
+      exercises: [
+        { title: 'Water confidence milestone review', body: 'Name every water step he has taken across the year: first foot in, first time standing, first knee-depth, first time blowing bubbles. Celebrate the full journey, not just the endpoint.' },
+        { title: 'New physical activity', body: 'Introduce something he hasn\'t tried: kicking a ball at a goal, riding a balance bike, or simple gymnastic rolls. New challenges build confidence and body awareness.' },
+        { title: 'Year-end movement celebration', body: 'Film a short video of him doing something physical he couldn\'t do at the start of the year. Watch it together: "Look at how strong and brave you are."' },
+      ],
+      tip: 'End the year by honouring how far he has come, not how far he still has to go.'
+    },
+  },
+};
+
+const BASELINE = [
+  { subject: 'Quran/Islam', note: 'Broken Al-Fatiha with help. Knows simple stories of Nuh, Yunus, Ibrahim.' },
+  { subject: 'English', note: 'Reads CVC words. Knows: the, I, a, is, to, my, you. Home conversation is Hindi/Urdu.' },
+  { subject: 'Hindi', note: 'Ready to start reading from basics — varnamala not yet begun.' },
+  { subject: 'Numeracy', note: 'Recognises 1–20. Counts with slight mistakes. Addition within 5 using objects. Knows basic shapes.' },
+  { subject: 'Practical Life', note: 'Washing, brushing, potty training all established.' },
+  { subject: 'Physical', note: 'Active play established. Swimming fear remains — water comfort is the goal.' },
+];
+
+const RESOURCES = [
+  { label: 'Islamic Playground', url: 'https://islamicplayground.com/' },
+  { label: 'Muslim Kids TV', url: 'https://muslimkids.tv/' },
+  { label: 'Reading Eggs (literacy)', url: 'https://readingeggs.com/' },
+  { label: 'Khan Academy Kids', url: 'https://khanacademy.org/kids' },
+  { label: 'Anki (revision flashcards)', url: 'https://apps.ankiweb.net/' },
+  { label: 'Goodword Quran Stories for Kids', url: null },
+  { label: 'Oxford Reading Tree Stage 1', url: null },
+];
+
+let currentQ = 'q1';
+let currentS = 'quran';
+
+function buildMobileStrip() {
+  const strip = document.getElementById('mobileSubjStrip');
+  if (!strip) return;
+  strip.innerHTML = SUBJECTS.map(s => `
+    <button class="m-subj-btn ${s.id === currentS ? 'active' : ''}"
+      style="${s.id === currentS ? `background:${s.bg};color:${s.color};border-color:${s.dot};` : ''}"
+      onclick="selectSubject('${s.id}')">
+      <span style="width:7px;height:7px;border-radius:50%;background:${s.dot};flex-shrink:0;display:inline-block"></span>
+      ${s.label}
+    </button>`).join('');
+  // Scroll active button into view
+  const active = strip.querySelector('.active');
+  if (active) active.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+}
+
+function buildSidebar() {
+  document.getElementById('qGoalText').textContent = QUARTERS[currentQ].goal;
+  const nav = document.getElementById('subjectNav');
+  nav.innerHTML = SUBJECTS.map(s => `
+    <button class="subj-btn ${s.id === currentS ? 'active' : ''}"
+      style="${s.id === currentS ? `background:${s.bg};color:${s.color};` : ''}"
+      onclick="selectSubject('${s.id}')">
+      <span class="subj-dot" style="background:${s.dot}"></span>${s.label}
+    </button>`).join('');
+}
+
+function buildMain() {
+  const main = document.getElementById('mainContent');
+  const s = SUBJECTS.find(x => x.id === currentS);
+  const d = DATA[currentQ][currentS];
+
+  const objHTML = d.objectives.map(o => `<li>${o}</li>`).join('');
+  const promptsHTML = d.prompts.map(p => `
+    <div class="prompt-card">
+      <div class="prompt-label">${p.label}</div>
+      <div class="prompt-text">${p.text}</div>
+    </div>`).join('');
+  const exHTML = d.exercises.map(e => `
+    <div class="exercise-card">
+      <div class="exercise-title">${e.title}</div>
+      <div class="exercise-body">${e.body}</div>
+    </div>`).join('') + (d.tip ? `<div class="tip-card"><strong>Tip:</strong> ${d.tip}</div>` : '');
+
+  main.innerHTML = `
+    <div class="panel-header">
+      <div class="panel-icon" style="background:${s.bg};color:${s.color}">${s.icon}</div>
+      <h2>${s.label}</h2>
+      <span class="quarter-badge">${QUARTERS[currentQ].label}</span>
+    </div>
+    ${accordion('objectives', '→ What to cover this quarter', `<ul class="obj-list">${objHTML}</ul>`, true)}
+    ${accordion('prompts', '💬 What to say — example prompts', promptsHTML, true)}
+    ${accordion('exercises', '✏ Activities &amp; exercises', exHTML, true)}
+    ${buildResourcesHTML()}`;
+
+  main.querySelectorAll('.acc-head').forEach(h => {
+    h.addEventListener('click', () => {
+      const body = h.nextElementSibling;
+      const arrow = h.querySelector('.acc-arrow');
+      const open = body.classList.toggle('open');
+      arrow.classList.toggle('open', open);
+    });
+  });
+}
+
+function accordion(id, title, content, defaultOpen) {
+  return `<div class="accordion">
+    <div class="acc-head">
+      <div class="acc-head-left">
+        <span class="acc-title">${title}</span>
+      </div>
+      <span class="acc-arrow ${defaultOpen ? 'open' : ''}">▼</span>
+    </div>
+    <div class="acc-body ${defaultOpen ? 'open' : ''}">${content}</div>
+  </div>`;
+}
+
+function buildResourcesHTML() {
+  const items = RESOURCES.map(r => `
+    <div class="res-item">
+      <span class="res-dot"></span>
+      ${r.url ? `<a href="${r.url}" target="_blank" rel="noopener">${r.label}</a>` : `<span>${r.label}</span>`}
+    </div>`).join('');
+  return `<div class="resources-section">
+    <h3>Resources</h3>
+    <div class="res-grid">${items}</div>
+  </div>`;
+}
+
+function selectQ(qid, btn) {
+  currentQ = qid;
+  document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildSidebar();
+  buildMobileStrip();
+  buildMain();
+}
+
+function selectSubject(sid) {
+  currentS = sid;
+  buildSidebar();
+  buildMobileStrip();
+  buildMain();
+}
+
+function buildBaselineHTML() {
+  const items = BASELINE.map(b => `
+    <div class="baseline-item">
+      <strong>${b.subject}</strong>${b.note}
+    </div>`).join('');
+  return `<div class="baseline-card">
+    <h3>Starting baseline — Year 4–5</h3>
+    <div class="baseline-grid">${items}</div>
+  </div>`;
+}
+
+// Initial render
+buildSidebar();
+buildMobileStrip();
+document.getElementById('baselineSlot').innerHTML = buildBaselineHTML();
+buildMain();
+</script>
+</body>
+</html>

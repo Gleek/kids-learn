@@ -270,6 +270,7 @@
 </div>
 
 <script src="shared/arabic-data.js"></script>
+<script src="shared/game.js"></script>
 <script>
 // ── Constants ──
 var ROUNDS = 5;
@@ -306,137 +307,37 @@ var roundActive = false;
 var roundCooldown = 0;
 var currentLevel = null;
 var locked = false;
-var currentAudio = null;
 var firstCorrectHit = true; // track if first attempt per round
 var audioRepeatTimer = null;
-
-// ── Audio ──
-var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-function playTone(success) {
-  var osc = audioCtx.createOscillator();
-  var gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  gain.gain.value = 0.15;
-  if (success) {
-    osc.frequency.value = 523; osc.type = "sine";
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-  } else {
-    osc.frequency.value = 200; osc.type = "square";
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-  }
-}
-
-// ── Arabic TTS ──
-
-function pickArabicVoice() {
-  var voices = speechSynthesis.getVoices();
-  for (var i = 0; i < voices.length; i++) {
-    if (/ar[-_]SA/i.test(voices[i].lang)) return voices[i];
-  }
-  for (var i = 0; i < voices.length; i++) {
-    if (/^ar/i.test(voices[i].lang)) return voices[i];
-  }
-  return null;
-}
-
-function speakArabic(text) {
-  return new Promise(function (resolve) {
-    speechSynthesis.cancel();
-    setTimeout(function () {
-      var u = new SpeechSynthesisUtterance(text);
-      u.lang = "ar-SA";
-      u.rate = 0.7;
-      u.pitch = 1.1;
-      var voice = pickArabicVoice();
-      if (voice) u.voice = voice;
-      u.onend = resolve;
-      u.onerror = resolve;
-      speechSynthesis.speak(u);
-    }, 50);
-  });
-}
-
-function playWordAudio(word) {
-  if (word.tts) return speakArabic(word.text);
-  return new Promise(function (resolve) {
-    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-    var audio = new Audio(ArabicData.getAudioURL(word));
-    currentAudio = audio;
-    audio.onended = function () { currentAudio = null; resolve(); };
-    audio.onerror = function () { currentAudio = null; resolve(); };
-    audio.play().catch(function () { resolve(); });
-  });
-}
+var playWordAudio = KidsGame.createWordAudioPlayer({ getAudioURL: ArabicData.getAudioURL });
 
 // ── Stars ──
 
 function renderStars() {
-  starsEl.innerHTML = "";
-  for (var i = 0; i < ROUNDS; i++) {
-    var span = document.createElement("span");
-    span.className = "star" + (i < starsEarned ? " earned" : "");
-    span.textContent = i < starsEarned ? "\u2B50" : "\u2606";
-    span.style.color = i < starsEarned ? "gold" : "#555";
-    starsEl.appendChild(span);
-  }
-}
-
-// ── Shuffle ──
-
-function shuffle(arr) {
-  var a = arr.slice();
-  for (var i = a.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
-    var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
-  }
-  return a;
+  KidsGame.renderStars(starsEl, starsEarned, ROUNDS);
 }
 
 // ── Level Selector ──
 
 function buildLevelSelector() {
-  levelSelect.innerHTML = "";
-  var keys = Object.keys(ArabicData.LEVELS);
-  keys.forEach(function (key, i) {
-    var level = ArabicData.LEVELS[key];
-    var isLocked = level.locked;
-    var btn = document.createElement("button");
-    btn.className = "level-btn" + (isLocked ? " locked" : "");
-    btn.innerHTML =
-      '<div class="level-num">Level ' + (i + 2) + '</div>' +
-      '<div class="level-name">' + level.name + (isLocked ? ' 🔒' : '') + '</div>' +
-      '<div class="level-desc">' + (isLocked ? level.lockedReason : level.description) + '</div>';
-    if (!isLocked) {
-      btn.addEventListener("click", function () { startGame(key); });
-    }
-    levelSelect.appendChild(btn);
-  });
+  KidsGame.renderLevelSelector(levelSelect, ArabicData.LEVELS, startGame, { startNumber: 2 });
 }
 
 // ── Word Selection ──
 
 function pickSessionWords(levelKey) {
   var words = ArabicData.LEVELS[levelKey].words;
-  return shuffle(words).slice(0, ROUNDS);
+  return KidsGame.pickRandom(words, ROUNDS);
 }
 
 function pickDistractors(correctWord, levelKey) {
   var allWords = ArabicData.LEVELS[levelKey].words;
-  var pool;
-  if (levelKey === "level2") {
-    var vowel = correctWord.transliteration.slice(-1);
-    pool = allWords.filter(function (w) {
-      return w.text !== correctWord.text && w.transliteration.slice(-1) === vowel;
-    });
-  } else {
-    pool = allWords.filter(function (w) { return w.text !== correctWord.text; });
-  }
-  return shuffle(pool).slice(0, NUM_CHOICES - 1);
+  return KidsGame.pickDistractors(allWords, correctWord, NUM_CHOICES - 1, {
+    getKey: function (w) { return w.text; },
+    filter: function (word) {
+      return levelKey !== "level2" || word.transliteration.slice(-1) === correctWord.transliteration.slice(-1);
+    },
+  });
 }
 
 // ── Spawn Word Objects ──
@@ -445,7 +346,7 @@ function spawnObjects() {
   objects = [];
   if (activeChoices.length === 0) return;
 
-  var lanes = shuffle([0, 1, 2]).slice(0, activeChoices.length);
+  var lanes = KidsGame.shuffle([0, 1, 2]).slice(0, activeChoices.length);
 
   // Stagger vertically so they don't all appear at once
   for (var i = 0; i < activeChoices.length; i++) {
@@ -574,9 +475,9 @@ function checkCollisions() {
         if (firstCorrectHit) {
           starsEarned = Math.min(ROUNDS, starsEarned + 1);
         }
-        playTone(true);
+        KidsGame.playTone(true);
         renderStars();
-        showFeedback("\u2B50", carX, carY - 60);
+        KidsGame.showCanvasFeedback("\u2B50", carX, carY - 60, canvas, wrapper, { className: "feedback" });
 
         stopAudioRepeat();
         objects = [];
@@ -587,8 +488,8 @@ function checkCollisions() {
         // Wrong — eliminate this choice
         obj.hit = true;
         firstCorrectHit = false;
-        playTone(false);
-        showFeedback("\u274C", objX, obj.y - 40);
+        KidsGame.playTone(false);
+        KidsGame.showCanvasFeedback("\u274C", objX, obj.y - 40, canvas, wrapper, { className: "feedback" });
 
         // Remove from activeChoices
         var wrongText = obj.word.text;
@@ -596,21 +497,6 @@ function checkCollisions() {
       }
     }
   }
-}
-
-// ── Feedback ──
-
-function showFeedback(emoji, x, y) {
-  var el = document.createElement("div");
-  el.className = "feedback";
-  el.textContent = emoji;
-  var rect = canvas.getBoundingClientRect();
-  var scaleX = rect.width / W;
-  var scaleY = rect.height / H;
-  el.style.left = (canvas.offsetLeft + x * scaleX) + "px";
-  el.style.top = (canvas.offsetTop + y * scaleY) + "px";
-  wrapper.appendChild(el);
-  setTimeout(function () { el.remove(); }, 1000);
 }
 
 // ── Round Flow ──
@@ -626,7 +512,7 @@ function nextRound() {
   firstCorrectHit = true;
 
   var distractors = pickDistractors(currentWord, currentLevel);
-  activeChoices = shuffle([currentWord].concat(distractors));
+  activeChoices = KidsGame.shuffle([currentWord].concat(distractors));
 
   // Play the word audio on repeat
   startAudioRepeat();
@@ -663,24 +549,20 @@ function launchCelebration() {
 }
 
 function endGame() {
-  endScreen.style.display = "flex";
-  var finalStars = document.getElementById("final-stars");
-  finalStars.textContent = "";
-  for (var i = 0; i < ROUNDS; i++) {
-    finalStars.textContent += i < starsEarned ? "\u2B50" : "\u2606";
-  }
-  var title = document.getElementById("end-title");
-  var msg = document.getElementById("end-message");
-  if (starsEarned === ROUNDS) {
-    title.textContent = "Perfect Drive!";
-    msg.textContent = "You matched all the words!";
-  } else if (starsEarned >= 3) {
-    title.textContent = "Great Job!";
-    msg.textContent = "Nice driving! Keep practicing!";
-  } else {
-    title.textContent = "Good Try!";
-    msg.textContent = "Play again to get more stars!";
-  }
+  KidsGame.showEndScreen({
+    screenEl: endScreen,
+    titleEl: document.getElementById("end-title"),
+    messageEl: document.getElementById("end-message"),
+    finalStarsEl: document.getElementById("final-stars"),
+    earned: starsEarned,
+    total: ROUNDS,
+    reward: { enabled: false },
+    messages: {
+      perfect: { title: "Perfect Drive!", message: "You matched all the words!" },
+      good: { title: "Great Job!", message: "Nice driving! Keep practicing!" },
+      try: { title: "Good Try!", message: "Play again to get more stars!" },
+    },
+  });
 }
 
 // ── Game Loop ──

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pattern Match — Kids Learn</title>
+  <link rel="stylesheet" href="shared/styles.css">
+  <style>
+    :root { --wrapper-width: 520px; }
+
+    .pattern-area {
+      display: grid;
+      grid-template-columns: repeat(5, 80px);
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+      min-height: 100px;
+    }
+
+    .pattern-item {
+      font-size: 48px;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: 3px solid var(--border-color);
+      border-radius: 16px;
+      animation: itemPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      animation-delay: calc(var(--item-index, 0) * 120ms);
+      opacity: 0;
+      transform: scale(0.5);
+    }
+
+    @keyframes itemPop {
+      0% { opacity: 0; transform: scale(0.5); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .pattern-item.hidden {
+      background: linear-gradient(135deg, #e8a5ff 0%, #ffa5cc 100%);
+      color: transparent;
+      font-size: 32px;
+    }
+
+    .pattern-item.hidden::before {
+      content: "?";
+      color: #fff;
+      font-weight: 900;
+      font-size: 48px;
+    }
+
+    /* ── Prompt ── */
+    .prompt-text {
+      font-size: 22px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      font-weight: 600;
+    }
+
+    #choices {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      max-width: 340px;
+      margin: 0 auto;
+    }
+
+    .option-btn {
+      font-size: 42px;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+    }
+
+    @media (max-width: 500px) {
+      .pattern-area {
+        grid-template-columns: repeat(5, 60px);
+        gap: 8px;
+        height: 80px;
+      }
+      .pattern-item { width: 60px; height: 60px; font-size: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrapper">
+
+    <!-- HUD -->
+    <div id="hud">
+      <span id="round-label">Round 1 / 5</span>
+      <div id="stars"></div>
+    </div>
+
+    <!-- Game Area -->
+    <div id="game-area">
+
+      <!-- Start Overlay -->
+      <div id="start-screen" class="overlay">
+        <h1>Pattern Match</h1>
+        <p>Spot the pattern and guess what comes next!</p>
+        <button id="start-btn" class="btn">Play</button>
+      </div>
+
+      <!-- End Overlay -->
+      <div id="end-screen" class="overlay" style="display:none">
+        <h1 id="end-title"></h1>
+        <div id="final-stars" class="final-stars"></div>
+        <p id="end-message"></p>
+        <button id="restart-btn" class="btn">Play Again</button>
+        <a href="index.html" class="btn" style="background:none;border:2px solid #ff6b8a;color:#ff6b8a;margin-top:8px;text-decoration:none;display:inline-block;text-align:center;">Home</a>
+      </div>
+
+      <!-- Vehicle -->
+      <div id="vehicle-area" style="margin-bottom: 20px;"></div>
+
+      <!-- Pattern Display -->
+      <div class="pattern-area" id="pattern-area"></div>
+
+      <!-- Prompt -->
+      <div class="prompt-text">What comes next?</div>
+
+      <!-- Options -->
+      <div id="choices"></div>
+    </div>
+
+    <!-- Reward / Confetti -->
+    <div id="reward-overlay"></div>
+    <div id="reward-emoji"></div>
+  </div>
+
+  <script src="shared/game.js"></script>
+  <script src="shared/builder.js"></script>
+  <script>
+  (function () {
+    const TOTAL_ROUNDS = 5;
+
+    // Pattern sets: 4 visible items + 5th to guess
+    // Format: items = first 4 visible, correct = 5th (the answer)
+    const PATTERN_SETS = [
+      // 2-item alternating (simple)
+      { items: ["😀", "😁", "😀", "😁"], correct: "😀", options: ["😀", "😁", "😂", "🤣"] },
+      { items: ["🔴", "🟡", "🔴", "🟡"], correct: "🔴", options: ["🔴", "🟡", "🟢", "🔵"] },
+      { items: ["⭐", "✨", "⭐", "✨"], correct: "⭐", options: ["⭐", "✨", "🌟", "💫"] },
+      { items: ["🍎", "🍊", "🍎", "🍊"], correct: "🍎", options: ["🍎", "🍊", "🍋", "🍌"] },
+      { items: ["🐶", "🐱", "🐶", "🐱"], correct: "🐶", options: ["🐶", "🐱", "🐭", "🐹"] },
+      { items: ["🚗", "🚕", "🚗", "🚕"], correct: "🚗", options: ["🚗", "🚕", "🚙", "🚌"] },
+      { items: ["🔵", "🟢", "🔵", "🟢"], correct: "🔵", options: ["🔵", "🟢", "🟡", "🔴"] },
+      { items: ["🌳", "🌲", "🌳", "🌲"], correct: "🌳", options: ["🌳", "🌲", "🌴", "🌵"] },
+      { items: ["🐠", "🐙", "🐠", "🐙"], correct: "🐠", options: ["🐠", "🐙", "🐬", "🦀"] },
+      { items: ["⚽", "🏀", "⚽", "🏀"], correct: "⚽", options: ["⚽", "🏀", "🏈", "🎾"] },
+      { items: ["🍓", "🍇", "🍓", "🍇"], correct: "🍓", options: ["🍓", "🍇", "🍒", "🍉"] },
+      // 3-item repeating (medium)
+      { items: ["🟥", "🟩", "🟦", "🟥"], correct: "🟩", options: ["🟩", "🟥", "🟦", "🟨"] },
+      { items: ["🎈", "🎉", "🎊", "🎈"], correct: "🎉", options: ["🎉", "🎈", "🎊", "🎁"] },
+      { items: ["🔶", "🔷", "🔸", "🔶"], correct: "🔷", options: ["🔷", "🔶", "🔸", "🔹"] },
+      { items: ["🌙", "⭐", "☀️", "🌙"], correct: "⭐", options: ["⭐", "🌙", "☀️", "🌟"] },
+      { items: ["🐝", "🌸", "🍯", "🐝"], correct: "🌸", options: ["🌸", "🐝", "🍯", "🌿"] },
+      { items: ["🚦", "🚗", "🛑", "🚦"], correct: "🚗", options: ["🚗", "🚦", "🛑", "🚕"] },
+      // 2+2 repeating pairs (medium)
+      { items: ["🔴", "🔴", "🟡", "🟡"], correct: "🔴", options: ["🔴", "🟡", "🟢", "🔵"] },
+      { items: ["🍎", "🍎", "🍊", "🍊"], correct: "🍎", options: ["🍎", "🍊", "🍋", "🍌"] },
+      { items: ["🐶", "🐶", "🐱", "🐱"], correct: "🐶", options: ["🐶", "🐱", "🐭", "🐰"] },
+      { items: ["⭐", "⭐", "🌙", "🌙"], correct: "⭐", options: ["⭐", "🌙", "☀️", "🌟"] },
+      // AAB / ABB repeating patterns (medium-hard)
+      { items: ["🍌", "🍌", "🍎", "🍌"], correct: "🍌", options: ["🍌", "🍎", "🍊", "🍇"] },
+      { items: ["🚀", "🚀", "🌟", "🚀"], correct: "🚀", options: ["🚀", "🌟", "🛸", "✈️"] },
+      { items: ["🐸", "🪷", "🪷", "🐸"], correct: "🪷", options: ["🪷", "🐸", "🐢", "🌿"] },
+      { items: ["🔔", "🎵", "🎵", "🔔"], correct: "🎵", options: ["🎵", "🔔", "🎺", "🥁"] },
+      // Same-item patterns (simple)
+      { items: ["🟥", "🟥", "🟥", "🟥"], correct: "🟥", options: ["🟥", "🟩", "🟦", "🟨"] },
+      { items: ["✨", "✨", "✨", "✨"], correct: "✨", options: ["✨", "⭐", "🌟", "💫"] },
+      { items: ["🐢", "🐢", "🐢", "🐢"], correct: "🐢", options: ["🐢", "🐸", "🐍", "🦎"] },
+      // Skip pattern (every other - harder)
+      { items: ["🔴", "⚪", "🔴", "⚪"], correct: "🔴", options: ["🔴", "⚪", "🟡", "🟢"] },
+      { items: ["🐶", "🐢", "🐶", "🐢"], correct: "🐶", options: ["🐶", "🐢", "🐱", "🐭"] },
+      // Inverse alternating (harder)
+      { items: ["🌟", "✨", "🌟", "✨"], correct: "🌟", options: ["🌟", "✨", "⭐", "💫"] },
+      { items: ["🚀", "🛸", "🚀", "🛸"], correct: "🚀", options: ["🚀", "🛸", "🛩️", "✈️"] },
+      // 4-item loops and ordered progressions (harder)
+      { items: ["🌱", "🌿", "🌳", "🍂"], correct: "🌱", options: ["🌱", "🌿", "🌳", "🍂"] },
+      { items: ["🥚", "🐣", "🐥", "🐔"], correct: "🥚", options: ["🥚", "🐣", "🐥", "🐔"] },
+      { items: ["1️⃣", "2️⃣", "3️⃣", "4️⃣"], correct: "5️⃣", options: ["5️⃣", "4️⃣", "3️⃣", "6️⃣"] },
+      { items: ["2️⃣", "4️⃣", "6️⃣", "8️⃣"], correct: "🔟", options: ["🔟", "9️⃣", "6️⃣", "8️⃣"] },
+      { items: ["🔺", "🔻", "🔹", "🔸"], correct: "🔺", options: ["🔺", "🔻", "🔹", "🔸"] },
+      { items: ["◯", "◯", "●", "◯"], correct: "◯", options: ["◯", "●", "□", "■"] },
+    ];
+
+    let round, stars, locked;
+    let currentPattern, correctAnswer;
+    let roundToken = 0;
+    let transitionTimer = null;
+
+    const $roundLabel   = document.getElementById("round-label");
+    const $stars        = document.getElementById("stars");
+    const $patternArea  = document.getElementById("pattern-area");
+    const $choices      = document.getElementById("choices");
+    const $startOv      = document.getElementById("start-screen");
+    const $endOv        = document.getElementById("end-screen");
+    const $endTitle     = document.getElementById("end-title");
+    const $endMsg       = document.getElementById("end-message");
+    const $finalStars   = document.getElementById("final-stars");
+    const $rewardOv     = document.getElementById("reward-overlay");
+    const $rewardEmoji  = document.getElementById("reward-emoji");
+    const $wrapper      = document.getElementById("game-wrapper");
+    const $vehicleArea  = document.getElementById("vehicle-area");
+
+    function pickPattern() {
+      return PATTERN_SETS[Math.floor(Math.random() * PATTERN_SETS.length)];
+    }
+
+    function renderPattern() {
+      $patternArea.innerHTML = "";
+      const items = currentPattern.items.concat(["?"]);
+
+      items.forEach((item, idx) => {
+        const el = document.createElement("div");
+        el.className = "pattern-item" + (idx === items.length - 1 ? " hidden" : "");
+        el.style.setProperty("--item-index", idx);
+        if (idx !== items.length - 1) el.textContent = item;
+        $patternArea.appendChild(el);
+      });
+    }
+
+    function generateOptions() {
+      const fallback = PATTERN_SETS.reduce((all, pattern) => all.concat(pattern.options), []);
+      const distractors = Array.from(new Set(currentPattern.options.concat(fallback)))
+        .filter(option => option !== correctAnswer);
+
+      return KidsGame.shuffle([
+        correctAnswer,
+        ...KidsGame.shuffle(distractors).slice(0, 3),
+      ]);
+    }
+
+    function renderChoices() {
+      $choices.innerHTML = "";
+      const opts = generateOptions();
+
+      opts.forEach(emoji => {
+        const btn = document.createElement("button");
+        btn.className = "emoji-btn option-btn";
+        btn.type = "button";
+        btn.textContent = emoji;
+        btn.addEventListener("click", () => handleAnswer(btn, emoji));
+        $choices.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(btn, picked) {
+      if (locked || btn.classList.contains("disabled")) return;
+
+      if (picked === correctAnswer) {
+        const token = roundToken;
+        locked = true;
+        stars++;
+        btn.classList.add("correct");
+        KidsGame.playTone(true);
+        KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+        KidsGame.showFeedback("⭐", btn, $wrapper);
+        Builder.addPart();
+
+        document.querySelectorAll("#choices .option-btn").forEach(b => b.classList.add("disabled"));
+
+        KidsGame.speak("That is right!").then(() => {
+          if (token !== roundToken) return;
+          scheduleTransition(() => {
+            if (round < TOTAL_ROUNDS) {
+              round++;
+              startRound();
+            } else {
+              endGame();
+            }
+          }, 400);
+        });
+      } else {
+        locked = true;
+        stars = Math.max(0, stars - 1);
+        btn.classList.add("wrong");
+        KidsGame.playTone(false);
+        KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+        KidsGame.showFeedback("❌", btn, $wrapper);
+        scheduleTransition(() => {
+          btn.classList.add("disabled");
+          locked = false;
+        }, 500);
+      }
+    }
+
+    function scheduleTransition(callback, delay) {
+      clearTimeout(transitionTimer);
+      transitionTimer = setTimeout(callback, delay);
+    }
+
+    function startRound() {
+      clearTimeout(transitionTimer);
+      roundToken++;
+      locked = false;
+      $roundLabel.textContent = "Round " + round + " / " + TOTAL_ROUNDS;
+      KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+
+      currentPattern = pickPattern();
+      correctAnswer = currentPattern.correct;
+
+      renderPattern();
+      renderChoices();
+      KidsGame.speak("What comes next?");
+    }
+
+    function endGame() {
+      // Hide game elements so vehicle animation is unobstructed
+      $patternArea.style.visibility = "hidden";
+      $choices.style.visibility = "hidden";
+      document.querySelector(".prompt-text").style.visibility = "hidden";
+
+      Builder.celebrate(() => {
+        $patternArea.style.visibility = "";
+        $choices.style.visibility = "";
+        document.querySelector(".prompt-text").style.visibility = "";
+        KidsGame.showEndScreen({
+          screenEl: $endOv,
+          titleEl: $endTitle,
+          messageEl: $endMsg,
+          finalStarsEl: $finalStars,
+          earned: stars,
+          total: TOTAL_ROUNDS,
+          reward: { rewardEl: $rewardEmoji, overlayEl: $rewardOv },
+        });
+      });
+    }
+
+    function startGame() {
+      clearTimeout(transitionTimer);
+      roundToken++;
+      round = 1;
+      stars = 0;
+      locked = false;
+      $startOv.style.display = "none";
+      $endOv.style.display = "none";
+      Builder.init($vehicleArea, "random");
+      startRound();
+    }
+
+    KidsGame.wireStartRestart("start-btn", "restart-btn", startGame);
+    KidsGame.renderStars($stars, 0, TOTAL_ROUNDS);
+    KidsGame.createMuteToggle();
+  })();
+  </script>
+</body>
+</html>

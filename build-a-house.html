@@ -964,16 +964,15 @@
     function endGame() {
       Object.values(frameEls).forEach(el => el.classList.remove("active"));
       playSceneSound();
-      const msg = KidsGame.endGameMessage(stars, TOTAL_ROUNDS);
-      $endTitle.textContent = msg.title;
-      $endMsg.textContent = msg.message;
-      KidsGame.renderFinalStars($finalStars, stars, TOTAL_ROUNDS);
-      if (stars === TOTAL_ROUNDS && Math.random() < 0.5) {
-        KidsGame.showReward($rewardEmoji, $rewardOv);
-        setTimeout(() => { $endOv.style.display = "flex"; }, 2800);
-      } else {
-        $endOv.style.display = "flex";
-      }
+      KidsGame.showEndScreen({
+        screenEl: $endOv,
+        titleEl: $endTitle,
+        messageEl: $endMsg,
+        finalStarsEl: $finalStars,
+        earned: stars,
+        total: TOTAL_ROUNDS,
+        reward: { rewardEl: $rewardEmoji, overlayEl: $rewardOv, delayScreen: 2800 },
+      });
     }
 
     function showPicker() {

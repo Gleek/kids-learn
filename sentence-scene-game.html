@@ -401,35 +401,8 @@ let hintsLeft = TOTAL_HINTS;
 let sessionSentences = [];
 let locked = false;
 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-function playTone(success) {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  gain.gain.value = 0.15;
-  if (success) {
-    osc.frequency.value = 523; osc.type = "sine";
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-  } else {
-    osc.frequency.value = 200; osc.type = "square";
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-  }
-}
-
 function renderStars() {
-  starsEl.innerHTML = "";
-  for (let i = 0; i < ROUNDS; i++) {
-    const span = document.createElement("span");
-    span.className = "star" + (i < starsEarned ? " earned" : "");
-    span.textContent = i < starsEarned ? "⭐" : "☆";
-    span.style.color = i < starsEarned ? "gold" : "#555";
-    starsEl.appendChild(span);
-  }
+  KidsGame.renderStars(starsEl, starsEarned, ROUNDS);
 }
 
 function renderHints() {
@@ -443,8 +416,7 @@ function renderHints() {
 }
 
 function pickSession() {
-  const shuffled = [...SENTENCES].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, ROUNDS);
+  return KidsGame.pickRandom(SENTENCES, ROUNDS);
 }
 
 function animateSentence(text) {
@@ -509,9 +481,9 @@ function setupRound() {
   const scenes = [
     { img: data.correct, isCorrect: true },
     { img: wrongImg, isCorrect: false },
-  ].sort(() => Math.random() - 0.5);
+  ];
 
-  for (const scene of scenes) {
+  for (const scene of KidsGame.shuffle(scenes)) {
     const card = buildScene(scene.img);
     card.addEventListener("click", () => handlePick(card, scene.isCorrect));
     choicesEl.appendChild(card);
@@ -527,8 +499,8 @@ function handlePick(card, isCorrect) {
   if (isCorrect) {
     card.classList.add("correct");
     starsEarned = Math.min(ROUNDS, starsEarned + 1);
-    playTone(true);
-    showFeedback("⭐", card);
+    KidsGame.playTone(true);
+    KidsGame.showFeedback("⭐", card, wrapper);
     Builder.addPart();
 
     allCards.forEach(c => {
@@ -549,8 +521,8 @@ function handlePick(card, isCorrect) {
   } else {
     card.classList.add("wrong");
     starsEarned = Math.max(0, starsEarned - 1);
-    playTone(false);
-    showFeedback("❌", card);
+    KidsGame.playTone(false);
+    KidsGame.showFeedback("❌", card, wrapper);
     renderStars();
 
     // Let them try again after a brief pause
@@ -561,103 +533,28 @@ function handlePick(card, isCorrect) {
   }
 }
 
-function showFeedback(emoji, el) {
-  const rect = el.getBoundingClientRect();
-  const wrapRect = wrapper.getBoundingClientRect();
-  const fb = document.createElement("div");
-  fb.className = "feedback-float";
-  fb.textContent = emoji;
-  fb.style.left = (rect.left - wrapRect.left + rect.width / 2 - 20) + "px";
-  fb.style.top = (rect.top - wrapRect.top - 10) + "px";
-  wrapper.appendChild(fb);
-  setTimeout(() => fb.remove(), 900);
-}
-
-function playRewardChime() {
-  const notes = [523, 659, 784, 880, 1047];
-  notes.forEach((freq, i) => {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = "sine";
-    osc.frequency.value = freq;
-    const t = audioCtx.currentTime + i * 0.12;
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.15, t + 0.04);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
-    osc.start(t);
-    osc.stop(t + 0.5);
-  });
-}
-
-function spawnConfetti() {
-  const overlay = document.getElementById("reward-overlay");
-  overlay.innerHTML = "";
-  overlay.classList.add("active");
-
-  const colors = ["#ff6b8a", "#ffd700", "#4caf50", "#4a90d9", "#a855f7", "#ff6b6b", "#22d3ee", "#f472b6"];
-
-  for (let i = 0; i < 60; i++) {
-    const piece = document.createElement("div");
-    piece.className = "confetti";
-    piece.style.left = Math.random() * 100 + "%";
-    piece.style.top = -10 + "px";
-    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-    piece.style.width = (6 + Math.random() * 8) + "px";
-    piece.style.height = (6 + Math.random() * 8) + "px";
-    piece.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
-    piece.style.animationDuration = (1.5 + Math.random() * 2) + "s";
-    piece.style.animationDelay = (Math.random() * 0.8) + "s";
-    overlay.appendChild(piece);
-  }
-
-  setTimeout(() => {
-    overlay.classList.remove("active");
-    overlay.innerHTML = "";
-  }, 4000);
-}
-
-function showReward() {
-  const emojis = ["🏆", "🎉", "👑", "🦄", "🌈", "🎊"];
-  const rewardEl = document.getElementById("reward-emoji");
-  rewardEl.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-  rewardEl.classList.remove("active");
-  void rewardEl.offsetWidth;
-  rewardEl.classList.add("active");
-  spawnConfetti();
-  playRewardChime();
-}
-
 function endGame() {
   // Celebrate vehicle, then show end screen
   Builder.celebrate(function () {
-    const showRewardNow = starsEarned === ROUNDS && Math.random() < 0.5;
-    if (showRewardNow) {
-      showReward();
-      setTimeout(() => { endScreen.style.display = "flex"; }, 2800);
-    } else {
-      endScreen.style.display = "flex";
-    }
+    KidsGame.showEndScreen({
+      screenEl: endScreen,
+      titleEl: document.getElementById("end-title"),
+      messageEl: document.getElementById("end-message"),
+      finalStarsEl: document.getElementById("final-stars"),
+      earned: starsEarned,
+      total: ROUNDS,
+      reward: {
+        rewardEl: document.getElementById("reward-emoji"),
+        overlayEl: document.getElementById("reward-overlay"),
+        delayScreen: 2800,
+      },
+      messages: {
+        perfect: { title: "Perfect!", message: "You matched every sentence!" },
+        good: { title: "Great Job!", message: "Keep reading and playing!" },
+        try: { title: "Good Try!", message: "Play again to get more stars!" },
+      },
+    });
   });
-
-  const finalStars = document.getElementById("final-stars");
-  finalStars.textContent = "";
-  for (let i = 0; i < ROUNDS; i++) {
-    finalStars.textContent += i < starsEarned ? "⭐" : "☆";
-  }
-  const title = document.getElementById("end-title");
-  const msg = document.getElementById("end-message");
-  if (starsEarned === ROUNDS) {
-    title.textContent = "Perfect!";
-    msg.textContent = "You matched every sentence!";
-  } else if (starsEarned >= 3) {
-    title.textContent = "Great Job!";
-    msg.textContent = "Keep reading and playing!";
-  } else {
-    title.textContent = "Good Try!";
-    msg.textContent = "Play again to get more stars!";
-  }
 }
 
 function startGame() {

@@ -382,6 +382,7 @@
 </div>
 
 <script src="shared/arabic-data.js"></script>
+<script src="shared/game.js"></script>
 <script src="shared/builder.js"></script>
 <script>
 const ROUNDS = 5;
@@ -403,157 +404,33 @@ let starsEarned = 0;
 let sessionWords = [];
 let currentLevel = null;
 let locked = false;
-let currentAudio = null;
-
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-// ── Audio Helpers ──
-
-function playTone(success) {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  gain.gain.value = 0.15;
-  if (success) {
-    osc.frequency.value = 523; osc.type = "sine";
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-  } else {
-    osc.frequency.value = 200; osc.type = "square";
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-  }
-}
-
-// ── Arabic TTS ──
-
-function pickArabicVoice() {
-  var voices = speechSynthesis.getVoices();
-  // Prefer ar-SA, then any Arabic voice
-  for (var i = 0; i < voices.length; i++) {
-    if (/ar[-_]SA/i.test(voices[i].lang)) return voices[i];
-  }
-  for (var i = 0; i < voices.length; i++) {
-    if (/^ar/i.test(voices[i].lang)) return voices[i];
-  }
-  return null;
-}
-
-function speakArabic(text) {
-  return new Promise((resolve) => {
-    speechSynthesis.cancel();
-    setTimeout(() => {
-      var u = new SpeechSynthesisUtterance(text);
-      u.lang = "ar-SA";
-      u.rate = 0.7;
-      u.pitch = 1.1;
-      var voice = pickArabicVoice();
-      if (voice) u.voice = voice;
-      u.onend = resolve;
-      u.onerror = resolve;
-      speechSynthesis.speak(u);
-    }, 50);
-  });
-}
-
-function playWordAudio(word) {
-  // TTS-based words (level 2)
-  if (word.tts) {
-    return speakArabic(word.text);
-  }
-  // CDN-based words (levels 3-7)
-  return new Promise((resolve) => {
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio = null;
-    }
-    var audio = new Audio(ArabicData.getAudioURL(word));
-    currentAudio = audio;
-    audio.onended = function () { currentAudio = null; resolve(); };
-    audio.onerror = function () { currentAudio = null; resolve(); };
-    audio.play().catch(function () { resolve(); });
-  });
-}
+const playWordAudio = KidsGame.createWordAudioPlayer({ getAudioURL: ArabicData.getAudioURL });
 
 // ── Stars ──
 
 function renderStars() {
-  starsEl.innerHTML = "";
-  for (let i = 0; i < ROUNDS; i++) {
-    const span = document.createElement("span");
-    span.className = "star" + (i < starsEarned ? " earned" : "");
-    span.textContent = i < starsEarned ? "\u2B50" : "\u2606";
-    span.style.color = i < starsEarned ? "gold" : "#555";
-    starsEl.appendChild(span);
-  }
-}
-
-// ── Feedback ──
-
-function showFeedback(emoji, btn) {
-  const rect = btn.getBoundingClientRect();
-  const wrapRect = wrapper.getBoundingClientRect();
-  const el = document.createElement("div");
-  el.className = "feedback-float";
-  el.textContent = emoji;
-  el.style.left = (rect.left - wrapRect.left + rect.width / 2 - 20) + "px";
-  el.style.top = (rect.top - wrapRect.top - 10) + "px";
-  wrapper.appendChild(el);
-  setTimeout(() => el.remove(), 800);
-}
-
-// ── Shuffle ──
-
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+  KidsGame.renderStars(starsEl, starsEarned, ROUNDS);
 }
 
 // ── Level Selector ──
 
 function buildLevelSelector() {
-  levelSelect.innerHTML = "";
-  const levelKeys = Object.keys(ArabicData.LEVELS);
-  levelKeys.forEach((key, i) => {
-    const level = ArabicData.LEVELS[key];
-    const isLocked = level.locked;
-    const btn = document.createElement("button");
-    btn.className = "level-btn" + (isLocked ? " locked" : "");
-    btn.innerHTML =
-      '<div class="level-num">Level ' + (i + 2) + '</div>' +
-      '<div class="level-name">' + level.name + (isLocked ? ' 🔒' : '') + '</div>' +
-      '<div class="level-desc">' + (isLocked ? level.lockedReason : level.description) + '</div>';
-    if (!isLocked) {
-      btn.addEventListener("click", () => startGame(key));
-    }
-    levelSelect.appendChild(btn);
-  });
+  KidsGame.renderLevelSelector(levelSelect, ArabicData.LEVELS, startGame, { startNumber: 2 });
 }
 
 // ── Game Logic ──
 
 function pickSessionWords(levelKey) {
   const words = ArabicData.LEVELS[levelKey].words;
-  return shuffle(words).slice(0, ROUNDS);
+  return KidsGame.pickRandom(words, ROUNDS);
 }
 
 function pickDistractors(correctWord, levelKey) {
   const allWords = ArabicData.LEVELS[levelKey].words;
-  var pool;
-  if (levelKey === "level2") {
-    // Same harakat group: match by the vowel (last char of transliteration: a, i, or u)
-    var vowel = correctWord.transliteration.slice(-1);
-    pool = allWords.filter(w => w.text !== correctWord.text && w.transliteration.slice(-1) === vowel);
-  } else {
-    pool = allWords.filter(w => w.text !== correctWord.text);
-  }
-  return shuffle(pool).slice(0, NUM_CHOICES - 1);
+  return KidsGame.pickDistractors(allWords, correctWord, NUM_CHOICES - 1, {
+    getKey: w => w.text,
+    filter: (word) => levelKey !== "level2" || word.transliteration.slice(-1) === correctWord.transliteration.slice(-1),
+  });
 }
 
 let selectedChoice = null;
@@ -568,7 +445,7 @@ function setupRound() {
   roundLabel.textContent = "Round " + (currentRound + 1) + " / " + ROUNDS;
 
   const distractors = pickDistractors(word, currentLevel);
-  const choices = shuffle([word, ...distractors]);
+  const choices = KidsGame.shuffle([word, ...distractors]);
 
   soundGrid.innerHTML = "";
   locked = false;
@@ -621,10 +498,10 @@ function handlePick(btn, picked, correct) {
     locked = true;
     btn.classList.add("correct");
     starsEarned = Math.min(ROUNDS, starsEarned + 1);
-    playTone(true);
+    KidsGame.playTone(true);
     renderStars();
     Builder.addPart();
-    showFeedback("\u2B50", btn);
+    KidsGame.showFeedback("\u2B50", btn, wrapper, 800);
     wordHint.textContent = correct.translation;
     submitBtn.classList.remove("visible");
 
@@ -646,9 +523,9 @@ function handlePick(btn, picked, correct) {
   } else {
     btn.classList.add("wrong");
     starsEarned = Math.max(0, starsEarned - 1);
-    playTone(false);
+    KidsGame.playTone(false);
     renderStars();
-    showFeedback("\u274C", btn);
+    KidsGame.showFeedback("\u274C", btn, wrapper, 800);
     btn.classList.add("disabled");
     selectedChoice = null;
     selectedBtn = null;
@@ -670,24 +547,20 @@ function launchRocket() {
 // ── End Game ──
 
 function endGame() {
-  endScreen.style.display = "flex";
-  const finalStars = document.getElementById("final-stars");
-  finalStars.textContent = "";
-  for (let i = 0; i < ROUNDS; i++) {
-    finalStars.textContent += i < starsEarned ? "\u2B50" : "\u2606";
-  }
-  const title = document.getElementById("end-title");
-  const msg = document.getElementById("end-message");
-  if (starsEarned === ROUNDS) {
-    title.textContent = "Perfect Launch!";
-    msg.textContent = "You read all the words correctly!";
-  } else if (starsEarned >= 3) {
-    title.textContent = "Great Job!";
-    msg.textContent = "Your rocket took off! Keep practicing!";
-  } else {
-    title.textContent = "Good Try!";
-    msg.textContent = "Play again to build a bigger rocket!";
-  }
+  KidsGame.showEndScreen({
+    screenEl: endScreen,
+    titleEl: document.getElementById("end-title"),
+    messageEl: document.getElementById("end-message"),
+    finalStarsEl: document.getElementById("final-stars"),
+    earned: starsEarned,
+    total: ROUNDS,
+    reward: { enabled: false },
+    messages: {
+      perfect: { title: "Perfect Launch!", message: "You read all the words correctly!" },
+      good: { title: "Great Job!", message: "Your rocket took off! Keep practicing!" },
+      try: { title: "Good Try!", message: "Play again to build a bigger rocket!" },
+    },
+  });
 }
 
 // ── Start / Restart ──

@@ -13,6 +13,7 @@ window.Builder = (function () {
   var partsBuilt = 0;
   var cssInjected = false;
   var audioCtx = null;
+  var VEHICLE_SETTINGS_KEY = "kidslearn-builder-vehicles";
 
   function getAudio() {
     if (!audioCtx) {
@@ -556,13 +557,74 @@ window.Builder = (function () {
   // ══════════════════════════════════════════
 
   var shapeKeys = Object.keys(SHAPES);
+  var VEHICLE_META = {
+    rocket: { label: "Rocket", icon: "\uD83D\uDE80" },
+    car: { label: "Car", icon: "\uD83D\uDE97" },
+    boat: { label: "Boat", icon: "\u26F5" },
+    airplane: { label: "Airplane", icon: "\u2708\uFE0F" },
+    balloon: { label: "Hot Air Balloon", icon: "\uD83C\uDF88" },
+  };
+
+  function getVehicleOptions() {
+    return shapeKeys.map(function (key) {
+      var meta = VEHICLE_META[key] || {};
+      return {
+        key: key,
+        label: meta.label || key,
+        icon: meta.icon || "\u25A1",
+      };
+    });
+  }
+
+  function readAllowedShapeKeys() {
+    try {
+      var raw = window.localStorage.getItem(VEHICLE_SETTINGS_KEY);
+      if (!raw) return shapeKeys.slice();
+
+      var selected = JSON.parse(raw);
+      if (!Array.isArray(selected)) return shapeKeys.slice();
+
+      var allowed = selected.filter(function (key, index) {
+        return shapeKeys.indexOf(key) !== -1 && selected.indexOf(key) === index;
+      });
+
+      return allowed.length ? allowed : shapeKeys.slice();
+    } catch (e) {
+      return shapeKeys.slice();
+    }
+  }
+
+  function saveAllowedShapeKeys(keys) {
+    var allowed = Array.isArray(keys)
+      ? keys.filter(function (key, index) {
+        return shapeKeys.indexOf(key) !== -1 && keys.indexOf(key) === index;
+      })
+      : [];
+
+    if (!allowed.length) return readAllowedShapeKeys();
+
+    try {
+      if (allowed.length === shapeKeys.length) {
+        window.localStorage.removeItem(VEHICLE_SETTINGS_KEY);
+      } else {
+        window.localStorage.setItem(VEHICLE_SETTINGS_KEY, JSON.stringify(allowed));
+      }
+    } catch (e) {}
+
+    return allowed;
+  }
+
+  function getRandomShapeKey() {
+    var allowed = readAllowedShapeKeys();
+    return allowed[Math.floor(Math.random() * allowed.length)];
+  }
 
   function init(el, shapeKey) {
     injectCSS();
     container = el;
 
     if (!shapeKey || shapeKey === "random") {
-      shapeKey = shapeKeys[Math.floor(Math.random() * shapeKeys.length)];
+      shapeKey = getRandomShapeKey();
     }
 
     currentShape = SHAPES[shapeKey];
@@ -673,7 +735,7 @@ window.Builder = (function () {
 
     if (shapeKey) {
       if (shapeKey === "random") {
-        shapeKey = shapeKeys[Math.floor(Math.random() * shapeKeys.length)];
+        shapeKey = getRandomShapeKey();
       }
       currentShape = SHAPES[shapeKey];
     }
@@ -691,5 +753,9 @@ window.Builder = (function () {
     celebrate: celebrate,
     reset: reset,
     SHAPES: SHAPES,
+    VEHICLE_SETTINGS_KEY: VEHICLE_SETTINGS_KEY,
+    getVehicleOptions: getVehicleOptions,
+    getAllowedVehicles: readAllowedShapeKeys,
+    setAllowedVehicles: saveAllowedShapeKeys,
   };
 })();

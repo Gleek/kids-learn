@@ -100,6 +100,17 @@ window.KidsGame = (function () {
     return shuffle(arr).slice(0, count);
   }
 
+  function pickDistractors(pool, correct, count, opts) {
+    const options = opts || {};
+    const getKey = options.getKey || (item => item);
+    const correctKey = getKey(correct);
+    const filtered = pool.filter(item => {
+      if (getKey(item) === correctKey) return false;
+      return !options.filter || options.filter(item, correct);
+    });
+    return shuffle(filtered).slice(0, count);
+  }
+
   // ── Confetti / Reward ──
   function spawnConfetti(overlayEl, opts) {
     const options = opts || {};
@@ -140,15 +151,87 @@ window.KidsGame = (function () {
     playChime();
   }
 
+  function showEndScreen(opts) {
+    const options = opts || {};
+    const earned = options.earned || 0;
+    const total = options.total || 0;
+    const messages = options.messages;
+    const result = typeof messages === "function"
+      ? messages(earned, total)
+      : (messages && messages[earned === total ? "perfect" : earned >= Math.ceil(total * 0.6) ? "good" : "try"])
+        || endGameMessage(earned, total);
+
+    if (options.titleEl) options.titleEl.textContent = result.title || "";
+    if (options.messageEl) options.messageEl.textContent = result.message || "";
+    if (options.finalStarsEl) renderFinalStars(options.finalStarsEl, earned, total);
+
+    const display = function () {
+      if (options.screenEl) options.screenEl.style.display = options.display || "flex";
+    };
+
+    const reward = options.reward || {};
+    const shouldReward = reward.enabled !== false
+      && reward.rewardEl
+      && reward.overlayEl
+      && earned === total
+      && Math.random() < (reward.chance == null ? 0.5 : reward.chance);
+
+    if (shouldReward) {
+      showReward(reward.rewardEl, reward.overlayEl);
+      if (reward.delayScreen) setTimeout(display, reward.delayScreen);
+      else display();
+    } else {
+      display();
+    }
+
+    return result;
+  }
+
+  function showCanvasFeedback(emoji, x, y, canvasEl, wrapperEl, opts) {
+    const options = opts || {};
+    const rect = canvasEl.getBoundingClientRect();
+    const scaleX = rect.width / canvasEl.width;
+    const scaleY = rect.height / canvasEl.height;
+    const el = document.createElement("div");
+    el.className = options.className || "feedback";
+    el.textContent = emoji;
+    el.style.left = (canvasEl.offsetLeft + x * scaleX + (options.offsetX || 0)) + "px";
+    el.style.top = (canvasEl.offsetTop + y * scaleY + (options.offsetY || 0)) + "px";
+    wrapperEl.appendChild(el);
+    setTimeout(() => el.remove(), options.duration || 1000);
+  }
+
   // ── Wiring Helpers ──
   function wireStartRestart(startId, restartId, fn) {
     document.getElementById(startId).addEventListener("click", fn);
     document.getElementById(restartId).addEventListener("click", fn);
   }
 
+  function renderLevelSelector(containerEl, levels, onSelect, opts) {
+    const options = opts || {};
+    const keys = options.keys || Object.keys(levels);
+    const startNumber = options.startNumber == null ? 1 : options.startNumber;
+    containerEl.innerHTML = "";
+    keys.forEach((key, index) => {
+      const level = levels[key];
+      const isLocked = !!level.locked;
+      const btn = document.createElement("button");
+      btn.className = (options.buttonClass || "level-btn") + (isLocked ? " locked" : "");
+      btn.innerHTML =
+        '<div class="level-num">Level ' + (index + startNumber) + '</div>' +
+        '<div class="level-name">' + level.name + (isLocked ? ' \uD83D\uDD12' : '') + '</div>' +
+        '<div class="level-desc">' + (isLocked ? level.lockedReason : level.description) + '</div>';
+      if (!isLocked) {
+        btn.addEventListener("click", () => onSelect(key, level));
+      }
+      containerEl.appendChild(btn);
+    });
+  }
+
   // ── TTS ──
   let ttsEnabled = localStorage.getItem("kidslearn-tts") !== "off";
   let preferredVoice = null;
+  const voiceCache = {};
 
   // Pick the best available English voice (prefer natural/premium ones)
   function pickVoice() {
@@ -240,6 +323,71 @@ window.KidsGame = (function () {
     speak(word, { rate: 0.8, onend: callback });
   }
 
+  function pickVoiceForLang(lang, preferredPatterns) {
+    const voices = speechSynthesis.getVoices();
+    if (!voices.length) return null;
+    const cacheKey = lang + "|" + (preferredPatterns || []).join(",");
+    if (voiceCache[cacheKey]) return voiceCache[cacheKey];
+
+    const patterns = preferredPatterns || [];
+    for (const pattern of patterns) {
+      const voice = voices.find(v => pattern.test(v.lang) || pattern.test(v.name));
+      if (voice) {
+        voiceCache[cacheKey] = voice;
+        return voice;
+      }
+    }
+
+    const baseLang = lang.split("-")[0];
+    const fallback = voices.find(v => v.lang === lang) || voices.find(v => v.lang && v.lang.split("-")[0] === baseLang);
+    if (fallback) voiceCache[cacheKey] = fallback;
+    return fallback || null;
+  }
+
+  function speakLang(text, options) {
+    const opts = options || {};
+    speechSynthesis.cancel();
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = opts.lang || "en-US";
+        u.rate = opts.rate || 0.85;
+        u.pitch = opts.pitch || 1.1;
+        const voice = pickVoiceForLang(u.lang, opts.preferredPatterns);
+        if (voice) u.voice = voice;
+        u.onend = resolve;
+        u.onerror = resolve;
+        speechSynthesis.speak(u);
+      }, opts.delay == null ? 50 : opts.delay);
+    });
+  }
+
+  function createWordAudioPlayer(opts) {
+    const options = opts || {};
+    let currentAudio = null;
+    return function playWordAudio(word) {
+      if (word && word.tts) {
+        return speakLang(word.text, {
+          lang: options.ttsLang || "ar-SA",
+          rate: options.ttsRate || 0.7,
+          pitch: options.ttsPitch || 1.1,
+          preferredPatterns: options.preferredPatterns || [/ar[-_]SA/i, /^ar/i],
+        });
+      }
+      return new Promise(resolve => {
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio = null;
+        }
+        const audio = new Audio(options.getAudioURL(word));
+        currentAudio = audio;
+        audio.onended = function () { currentAudio = null; resolve(); };
+        audio.onerror = function () { currentAudio = null; resolve(); };
+        audio.play().catch(function () { resolve(); });
+      });
+    };
+  }
+
   // Creates a mute toggle button and inserts into the HUD
   function createMuteToggle() {
     const btn = document.createElement("button");
@@ -265,12 +413,18 @@ window.KidsGame = (function () {
     endGameMessage,
     shuffle,
     pickRandom,
+    pickDistractors,
     spawnConfetti,
     showReward,
+    showEndScreen,
+    showCanvasFeedback,
     wireStartRestart,
+    renderLevelSelector,
     getAudioCtx,
     speak,
     speakWord,
+    speakLang,
+    createWordAudioPlayer,
     isTTSEnabled,
     setTTSEnabled,
     createMuteToggle,
