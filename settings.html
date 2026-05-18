@@ -49,6 +49,7 @@
     border: 3px solid #c5d3f7;
     border-radius: 16px;
     padding: 24px;
+    margin-bottom: 22px;
   }
 
   .panel h2 {
@@ -106,6 +107,33 @@
     font-weight: 800;
   }
 
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    background: #f8faff;
+    border: 3px solid #d8e2fb;
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .setting-label {
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  select {
+    min-width: 130px;
+    border: 3px solid #c5d3f7;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #2d3436;
+    font-size: 18px;
+    font-weight: 800;
+    padding: 10px 12px;
+  }
+
   .actions {
     display: flex;
     align-items: center;
@@ -138,6 +166,7 @@
     .topbar { align-items: flex-start; flex-direction: column; }
     h1 { font-size: 34px; }
     .panel { padding: 18px; }
+    .setting-row { align-items: flex-start; flex-direction: column; }
     .actions { align-items: flex-start; flex-direction: column; }
   }
 </style>
@@ -158,6 +187,24 @@
       <div id="save-status" role="status" aria-live="polite"></div>
     </div>
   </section>
+
+  <section class="panel" aria-labelledby="picture-patch-settings-title">
+    <h2 id="picture-patch-settings-title">Picture Patch</h2>
+    <p>Choose how many squares the picture puzzle uses.</p>
+    <label class="setting-row" for="picture-patch-grid-size">
+      <span class="setting-label">Grid size</span>
+      <select id="picture-patch-grid-size">
+        <option value="3">3 x 3</option>
+        <option value="4">4 x 4</option>
+        <option value="5">5 x 5</option>
+        <option value="6">6 x 6</option>
+        <option value="7">7 x 7</option>
+        <option value="8">8 x 8</option>
+        <option value="9">9 x 9</option>
+        <option value="10">10 x 10</option>
+      </select>
+    </label>
+  </section>
 </main>
 
 <script src="shared/builder.js"></script>
@@ -165,7 +212,21 @@
   const vehicleList = document.getElementById("vehicle-list");
   const saveStatus = document.getElementById("save-status");
   const selectAllBtn = document.getElementById("select-all-btn");
+  const picturePatchGridSize = document.getElementById("picture-patch-grid-size");
   const options = Builder.getVehicleOptions();
+  const PICTURE_PATCH_GRID_SIZE_KEY = "kidslearn-picture-patch-grid-size";
+  const DEFAULT_PICTURE_PATCH_GRID_SIZE = 6;
+
+  function getPicturePatchGridSize() {
+    const value = Number(localStorage.getItem(PICTURE_PATCH_GRID_SIZE_KEY));
+    return Number.isInteger(value) && value >= 3 && value <= 10
+      ? value
+      : DEFAULT_PICTURE_PATCH_GRID_SIZE;
+  }
+
+  function savePicturePatchGridSize() {
+    localStorage.setItem(PICTURE_PATCH_GRID_SIZE_KEY, picturePatchGridSize.value);
+  }
 
   function getCheckedKeys() {
     return Array.from(vehicleList.querySelectorAll("input[type='checkbox']:checked"))
@@ -225,6 +286,10 @@
     });
     saveSelection();
   });
+
+  picturePatchGridSize.value = String(getPicturePatchGridSize());
+  picturePatchGridSize.addEventListener("input", savePicturePatchGridSize);
+  picturePatchGridSize.addEventListener("change", savePicturePatchGridSize);
 
   renderVehicles();
 </script>

@@ -9,6 +9,8 @@
     :root {
       --wrapper-width: 620px;
       --sentence-image-ratio: 1024 / 559;
+      --patch-bg-size: 600%;
+      --patch-mark-size: 28px;
     }
 
     #game-area {
@@ -33,7 +35,8 @@
 
     #puzzle-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: repeat(6, 1fr);
       aspect-ratio: var(--sentence-image-ratio);
       overflow: hidden;
       border-radius: 10px;
@@ -43,7 +46,7 @@
     .puzzle-cell,
     .tile-preview {
       background-repeat: no-repeat;
-      background-size: 300% 300%;
+      background-size: var(--patch-bg-size) var(--patch-bg-size);
     }
 
     .puzzle-cell {
@@ -72,8 +75,9 @@
       align-items: center;
       justify-content: center;
       color: var(--accent);
-      font-size: 56px;
+      font-size: var(--patch-mark-size);
       font-weight: 900;
+      line-height: 1;
     }
 
     .puzzle-cell.filled {
@@ -176,19 +180,22 @@
   <script src="shared/game.js"></script>
   <script>
   (function () {
-    const GRID_SIZE = 3;
+    const GRID_SIZE_KEY = "kidslearn-picture-patch-grid-size";
+    const DEFAULT_GRID_SIZE = 6;
+    const MIN_GRID_SIZE = 3;
+    const MAX_GRID_SIZE = 10;
     const TOTAL_ROUNDS = 5;
     const IMAGE_DIR = "images/sentence/";
 
     const ROUNDS = [
-      { image: "cat-in-box.jpg", missing: [1, 1] },
-      { image: "dog-on-bed.jpg", missing: [1, 1] },
-      { image: "frog-on-log.jpg", missing: [1, 1] },
-      { image: "boy-on-bike.jpg", missing: [1, 1] },
-      { image: "bee-on-flower.jpg", missing: [1, 1] },
-      { image: "duck-in-lake.jpg", missing: [1, 1] },
-      { image: "pig-in-car.jpg", missing: [1, 1] },
-      { image: "fish-in-pond.jpg", missing: [1, 1] },
+      { image: "cat-in-box.jpg" },
+      { image: "dog-on-bed.jpg" },
+      { image: "frog-on-log.jpg" },
+      { image: "boy-on-bike.jpg" },
+      { image: "bee-on-flower.jpg" },
+      { image: "duck-in-lake.jpg" },
+      { image: "pig-in-car.jpg" },
+      { image: "fish-in-pond.jpg" },
     ];
 
     const DISTRACTOR_IMAGES = [
@@ -212,6 +219,9 @@
     let rounds = [];
     let currentRound = null;
     let transitionTimer = null;
+    let gridSize = DEFAULT_GRID_SIZE;
+    let allCells = [];
+    let centralCells = [];
 
     const $roundLabel = document.getElementById("round-label");
     const $stars = document.getElementById("stars");
@@ -223,12 +233,56 @@
     const $rewardOv = document.getElementById("reward-overlay");
     const $rewardEmoji = document.getElementById("reward-emoji");
 
+    function getSavedGridSize() {
+      const value = Number(localStorage.getItem(GRID_SIZE_KEY));
+      return Number.isInteger(value) && value >= MIN_GRID_SIZE && value <= MAX_GRID_SIZE
+        ? value
+        : DEFAULT_GRID_SIZE;
+    }
+
+    function getCentralCells(size) {
+      const start = Math.floor((size - 1) / 2);
+      const end = Math.ceil((size - 1) / 2);
+      const cells = [];
+
+      for (let row = start; row <= end; row++) {
+        for (let col = start; col <= end; col++) {
+          cells.push([row, col]);
+        }
+      }
+
+      return cells;
+    }
+
+    function getAllCells(size) {
+      return Array.from({ length: size * size }, (_, index) => [
+        Math.floor(index / size),
+        index % size,
+      ]);
+    }
+
+    function setGridSize(size) {
+      const root = document.documentElement;
+      gridSize = size;
+      allCells = getAllCells(size);
+      centralCells = getCentralCells(size);
+      root.style.setProperty("--patch-bg-size", (gridSize * 100) + "%");
+      root.style.setProperty("--patch-mark-size", "min(" + (36 / gridSize) + "vw, " + Math.max(18, Math.round(168 / gridSize)) + "px)");
+      $grid.style.gridTemplateColumns = "repeat(" + gridSize + ", 1fr)";
+      $grid.style.gridTemplateRows = "repeat(" + gridSize + ", 1fr)";
+    }
+
+    function refreshGridSettings() {
+      setGridSize(getSavedGridSize());
+    }
+
     function imageUrl(name) {
       return IMAGE_DIR + name;
     }
 
     function tilePosition(row, col) {
-      return (col * 50) + "% " + (row * 50) + "%";
+      const maxIndex = gridSize - 1;
+      return ((col / maxIndex) * 100) + "% " + ((row / maxIndex) * 100) + "%";
     }
 
     function applyTileBackground(el, image, row, col) {
@@ -241,8 +295,8 @@
       const missingCol = currentRound.missing[1];
       $grid.innerHTML = "";
 
-      for (let row = 0; row < GRID_SIZE; row++) {
-        for (let col = 0; col < GRID_SIZE; col++) {
+      for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
           const cell = document.createElement("div");
           const isMissing = row === missingRow && col === missingCol;
           cell.className = "puzzle-cell";
@@ -269,18 +323,23 @@
     }
 
     function makeDistractors() {
-      const cells = [
-        [0, 0], [0, 1], [0, 2],
-        [1, 0], [1, 1], [1, 2],
-        [2, 0], [2, 1], [2, 2],
-      ];
-
       return KidsGame.shuffle(DISTRACTOR_IMAGES)
         .slice(0, 3)
         .map((image, index) => {
-          const cell = cells[(round + index * 2) % cells.length];
+          const cell = allCells[(round * 5 + index * 11) % allCells.length];
           return { id: "wrong-" + index, image: image, row: cell[0], col: cell[1] };
         });
+    }
+
+    function assignMissingCells(selectedRounds) {
+      const cells = KidsGame.shuffle(centralCells);
+      return selectedRounds.map((roundData, index) => {
+        const cell = cells[index % cells.length];
+        return {
+          image: roundData.image,
+          missing: [cell[0], cell[1]],
+        };
+      });
     }
 
     function renderChoices() {
@@ -367,7 +426,8 @@
       round = 1;
       stars = 0;
       locked = false;
-      rounds = KidsGame.shuffle(ROUNDS).slice(0, TOTAL_ROUNDS);
+      refreshGridSettings();
+      rounds = assignMissingCells(KidsGame.shuffle(ROUNDS).slice(0, TOTAL_ROUNDS));
       $startOv.style.display = "none";
       $endOv.style.display = "none";
       renderRound();
@@ -375,6 +435,7 @@
     }
 
     KidsGame.wireStartRestart("start-btn", "restart-btn", startGame);
+    refreshGridSettings();
     KidsGame.renderStars($stars, 0, TOTAL_ROUNDS);
     KidsGame.createMuteToggle();
   })();
