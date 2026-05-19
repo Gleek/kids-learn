@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hindi Varnmala Match</title>
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  :root {
+    --bg-color: #fff7ed;
+    --panel-bg: #ffffff;
+    --border-color: #f6c987;
+    --accent: #e85d04;
+    --accent-dark: #c2410c;
+    --text-color: #2d3436;
+    --text-muted: #6b5f55;
+    --wrapper-width: 540px;
+  }
+
+  body {
+    color: var(--text-color);
+  }
+
+  #hud {
+    gap: 12px;
+  }
+
+  #game-area {
+    background: linear-gradient(180deg, #fff0c9 0%, #fffaf0 100%);
+    padding: 24px 20px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #letter-display {
+    width: 132px;
+    height: 132px;
+    margin: 0 auto 14px;
+    border: 5px solid #e85d04;
+    border-radius: 20px;
+    background: #ffffff;
+    color: #9a3412;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 82px;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow: 0 8px 0 rgba(154, 52, 18, 0.12);
+  }
+
+  #prompt-text {
+    min-height: 28px;
+    margin-bottom: 18px;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-muted);
+  }
+
+  #word-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .word-btn {
+    min-height: 78px;
+    border: 4px solid var(--border-color);
+    border-radius: 14px;
+    background: #ffffff;
+    color: var(--text-color);
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 18px;
+    text-align: left;
+    transition: transform 0.15s, border-color 0.15s, background 0.15s;
+  }
+
+  .word-btn:hover {
+    transform: scale(1.03);
+    border-color: var(--accent);
+    background: #fff8eb;
+  }
+
+  .word-btn:active {
+    transform: scale(0.97);
+  }
+
+  .word-btn .emoji {
+    font-size: 46px;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .word-btn .word {
+    font-size: 30px;
+    font-weight: 900;
+    line-height: 1.15;
+  }
+
+  .word-btn.correct {
+    border-color: #4caf50;
+    background: #e8f5e9;
+    animation: pop 0.4s;
+  }
+
+  .word-btn.wrong {
+    border-color: #ff6b8a;
+    background: #fce4ec;
+    animation: shake 0.4s;
+  }
+
+  .word-btn.disabled {
+    pointer-events: none;
+    opacity: 0.48;
+  }
+
+  .overlay {
+    background: rgba(255, 247, 237, 0.97);
+    padding: 20px;
+  }
+
+  .overlay h1 {
+    font-size: 40px;
+    line-height: 1.15;
+  }
+
+  .overlay p {
+    max-width: 430px;
+  }
+
+  .home-btn {
+    margin-top: 10px;
+    background: #ffffff;
+    border: 3px solid var(--accent);
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  @media (max-width: 500px) {
+    #game-wrapper {
+      width: min(100vw - 14px, var(--wrapper-width));
+    }
+
+    #hud {
+      padding: 10px 12px;
+    }
+
+    #letter-display {
+      width: 110px;
+      height: 110px;
+      font-size: 68px;
+    }
+
+    .word-btn {
+      min-height: 72px;
+      grid-template-columns: 54px 1fr;
+      padding: 8px 12px;
+    }
+
+    .word-btn .emoji {
+      font-size: 40px;
+    }
+
+    .word-btn .word {
+      font-size: 26px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="game-wrapper">
+  <div id="hud">
+    <div id="round-label">Round 1 / 10</div>
+    <div id="stars"></div>
+  </div>
+
+  <div id="game-area">
+    <div id="letter-display">आ</div>
+    <div id="prompt-text">इस अक्षर से शुरू होने वाला शब्द चुनें</div>
+    <div id="word-grid"></div>
+  </div>
+
+  <div id="start-screen" class="overlay">
+    <h1>Varnmala Match</h1>
+    <p>अक्षर देखें और सही Hindi word चुनें.</p>
+    <button id="start-btn" class="btn">Start</button>
+    <a href="index.html" class="btn home-btn">Home</a>
+  </div>
+
+  <div id="end-screen" class="overlay" style="display:none;">
+    <h1 id="end-title">Great Job!</h1>
+    <div id="final-stars" class="final-stars"></div>
+    <p id="end-message">You matched the Varnmala words.</p>
+    <button id="restart-btn" class="btn">Play Again</button>
+    <a href="index.html" class="btn home-btn">Home</a>
+  </div>
+
+  <div id="reward-overlay"></div>
+  <div id="reward-emoji"></div>
+</div>
+
+<script src="shared/game.js"></script>
+<script>
+const LETTERS = [
+  { letter: "अ", word: "अनार", emoji: "🍎" },
+  { letter: "आ", word: "आम", emoji: "🥭" },
+  { letter: "इ", word: "इमली", emoji: "🌿" },
+  { letter: "ई", word: "ईख", emoji: "🎋" },
+  { letter: "उ", word: "उल्लू", emoji: "🦉" },
+  { letter: "ऊ", word: "ऊन", emoji: "🧶" },
+  { letter: "ऋ", word: "ऋषि", emoji: "🧘" },
+  { letter: "ए", word: "एड़ी", emoji: "🦶" },
+  { letter: "ऐ", word: "ऐनक", emoji: "👓" },
+  { letter: "ओ", word: "ओखली", emoji: "🥣" },
+  { letter: "औ", word: "औरत", emoji: "👩" },
+  { letter: "अं", word: "अंगूर", emoji: "🍇" },
+  { letter: "अः", word: "दुःख", emoji: "😢" },
+  { letter: "क", word: "कमल", emoji: "🪷" },
+  { letter: "ख", word: "खरगोश", emoji: "🐰" },
+  { letter: "ग", word: "गाय", emoji: "🐄" },
+  { letter: "घ", word: "घर", emoji: "🏠" },
+  { letter: "ङ", word: "गंगा", emoji: "🌊" },
+  { letter: "च", word: "चम्मच", emoji: "🥄" },
+  { letter: "छ", word: "छाता", emoji: "☂️" },
+  { letter: "ज", word: "जहाज", emoji: "🚢" },
+  { letter: "झ", word: "झंडा", emoji: "🚩" },
+  { letter: "ञ", word: "ज्ञान", emoji: "📚" },
+  { letter: "ट", word: "टमाटर", emoji: "🍅" },
+  { letter: "ठ", word: "ठेला", emoji: "🛒" },
+  { letter: "ड", word: "डमरू", emoji: "🪘" },
+  { letter: "ढ", word: "ढोल", emoji: "🥁" },
+  { letter: "ण", word: "बाण", emoji: "🏹" },
+  { letter: "त", word: "तरबूज", emoji: "🍉" },
+  { letter: "थ", word: "थाली", emoji: "🍽️" },
+  { letter: "द", word: "दरवाज़ा", emoji: "🚪" },
+  { letter: "ध", word: "धनुष", emoji: "🏹" },
+  { letter: "न", word: "नल", emoji: "🚰" },
+  { letter: "प", word: "पतंग", emoji: "🪁" },
+  { letter: "फ", word: "फल", emoji: "🍎" },
+  { letter: "ब", word: "बतख", emoji: "🦆" },
+  { letter: "भ", word: "भालू", emoji: "🐻" },
+  { letter: "म", word: "मछली", emoji: "🐟" },
+  { letter: "य", word: "यज्ञ", emoji: "🔥" },
+  { letter: "र", word: "रथ", emoji: "🛺" },
+  { letter: "ल", word: "लड्डू", emoji: "🍬" },
+  { letter: "व", word: "वाद्य", emoji: "🎸" },
+  { letter: "श", word: "शेर", emoji: "🦁" },
+  { letter: "ष", word: "षट्कोण", emoji: "🔷" },
+  { letter: "स", word: "साँप", emoji: "🐍" },
+  { letter: "ह", word: "हाथी", emoji: "🐘" },
+  { letter: "क्ष", word: "क्षमा", emoji: "🙏" },
+  { letter: "त्र", word: "त्रिशूल", emoji: "🔱" },
+  { letter: "ज्ञ", word: "ज्ञानी", emoji: "🧠" },
+];
+
+const TOTAL_ROUNDS = 10;
+let rounds = [];
+let roundIndex = 0;
+let stars = 0;
+let answered = false;
+
+const roundLabel = document.getElementById("round-label");
+const starsEl = document.getElementById("stars");
+const letterDisplay = document.getElementById("letter-display");
+const promptText = document.getElementById("prompt-text");
+const wordGrid = document.getElementById("word-grid");
+const startScreen = document.getElementById("start-screen");
+const endScreen = document.getElementById("end-screen");
+const startBtn = document.getElementById("start-btn");
+const restartBtn = document.getElementById("restart-btn");
+
+function startGame() {
+  rounds = KidsGame.pickRandom(LETTERS, TOTAL_ROUNDS);
+  roundIndex = 0;
+  stars = 0;
+  startScreen.style.display = "none";
+  endScreen.style.display = "none";
+  renderRound();
+}
+
+function renderRound() {
+  answered = false;
+  const current = rounds[roundIndex];
+  roundLabel.textContent = "Round " + (roundIndex + 1) + " / " + TOTAL_ROUNDS;
+  KidsGame.renderStars(starsEl, stars, TOTAL_ROUNDS);
+  letterDisplay.textContent = current.letter;
+  promptText.textContent = current.letter + " से शुरू होने वाला शब्द चुनें";
+  wordGrid.innerHTML = "";
+
+  const choices = KidsGame.shuffle([
+    current,
+    ...KidsGame.pickDistractors(LETTERS, current, 2, { getKey: item => item.letter })
+  ]);
+
+  choices.forEach(choice => {
+    const btn = document.createElement("button");
+    btn.className = "word-btn";
+    btn.type = "button";
+    btn.innerHTML =
+      '<span class="emoji">' + choice.emoji + '</span>' +
+      '<span class="word">' + choice.word + '</span>';
+    btn.addEventListener("click", () => handleChoice(btn, choice, current));
+    wordGrid.appendChild(btn);
+  });
+}
+
+function handleChoice(btn, choice, current) {
+  if (answered || btn.classList.contains("disabled")) return;
+
+  if (choice.letter === current.letter) {
+    answered = true;
+    stars++;
+    btn.classList.add("correct");
+    wordGrid.querySelectorAll(".word-btn").forEach(option => option.classList.add("disabled"));
+    KidsGame.playTone(true);
+    KidsGame.showFeedback("⭐", btn, document.getElementById("game-wrapper"));
+    KidsGame.speakLang(current.word, {
+      lang: "hi-IN",
+      rate: 0.78,
+      pitch: 1.08,
+      preferredPatterns: [/hi[-_]IN/i, /^hi/i]
+    });
+    setTimeout(nextRound, 950);
+  } else {
+    btn.classList.add("wrong");
+    btn.classList.add("disabled");
+    KidsGame.playTone(false);
+    KidsGame.showFeedback("↺", btn, document.getElementById("game-wrapper"), 700);
+  }
+}
+
+function nextRound() {
+  if (roundIndex < TOTAL_ROUNDS - 1) {
+    roundIndex++;
+    renderRound();
+    return;
+  }
+
+  KidsGame.showEndScreen({
+    earned: stars,
+    total: TOTAL_ROUNDS,
+    screenEl: endScreen,
+    titleEl: document.getElementById("end-title"),
+    messageEl: document.getElementById("end-message"),
+    finalStarsEl: document.getElementById("final-stars"),
+    messages: {
+      perfect: { title: "बहुत बढ़िया!", message: "You matched every Varnmala word!" },
+      good: { title: "Great Job!", message: "You matched lots of Hindi letters." },
+      try: { title: "Good Try!", message: "Play again to learn more Varnmala words." }
+    },
+    reward: {
+      rewardEl: document.getElementById("reward-emoji"),
+      overlayEl: document.getElementById("reward-overlay")
+    }
+  });
+}
+
+startBtn.addEventListener("click", startGame);
+restartBtn.addEventListener("click", startGame);
+KidsGame.createMuteToggle();
+KidsGame.renderStars(starsEl, 0, TOTAL_ROUNDS);
+</script>
+
+</body>
+</html>
