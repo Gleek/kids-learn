@@ -415,7 +415,7 @@ function renderStars() {
 // ── Level Selector ──
 
 function buildLevelSelector() {
-  KidsGame.renderLevelSelector(levelSelect, ArabicData.LEVELS, startGame, { startNumber: 2 });
+  KidsGame.renderLevelSelector(levelSelect, ArabicData.LEVELS, startGame, { startNumber: 1 });
 }
 
 // ── Game Logic ──
@@ -440,7 +440,7 @@ const submitBtn = document.getElementById("submit-btn");
 function setupRound() {
   const word = sessionWords[currentRound];
   wordDisplay.textContent = word.text;
-  wordDisplay.style.fontSize = (currentLevel === "level2") ? "96px" : "";
+  wordDisplay.style.fontSize = (currentLevel === "level1" || currentLevel === "level2") ? "96px" : "";
   wordHint.textContent = "";
   roundLabel.textContent = "Round " + (currentRound + 1) + " / " + ROUNDS;
 

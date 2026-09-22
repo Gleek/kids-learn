@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cake Bakery!</title>
+  <link rel="stylesheet" href="shared/styles.css">
+  <style>
+    :root { --wrapper-width: 520px; }
+
+    #cake-stage {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+
+    #cake-svg {
+      width: min(280px, 80vw);
+      height: auto;
+      filter: drop-shadow(0 10px 14px rgba(60, 40, 20, 0.28));
+    }
+
+    #cake-svg.shake { animation: shake 0.4s; }
+
+    #reward-cake {
+      display: none;
+      width: min(220px, 70vw);
+    }
+
+    #bake-message {
+      min-height: 26px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    #ingredient-palette {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .ingredient-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 8px;
+      border-radius: 16px;
+      border: 4px solid var(--border-color);
+      background: var(--bg-color);
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s, background 0.15s;
+    }
+
+    .ingredient-btn:hover { transform: scale(1.04); border-color: var(--accent); }
+    .ingredient-btn:active { transform: scale(0.96); }
+
+    .ingredient-btn .icon { font-size: 36px; }
+    .ingredient-btn .label { font-size: 14px; font-weight: 700; color: var(--text-color); }
+    .ingredient-btn .count {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding: 2px 10px;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .ingredient-btn.matched {
+      border-color: #4caf50;
+      background: #e8f5e9;
+    }
+    .ingredient-btn.matched .count { color: #4caf50; }
+
+    .ingredient-btn.mismatch {
+      border-color: var(--accent);
+      animation: shake 0.4s;
+    }
+
+    #action-row {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    #reset-btn {
+      background: none;
+      border: 2px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 20px;
+      padding: 12px 28px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrapper">
+
+    <div id="hud">
+      <span id="round-label">Recipe 1 / 5</span>
+      <div id="stars"></div>
+    </div>
+
+    <div id="game-area">
+      <div id="cake-stage">
+        <svg id="cake-svg" viewBox="0 0 300 360" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="150" cy="340" rx="130" ry="18" fill="#dfe3f0" stroke="#b7bfe0" stroke-width="3"></ellipse>
+          <g id="cake-layers"></g>
+          <g id="cake-toppings"></g>
+        </svg>
+        <img id="reward-cake" src="images/cake/birthday-cake.svg" alt="">
+      </div>
+
+      <div id="bake-message"></div>
+
+      <div id="ingredient-palette"></div>
+
+      <div id="action-row">
+        <button class="btn" id="bake-btn">Bake! 🔥</button>
+        <button class="btn" id="reset-btn">Start Over</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="start-screen">
+      <h1>Cake Bakery!</h1>
+      <p>Tap ingredients to build the cake.<br>Match the recipe, then bake!</p>
+      <button class="btn" id="start-btn">Play</button>
+    </div>
+
+    <div class="overlay" id="end-screen" style="display:none;">
+      <h1 id="end-title"></h1>
+      <div class="final-stars" id="final-stars"></div>
+      <p id="end-message"></p>
+      <button class="btn" id="restart-btn">Play Again</button>
+      <a href="index.html" class="btn" style="background:none;border:2px solid #ff6b8a;color:#ff6b8a;margin-top:8px;text-decoration:none;display:inline-block;text-align:center;">Home</a>
+    </div>
+
+    <div id="reward-overlay"></div>
+    <div id="reward-emoji"></div>
+  </div>
+
+  <script src="shared/game.js"></script>
+  <script>
+  (function () {
+    const TOTAL_ROUNDS = 5;
+    const GOLDEN_ANGLE = 2.4;
+
+    const TOPPING_POOL = [
+      { emoji: "🍓", label: "strawberries", singular: "strawberry", plural: "strawberries" },
+      { emoji: "🫐", label: "blueberries", singular: "blueberry", plural: "blueberries" },
+      { emoji: "🍒", label: "cherries", singular: "cherry", plural: "cherries" },
+      { emoji: "🍬", label: "candies", singular: "candy", plural: "candies" },
+      { emoji: "🍫", label: "choc chips", singular: "chocolate chip", plural: "chocolate chips" },
+      { emoji: "🕯️", label: "candles", singular: "candle", plural: "candles" },
+    ];
+
+    const CAKE_FILL = "#7a4430";
+    const FROSTED_FILL = "#fff6ec";
+    const TIER_STROKE = "#4a2a1c";
+
+    const PLATE_TOP_Y = 330;
+    const TIER_HEIGHT = 64;
+    const RIM_RY = 15;
+    const BASE_WIDTH = 210;
+    const WIDTH_STEP = 42;
+    const MIN_WIDTH = 90;
+    const MAX_VISUAL_TIERS = 6;
+
+    let round, stars, recipe, counts, locked;
+
+    const wrapper      = document.getElementById("game-wrapper");
+    const roundLabel   = document.getElementById("round-label");
+    const starsEl       = document.getElementById("stars");
+    const cakeSvg        = document.getElementById("cake-svg");
+    const layersG          = document.getElementById("cake-layers");
+    const toppingsG            = document.getElementById("cake-toppings");
+    const bakeMessage             = document.getElementById("bake-message");
+    const paletteEl                = document.getElementById("ingredient-palette");
+    const bakeBtn                    = document.getElementById("bake-btn");
+    const resetBtn                    = document.getElementById("reset-btn");
+    const startScr   = document.getElementById("start-screen");
+    const endScr     = document.getElementById("end-screen");
+    const endTitle   = document.getElementById("end-title");
+    const endMsg     = document.getElementById("end-message");
+    const finalStars = document.getElementById("final-stars");
+    const rewardEl   = document.getElementById("reward-emoji");
+    const overlayEl  = document.getElementById("reward-overlay");
+    const rewardCake = document.getElementById("reward-cake");
+
+    function buildRecipe() {
+      const picks = KidsGame.pickRandom(TOPPING_POOL, 2);
+      return {
+        layer:    { icon: "🎂", label: "cake layers", singular: "base", plural: "bases", target: 1 + Math.floor(Math.random() * 3) },
+        frosting: { icon: "🍥", label: "frosting",    singular: "frosting", plural: "frosting", target: 1 },
+        topping1: { icon: picks[0].emoji, label: picks[0].label, singular: picks[0].singular, plural: picks[0].plural, target: 2 + Math.floor(Math.random() * 3) },
+        topping2: { icon: picks[1].emoji, label: picks[1].label, singular: picks[1].singular, plural: picks[1].plural, target: 2 + Math.floor(Math.random() * 4) },
+      };
+    }
+
+    function startGame() {
+      round = 0;
+      stars = 0;
+      startScr.style.display = "none";
+      endScr.style.display = "none";
+      nextRound();
+    }
+
+    function nextRound() {
+      round++;
+      overlayEl.classList.remove("active");
+      overlayEl.innerHTML = "";
+      if (round > TOTAL_ROUNDS) {
+        endGame();
+        return;
+      }
+
+      locked = false;
+      recipe = buildRecipe();
+      counts = { layer: 0, frosting: 0, topping1: 0, topping2: 0 };
+
+      roundLabel.textContent = "Recipe " + round + " / " + TOTAL_ROUNDS;
+      KidsGame.renderStars(starsEl, stars, TOTAL_ROUNDS);
+      bakeMessage.textContent = "";
+      bakeBtn.disabled = false;
+
+      renderPalette();
+      renderCake();
+      KidsGame.speak("Let's bake a cake! Follow the recipe.");
+    }
+
+    function renderPalette() {
+      paletteEl.innerHTML = "";
+      ["layer", "frosting", "topping1", "topping2"].forEach(key => {
+        const item = recipe[key];
+        const btn = document.createElement("button");
+        btn.className = "ingredient-btn";
+        btn.dataset.key = key;
+        btn.innerHTML =
+          '<span class="icon">' + item.icon + '</span>' +
+          '<span class="label">' + item.label + '</span>' +
+          '<span class="count">' + counts[key] + ' / ' + item.target + '</span>';
+        btn.addEventListener("click", () => addIngredient(key));
+        paletteEl.appendChild(btn);
+      });
+      updatePaletteStatus();
+    }
+
+    function updatePaletteStatus() {
+      paletteEl.querySelectorAll(".ingredient-btn").forEach(btn => {
+        const key = btn.dataset.key;
+        const matched = counts[key] === recipe[key].target;
+        btn.classList.toggle("matched", matched);
+        btn.querySelector(".count").textContent = counts[key] + " / " + recipe[key].target;
+      });
+    }
+
+    function addIngredient(key) {
+      if (locked) return;
+      counts[key]++;
+      KidsGame.playTone(true);
+      updatePaletteStatus();
+      renderCake();
+
+      const item = recipe[key];
+      const n = counts[key];
+      const word = n === 1 ? item.singular : item.plural;
+      KidsGame.speak("Add " + n + " " + word);
+    }
+
+    function tierGeometry() {
+      const n = Math.min(counts.layer, MAX_VISUAL_TIERS);
+      const tiers = [];
+      let bottomY = PLATE_TOP_Y;
+      for (let i = 0; i < n; i++) {
+        const width = Math.max(MIN_WIDTH, BASE_WIDTH - i * WIDTH_STEP);
+        const capY = bottomY - TIER_HEIGHT;
+        tiers.push({ width: width, rx: width / 2, bottomY: bottomY, capY: capY });
+        bottomY = capY;
+      }
+      return { tiers: tiers, emptyTopY: PLATE_TOP_Y };
+    }
+
+    function spiralPoint(index, cx, cy, maxR) {
+      const angle = index * GOLDEN_ANGLE;
+      const r = maxR * Math.sqrt((index + 1) / 7);
+      return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) * 0.5 };
+    }
+
+    function svgEl(tag, attrs) {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      Object.keys(attrs).forEach(k => el.setAttribute(k, attrs[k]));
+      return el;
+    }
+
+    function renderCake() {
+      layersG.innerHTML = "";
+      toppingsG.innerHTML = "";
+
+      const tierFill = counts.frosting > 0 ? FROSTED_FILL : CAKE_FILL;
+      const { tiers, emptyTopY } = tierGeometry();
+
+      tiers.forEach((tier, i) => {
+        layersG.appendChild(svgEl("rect", {
+          x: 150 - tier.rx, y: tier.capY, width: tier.width, height: tier.bottomY - tier.capY,
+          fill: tierFill, stroke: TIER_STROKE, "stroke-width": 3,
+        }));
+        layersG.appendChild(svgEl("rect", {
+          x: 150 - tier.rx, y: tier.capY + (tier.bottomY - tier.capY) * 0.6,
+          width: tier.width, height: (tier.bottomY - tier.capY) * 0.4,
+          fill: "#000000", opacity: 0.1,
+        }));
+        layersG.appendChild(svgEl("rect", {
+          x: 150 - tier.rx + tier.width * 0.08, y: tier.capY + 6, width: tier.width * 0.28, height: 14,
+          rx: 6, fill: "#ffffff", opacity: 0.22,
+        }));
+        layersG.appendChild(svgEl("ellipse", {
+          cx: 150, cy: tier.capY, rx: tier.rx, ry: RIM_RY,
+          fill: tierFill, stroke: TIER_STROKE, "stroke-width": 3,
+        }));
+        if (i < tiers.length - 1) {
+          layersG.appendChild(svgEl("ellipse", {
+            cx: 150, cy: tier.capY, rx: tier.rx, ry: RIM_RY,
+            fill: CAKE_FILL, stroke: TIER_STROKE, "stroke-width": 3,
+          }));
+        }
+      });
+
+      const topY = tiers.length ? tiers[tiers.length - 1].capY : emptyTopY;
+      const topRx = tiers.length ? tiers[tiers.length - 1].rx * 0.8 : 70;
+
+      const items = [];
+      for (let i = 0; i < counts.topping1; i++) items.push(recipe.topping1.icon);
+      for (let i = 0; i < counts.topping2; i++) items.push(recipe.topping2.icon);
+
+      items.forEach((icon, i) => {
+        const pos = spiralPoint(i, 150, topY - 6, topRx * 0.85);
+        toppingsG.appendChild(svgEl("text", {
+          x: pos.x, y: pos.y, "font-size": 20, "text-anchor": "middle",
+          "dominant-baseline": "middle",
+        })).textContent = icon;
+      });
+    }
+
+    function flashMismatch() {
+      cakeSvg.classList.remove("shake");
+      void cakeSvg.offsetWidth;
+      cakeSvg.classList.add("shake");
+      paletteEl.querySelectorAll(".ingredient-btn").forEach(btn => {
+        const key = btn.dataset.key;
+        if (counts[key] !== recipe[key].target) {
+          btn.classList.remove("mismatch");
+          void btn.offsetWidth;
+          btn.classList.add("mismatch");
+        }
+      });
+    }
+
+    function bakeCake() {
+      if (locked) return;
+
+      const allMatch = Object.keys(recipe).every(key => counts[key] === recipe[key].target);
+
+      if (!allMatch) {
+        KidsGame.playTone(false);
+        bakeMessage.textContent = "Hmm, check the recipe again!";
+        flashMismatch();
+        return;
+      }
+
+      locked = true;
+      bakeBtn.disabled = true;
+      stars++;
+      KidsGame.playChime();
+      KidsGame.renderStars(starsEl, stars, TOTAL_ROUNDS);
+      bakeMessage.textContent = "Yummy! Perfect cake!";
+
+      cakeSvg.style.display = "none";
+      rewardCake.style.display = "inline-block";
+      KidsGame.spawnConfetti(overlayEl);
+
+      KidsGame.speak("Yummy cake!").then(() => {
+        setTimeout(() => {
+          rewardCake.style.display = "none";
+          cakeSvg.style.display = "";
+          nextRound();
+        }, 1600);
+      });
+    }
+
+    function resetCake() {
+      if (locked) return;
+      counts = { layer: 0, frosting: 0, topping1: 0, topping2: 0 };
+      bakeMessage.textContent = "";
+      updatePaletteStatus();
+      renderCake();
+    }
+
+    function endGame() {
+      KidsGame.showEndScreen({
+        screenEl: endScr,
+        titleEl: endTitle,
+        messageEl: endMsg,
+        finalStarsEl: finalStars,
+        earned: stars,
+        total: TOTAL_ROUNDS,
+        reward: { rewardEl: rewardEl, overlayEl: overlayEl },
+      });
+    }
+
+    bakeBtn.addEventListener("click", bakeCake);
+    resetBtn.addEventListener("click", resetCake);
+    KidsGame.wireStartRestart("start-btn", "restart-btn", startGame);
+    KidsGame.createMuteToggle();
+  })();
+  </script>
+</body>
+</html>

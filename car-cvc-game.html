@@ -220,6 +220,12 @@ const LANE_W = W / LANE_COUNT;
 
 // ── Game State ──
 let gameRunning = false;
+const driveVehicle = KidsGame.getDriveVehicle();
+const drivingSound = KidsGame.createDrivingSoundPlayer(
+  driveVehicle === "bike"
+    ? { src: "audio/bike-drive.mp3", loopStart: 7, rate: 1.1 }
+    : { src: "audio/car-drive.mp3", loopStart: 18, rate: 1.15 }
+);
 let car = { lane: 1, width: 50, height: 70 };
 let objects = [];
 let currentRound = 0;
@@ -228,7 +234,11 @@ let sessionWords = [];
 let currentWord = null;
 let spawnReady = false;
 let objectSpeed = 1.5;
+const ROAD_SCROLL_SPEED = objectSpeed * 3;
+const EDGE_SCROLL_SPEED = objectSpeed * 4;
 let roadLineOffset = 0;
+let edgeLineOffset = 0;
+let exhaustParticles = [];
 let feedbacks = [];
 let roundActive = false;
 let roundCooldown = 0;
@@ -269,10 +279,13 @@ function spawnObjects() {
     size: 50,
   });
 
-  // Place distractors
+  // Place distractors — random emojis from the same word pool, not a fixed list
+  const distractors = KidsGame.pickDistractors(CVC_WORDS, currentWord, 3, {
+    getKey: w => w.emoji,
+  });
   for (let i = 0; i < 3; i++) {
     objects.push({
-      emoji: currentWord.distractors[i],
+      emoji: distractors[i].emoji,
       lane: lanes[i + 1],
       y: -80 - ((i + 1) * 160),
       correct: false,
@@ -291,34 +304,34 @@ function spawnObjects() {
 function drawCar() {
   const x = car.lane * LANE_W + LANE_W / 2;
   const y = H - 100;
-  const w = car.width;
-  const h = car.height;
 
-  // Car body
-  ctx.fillStyle = "#ff6b8a";
-  ctx.beginPath();
-  ctx.roundRect(x - w / 2, y - h / 2, w, h, 10);
-  ctx.fill();
+  if (roundActive) {
+    exhaustParticles.push({
+      x: x + (Math.random() - 0.5) * 16,
+      y: y + car.height / 2,
+      size: 8 + Math.random() * 4,
+      life: 1,
+    });
+  }
 
-  // Windshield
-  ctx.fillStyle = "#7ec8e3";
-  ctx.beginPath();
-  ctx.roundRect(x - w / 2 + 8, y - h / 2 + 8, w - 16, 18, 5);
-  ctx.fill();
+  KidsGame.drawTopDownVehicle(ctx, x, y, car.width, car.height, driveVehicle);
+}
 
-  // Wheels
-  ctx.fillStyle = "#222";
-  ctx.fillRect(x - w / 2 - 5, y - h / 2 + 5, 8, 16);
-  ctx.fillRect(x + w / 2 - 3, y - h / 2 + 5, 8, 16);
-  ctx.fillRect(x - w / 2 - 5, y + h / 2 - 21, 8, 16);
-  ctx.fillRect(x + w / 2 - 3, y + h / 2 - 21, 8, 16);
-
-  // Headlights
-  ctx.fillStyle = "#ffd700";
-  ctx.beginPath();
-  ctx.arc(x - w / 2 + 10, y - h / 2 + 2, 4, 0, Math.PI * 2);
-  ctx.arc(x + w / 2 - 10, y - h / 2 + 2, 4, 0, Math.PI * 2);
-  ctx.fill();
+// ── Exhaust Particle Trail ──
+function drawExhaustParticles() {
+  for (let i = exhaustParticles.length - 1; i >= 0; i--) {
+    const p = exhaustParticles[i];
+    p.y += ROAD_SCROLL_SPEED;
+    p.life -= 0.05;
+    if (p.life <= 0) {
+      exhaustParticles.splice(i, 1);
+      continue;
+    }
+    ctx.fillStyle = `rgba(230, 230, 230, ${p.life * 0.5})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
 // ── Road Drawing ──
@@ -327,8 +340,8 @@ function drawRoad() {
   ctx.fillStyle = "#555";
   ctx.fillRect(0, 0, W, H);
 
-  // Lane dividers (dashed)
-  roadLineOffset = (roadLineOffset + objectSpeed) % 40;
+  // Lane dividers (dashed) — scroll faster than objects for a sense of speed
+  roadLineOffset = (roadLineOffset + ROAD_SCROLL_SPEED) % 40;
   ctx.strokeStyle = "#fff";
   ctx.lineWidth = 3;
   ctx.setLineDash([20, 20]);
@@ -341,10 +354,16 @@ function drawRoad() {
   }
   ctx.setLineDash([]);
 
-  // Road edges
+  // Road edges with fast-scrolling motion ticks
+  edgeLineOffset = (edgeLineOffset + EDGE_SCROLL_SPEED) % 30;
   ctx.fillStyle = "#ff6b8a";
   ctx.fillRect(0, 0, 6, H);
   ctx.fillRect(W - 6, 0, 6, H);
+  ctx.fillStyle = "#fff2f5";
+  for (let y = -30 + edgeLineOffset; y < H; y += 30) {
+    ctx.fillRect(0, y, 6, 14);
+    ctx.fillRect(W - 6, y, 6, 14);
+  }
 }
 
 // ── Object Drawing ──
@@ -355,6 +374,7 @@ function drawObjects() {
     ctx.font = `${obj.size}px serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
+    ctx.fillStyle = "#000";
     ctx.fillText(obj.emoji, x, obj.y);
   }
 }
@@ -411,6 +431,7 @@ function nextRound() {
 // ── End Game ──
 function endGame() {
   gameRunning = false;
+  drivingSound.stop();
   KidsGame.showEndScreen({
     screenEl: endScreen,
     messageEl: document.getElementById("end-message"),
@@ -431,6 +452,7 @@ function gameLoop() {
   if (!gameRunning) return;
 
   drawRoad();
+  drawExhaustParticles();
   drawCar();
 
   if (roundActive) {
@@ -514,12 +536,14 @@ function startGame() {
   starsEarned = 0;
   currentRound = 0;
   objects = [];
+  exhaustParticles = [];
   roundActive = false;
   roundCooldown = 30;
   car.lane = 1;
   sessionWords = pickSessionWords();
   renderStars();
   gameRunning = true;
+  drivingSound.start();
   gameLoop();
 }
 

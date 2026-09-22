@@ -1,8 +1,9 @@
 /* ── Kids Learn — Arabic / Quranic Word Data ──
  *
  * Noorani Qaida progression: 6 levels.
- * Level 2 uses browser TTS (ar-SA). Levels 3-7 use Quran.com CDN audio.
- * Level 1 (individual letters) requires pre-recorded audio — TBD.
+ * Levels 1-2 use browser TTS (ar-SA) — no tajweed nuance on bare letters
+ * or single letter + harakat, so TTS is accurate enough. Levels 3-7 use
+ * Quran.com CDN audio since word-level tajweed needs real recitation.
  */
 
 window.ArabicData = (function () {
@@ -60,7 +61,21 @@ window.ArabicData = (function () {
     });
   });
 
+  // Build Level 1: bare letters, no harakat
+  var level1Words = LETTERS.map(function (l) {
+    return { text: l.letter, transliteration: l.c, tts: true };
+  });
+
   const LEVELS = {
+
+    /* ── Level 1: Individual Letters ──
+     * Bare letter, no vowel. Uses browser TTS (ar-SA).
+     */
+    level1: {
+      name: "Individual Letters",
+      description: "The 28 Arabic letters in isolated form",
+      words: level1Words,
+    },
 
     /* ── Level 2: Letters + Harakat ──
      * Single letter with a short vowel. Uses browser TTS (ar-SA).

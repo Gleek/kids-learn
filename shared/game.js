@@ -304,6 +304,68 @@ window.KidsGame = (function () {
     localStorage.setItem(WORD_LENGTH_KEY, String(length));
   }
 
+  // ── Drive vehicle (car or bike, used by Word Drive and Arabic Drive) ──
+  const DRIVE_VEHICLE_KEY = "kidslearn-drive-vehicle";
+
+  function getDriveVehicle() {
+    const value = localStorage.getItem(DRIVE_VEHICLE_KEY);
+    return value === "bike" ? "bike" : "car";
+  }
+
+  function setDriveVehicle(vehicle) {
+    localStorage.setItem(DRIVE_VEHICLE_KEY, vehicle === "bike" ? "bike" : "car");
+  }
+
+  // Lazily loaded top-down bike-with-rider sprite
+  let bikeImage = null;
+  let bikeImageLoaded = false;
+
+  function getBikeImage() {
+    if (!bikeImage) {
+      bikeImage = new Image();
+      bikeImage.onload = function () { bikeImageLoaded = true; };
+      bikeImage.src = "images/bike-top.png";
+    }
+    return bikeImage;
+  }
+
+  // Draws a top-down car or bike centered at (x, y) for lane-driving games.
+  function drawTopDownVehicle(ctx, x, y, w, h, vehicle) {
+    if (vehicle === "bike") {
+      const img = getBikeImage();
+      if (bikeImageLoaded) {
+        ctx.drawImage(img, x - w / 2, y - h / 2, w, h);
+      }
+      return;
+    }
+
+    // Car body
+    ctx.fillStyle = "#ff6b8a";
+    ctx.beginPath();
+    ctx.roundRect(x - w / 2, y - h / 2, w, h, 10);
+    ctx.fill();
+
+    // Windshield
+    ctx.fillStyle = "#7ec8e3";
+    ctx.beginPath();
+    ctx.roundRect(x - w / 2 + 8, y - h / 2 + 8, w - 16, 18, 5);
+    ctx.fill();
+
+    // Wheels
+    ctx.fillStyle = "#222";
+    ctx.fillRect(x - w / 2 - 5, y - h / 2 + 5, 8, 16);
+    ctx.fillRect(x + w / 2 - 3, y - h / 2 + 5, 8, 16);
+    ctx.fillRect(x - w / 2 - 5, y + h / 2 - 21, 8, 16);
+    ctx.fillRect(x + w / 2 - 3, y + h / 2 - 21, 8, 16);
+
+    // Headlights
+    ctx.fillStyle = "#ffd700";
+    ctx.beginPath();
+    ctx.arc(x - w / 2 + 10, y - h / 2 + 2, 4, 0, Math.PI * 2);
+    ctx.arc(x + w / 2 - 10, y - h / 2 + 2, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   function applyVoice(utterance) {
     const voice = pickVoice();
     if (voice) utterance.voice = voice;
@@ -400,6 +462,89 @@ window.KidsGame = (function () {
     };
   }
 
+  // Creates a looping car-driving sound player. Plays from the start, then
+  // once the clip ends, loops the tail segment (loopStart..end) continuously.
+  function createDrivingSoundPlayer(opts) {
+    const options = opts || {};
+    const src = options.src || "audio/car-drive.mp3";
+    const loopStart = options.loopStart != null ? options.loopStart : 18;
+    const rate = options.rate || 1;
+    const crossfadeSec = options.crossfadeSec != null ? options.crossfadeSec : 0.35;
+
+    // Two copies of the clip so the tail of one can fade out while the
+    // next loop (starting at loopStart) fades in, instead of a hard cut.
+    const audioA = new Audio(src);
+    const audioB = new Audio(src);
+    audioA.playbackRate = rate;
+    audioB.playbackRate = rate;
+
+    let current = audioA;
+    let next = audioB;
+    let rafId = null;
+    let crossfading = false;
+
+    function onTimeUpdate() {
+      if (crossfading) return;
+      const dur = current.duration || 0;
+      if (dur && current.currentTime >= dur - crossfadeSec) {
+        crossfadeToNext();
+      }
+    }
+
+    function watch() {
+      current.removeEventListener("timeupdate", onTimeUpdate);
+      current.addEventListener("timeupdate", onTimeUpdate);
+    }
+
+    function crossfadeToNext() {
+      crossfading = true;
+      next.currentTime = loopStart;
+      next.volume = 0;
+      next.play().catch(function () {});
+      const startTime = performance.now();
+      (function tick() {
+        const t = Math.min(1, (performance.now() - startTime) / 1000 / crossfadeSec);
+        current.volume = 1 - t;
+        next.volume = t;
+        if (t < 1) {
+          rafId = requestAnimationFrame(tick);
+          return;
+        }
+        current.pause();
+        const finished = current;
+        current = next;
+        next = finished;
+        crossfading = false;
+        watch();
+      })();
+    }
+
+    return {
+      start: function () {
+        current = audioA;
+        next = audioB;
+        crossfading = false;
+        next.pause();
+        next.currentTime = 0;
+        next.volume = 0;
+        current.currentTime = 0;
+        current.volume = 1;
+        current.play().catch(function () {});
+        watch();
+      },
+      stop: function () {
+        if (rafId) cancelAnimationFrame(rafId);
+        crossfading = false;
+        audioA.pause();
+        audioB.pause();
+        audioA.currentTime = 0;
+        audioB.currentTime = 0;
+        audioA.removeEventListener("timeupdate", onTimeUpdate);
+        audioB.removeEventListener("timeupdate", onTimeUpdate);
+      },
+    };
+  }
+
   // Creates a mute toggle button and inserts into the HUD
   function createMuteToggle() {
     const btn = document.createElement("button");
@@ -441,6 +586,10 @@ window.KidsGame = (function () {
     setTTSEnabled,
     getWordLength,
     setWordLength,
+    getDriveVehicle,
+    setDriveVehicle,
+    drawTopDownVehicle,
     createMuteToggle,
+    createDrivingSoundPlayer,
   };
 })();

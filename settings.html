@@ -201,6 +201,18 @@
     </label>
   </section>
 
+  <section class="panel" aria-labelledby="drive-vehicle-settings-title">
+    <h2 id="drive-vehicle-settings-title">Drive vehicle</h2>
+    <p>Choose which vehicle appears in Word Drive and Arabic Drive.</p>
+    <label class="setting-row" for="drive-vehicle">
+      <span class="setting-label">Vehicle</span>
+      <select id="drive-vehicle">
+        <option value="car">Car</option>
+        <option value="bike">Bike</option>
+      </select>
+    </label>
+  </section>
+
   <section class="panel" aria-labelledby="picture-patch-settings-title">
     <h2 id="picture-patch-settings-title">Picture Patch</h2>
     <p>Choose how many squares the picture puzzle uses.</p>
@@ -309,6 +321,12 @@
   wordLength.value = String(KidsGame.getWordLength());
   wordLength.addEventListener("change", () => {
     KidsGame.setWordLength(Number(wordLength.value));
+  });
+
+  const driveVehicle = document.getElementById("drive-vehicle");
+  driveVehicle.value = KidsGame.getDriveVehicle();
+  driveVehicle.addEventListener("change", () => {
+    KidsGame.setDriveVehicle(driveVehicle.value);
   });
 
   renderVehicles();

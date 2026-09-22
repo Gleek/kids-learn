@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Which Is More? — Kids Learn</title>
+  <link rel="stylesheet" href="shared/styles.css">
+  <style>
+    :root { --wrapper-width: 560px; }
+
+    #game-area {
+      padding-top: 24px;
+    }
+
+    #vehicle-area {
+      position: relative;
+      margin: 0 auto 18px;
+      z-index: 1;
+    }
+
+    #vehicle-area .builder-boy {
+      display: none;
+    }
+
+    #vehicle-area .builder-boy.visible {
+      display: block;
+    }
+
+    .prompt-text {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text-color);
+      margin-bottom: 22px;
+    }
+
+    #compare-groups {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .compare-side {
+      width: 210px;
+      min-height: 170px;
+      padding: 14px 10px;
+      border-radius: 20px;
+      border: 4px solid var(--border-color);
+      background: var(--bg-color);
+      cursor: pointer;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.15s, border-color 0.15s, background 0.15s;
+    }
+
+    .compare-side:hover {
+      transform: scale(1.04);
+      border-color: var(--accent);
+      background: #fff0f3;
+    }
+
+    .compare-side:active { transform: scale(0.96); }
+
+    .compare-side .item {
+      font-size: 40px;
+      line-height: 1;
+    }
+
+    .compare-side.correct {
+      border-color: #4caf50;
+      background: #e8f5e9;
+      animation: pop 0.4s;
+    }
+
+    .compare-side.wrong {
+      border-color: var(--accent);
+      background: #fce4ec;
+      animation: shake 0.4s;
+    }
+
+    .compare-side.disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .vs-label {
+      font-size: 30px;
+      font-weight: 900;
+      color: #ffd700;
+      text-shadow: none;
+    }
+
+    @media (max-width: 480px) {
+      #compare-groups {
+        gap: 10px;
+      }
+
+      .compare-side {
+        width: 45%;
+        min-height: 140px;
+      }
+
+      .compare-side .item {
+        font-size: 32px;
+      }
+
+      .prompt-text {
+        font-size: 21px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrapper">
+    <div id="hud">
+      <span id="round-label">Round 1 / 5</span>
+      <div id="stars"></div>
+    </div>
+
+    <div id="game-area">
+      <div id="start-screen" class="overlay">
+        <h1>Which Is More?</h1>
+        <p>Look at the two groups and tap the one that is greater or smaller!</p>
+        <button id="start-btn" class="btn">Play</button>
+      </div>
+
+      <div id="end-screen" class="overlay" style="display:none">
+        <h1 id="end-title"></h1>
+        <div id="final-stars" class="final-stars"></div>
+        <p id="end-message"></p>
+        <button id="restart-btn" class="btn">Play Again</button>
+        <a href="index.html" class="btn" style="background:none;border:2px solid #ff6b8a;color:#ff6b8a;margin-top:8px;text-decoration:none;display:inline-block;text-align:center;">Home</a>
+      </div>
+
+      <div id="vehicle-area"></div>
+      <div class="prompt-text" id="prompt-text"></div>
+      <div id="compare-groups"></div>
+    </div>
+
+    <div id="reward-overlay"></div>
+    <div id="reward-emoji">🎁</div>
+  </div>
+
+  <script src="shared/game.js"></script>
+  <script src="shared/builder.js"></script>
+  <script>
+  (function () {
+    const TOTAL_ROUNDS = 5;
+    const MAX_ITEMS = 8;
+
+    const EMOJI_POOL = ["🍎", "🍓", "🍌", "🚗", "🐶", "🐱", "⭐", "🎈", "🐟", "🌸", "🍪", "🐰"];
+
+    let round = 1;
+    let stars = 0;
+    let locked = false;
+    let wantGreater = true;
+    let correctSide = "";
+
+    const $roundLabel = document.getElementById("round-label");
+    const $stars = document.getElementById("stars");
+    const $groups = document.getElementById("compare-groups");
+    const $prompt = document.getElementById("prompt-text");
+    const $startOv = document.getElementById("start-screen");
+    const $endOv = document.getElementById("end-screen");
+    const $vehicleArea = document.getElementById("vehicle-area");
+    const $wrapper = document.getElementById("game-wrapper");
+    const $rewardOv = document.getElementById("reward-overlay");
+    const $rewardEmoji = document.getElementById("reward-emoji");
+
+    function makeCounts() {
+      let a, b;
+      do {
+        a = Math.floor(Math.random() * MAX_ITEMS) + 1;
+        b = Math.floor(Math.random() * MAX_ITEMS) + 1;
+      } while (a === b);
+      return [a, b];
+    }
+
+    function renderSide(count, emoji) {
+      const side = document.createElement("div");
+      side.className = "compare-side";
+      for (let i = 0; i < count; i++) {
+        const span = document.createElement("span");
+        span.className = "item";
+        span.textContent = emoji;
+        side.appendChild(span);
+      }
+      return side;
+    }
+
+    function renderRound() {
+      locked = false;
+      wantGreater = Math.random() < 0.5;
+
+      const [countA, countB] = makeCounts();
+      const emojiA = KidsGame.pickRandom(EMOJI_POOL, 1)[0];
+      let emojiB = KidsGame.pickRandom(EMOJI_POOL, 1)[0];
+      while (emojiB === emojiA) emojiB = KidsGame.pickRandom(EMOJI_POOL, 1)[0];
+
+      const sides = KidsGame.shuffle([
+        { count: countA, emoji: emojiA, id: "a" },
+        { count: countB, emoji: emojiB, id: "b" },
+      ]);
+
+      const winner = countA > countB ? "a" : "b";
+      correctSide = wantGreater ? winner : (winner === "a" ? "b" : "a");
+
+      $roundLabel.textContent = "Round " + round + " / " + TOTAL_ROUNDS;
+      KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+
+      const question = wantGreater ? "Which group has more?" : "Which group has fewer?";
+      $prompt.textContent = question;
+
+      $groups.innerHTML = "";
+      sides.forEach(function (side) {
+        const el = renderSide(side.count, side.emoji);
+        el.dataset.id = side.id;
+        el.addEventListener("click", function () { handlePick(el, side.id); });
+        $groups.appendChild(el);
+      });
+
+      KidsGame.speak(question);
+    }
+
+    function handlePick(el, id) {
+      if (locked) return;
+
+      if (id === correctSide) {
+        locked = true;
+        stars++;
+        el.classList.add("correct");
+        KidsGame.playTone(true);
+        KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+        KidsGame.showFeedback("⭐", el, $wrapper);
+        Builder.addPart();
+        document.querySelectorAll(".compare-side").forEach(function (side) { side.classList.add("disabled"); });
+
+        setTimeout(function () {
+          if (round < TOTAL_ROUNDS) {
+            round++;
+            renderRound();
+          } else {
+            finishGame();
+          }
+        }, 900);
+      } else {
+        el.classList.add("wrong");
+        stars = Math.max(0, stars - 1);
+        KidsGame.playTone(false);
+        KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
+        KidsGame.showFeedback("❌", el, $wrapper);
+        el.classList.add("disabled");
+      }
+    }
+
+    function finishGame() {
+      $groups.style.visibility = "hidden";
+      $prompt.style.visibility = "hidden";
+
+      Builder.celebrate(function () {
+        $groups.style.visibility = "";
+        $prompt.style.visibility = "";
+        showEndScreen();
+      });
+    }
+
+    function showEndScreen() {
+      KidsGame.showEndScreen({
+        screenEl: $endOv,
+        titleEl: document.getElementById("end-title"),
+        messageEl: document.getElementById("end-message"),
+        finalStarsEl: document.getElementById("final-stars"),
+        earned: stars,
+        total: TOTAL_ROUNDS,
+        reward: { rewardEl: $rewardEmoji, overlayEl: $rewardOv },
+        messages: {
+          perfect: { title: "Perfect!", message: "You compared every group correctly!" },
+          good: { title: "Great Job!", message: "You built the vehicle and compared the groups!" },
+          try: { title: "Good Try!", message: "Play again to compare more groups!" },
+        },
+      });
+    }
+
+    function startGame() {
+      round = 1;
+      stars = 0;
+      locked = false;
+      $startOv.style.display = "none";
+      $endOv.style.display = "none";
+      $groups.style.visibility = "";
+      $prompt.style.visibility = "";
+      Builder.init($vehicleArea, "random");
+      renderRound();
+    }
+
+    KidsGame.wireStartRestart("start-btn", "restart-btn", startGame);
+    KidsGame.renderStars($stars, 0, TOTAL_ROUNDS);
+    KidsGame.createMuteToggle();
+  })();
+  </script>
+</body>
+</html>
