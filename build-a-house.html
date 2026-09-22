@@ -52,11 +52,11 @@
       transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
     }
 
-    .build-frame:not(.filled):not(.tri-frame):not(.diamond-frame) {
+    .build-frame:not(.filled):not(.tri-frame):not(.diamond-frame):not(.svg-frame) {
       border: 3px dashed rgba(255, 255, 255, 0.25);
     }
 
-    .build-frame.active:not(.tri-frame):not(.diamond-frame) {
+    .build-frame.active:not(.tri-frame):not(.diamond-frame):not(.svg-frame) {
       border-color: #ffd700;
       animation: framePulse 1s ease-in-out infinite;
     }
@@ -113,6 +113,38 @@
     }
     .build-frame.diamond-frame.filled .diamond-outline {
       border: none; animation: none;
+    }
+
+    /* SVG frames for Level 2 shapes */
+    .build-frame.svg-frame {
+      border: none;
+    }
+    .svg-outline,
+    .svg-outline svg {
+      width: 100%;
+      height: 100%;
+    }
+    .svg-outline svg {
+      display: block;
+      overflow: visible;
+    }
+    .svg-outline path,
+    .svg-outline polygon {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.25);
+      stroke-width: 3;
+      stroke-dasharray: 8, 6;
+      vector-effect: non-scaling-stroke;
+    }
+    .build-frame.svg-frame.active .svg-outline path,
+    .build-frame.svg-frame.active .svg-outline polygon {
+      stroke: #ffd700;
+      animation: triStrokePulse 1s ease-in-out infinite;
+    }
+    .build-frame.svg-frame.filled .svg-outline path,
+    .build-frame.svg-frame.filled .svg-outline polygon {
+      stroke: none;
+      stroke-dasharray: 0;
     }
 
     /* Oval frames */
@@ -183,6 +215,39 @@
     }
     .css-shape.diamond { width: 42px; height: 42px; transform: rotate(45deg); border-radius: 4px; }
     .css-shape.oval { width: 72px; height: 42px; border-radius: 50%; }
+    .css-shape.pentagon {
+      width: 62px; height: 58px;
+      clip-path: polygon(50% 0%, 96% 36%, 78% 100%, 22% 100%, 4% 36%);
+    }
+    .css-shape.hexagon {
+      width: 68px; height: 58px;
+      clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    }
+    .css-shape.parallelogram {
+      width: 74px; height: 48px;
+      clip-path: polygon(22% 0%, 100% 0%, 78% 100%, 0% 100%);
+    }
+    .css-shape.trapezium {
+      width: 76px; height: 50px;
+      clip-path: polygon(18% 0%, 82% 0%, 100% 100%, 0% 100%);
+    }
+    .css-shape.crescent {
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      background: transparent !important;
+      box-shadow: inset 18px 0 0 currentColor;
+    }
+
+    .pick-level-title {
+      grid-column: 1 / -1;
+      color: var(--accent);
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      margin: 8px 0 2px;
+      text-align: center;
+      text-transform: uppercase;
+    }
 
     /* ── Scene Picker ── */
     #pick-overlay {
@@ -771,6 +836,98 @@
             filledCSS: "background:radial-gradient(circle at 35% 35%,#fff,#e0e0e0);border:2px solid #333;" },
         ]
       },
+      {
+        name: "Crown", icon: "\uD83D\uDC51", level: 2,
+        prebuilt: [
+          { css: "bottom:46px;left:78px;width:164px;height:16px;background:#b8860b;border-radius:8px;z-index:5;" },
+          { css: "bottom:62px;left:102px;width:116px;height:12px;background:#fdd835;border-radius:6px;z-index:5;" },
+          { css: "bottom:164px;left:58px;width:18px;height:18px;background:radial-gradient(circle,#e1f5fe,#42a5f5);border-radius:50%;z-index:6;" },
+          { css: "bottom:196px;left:151px;width:18px;height:18px;background:radial-gradient(circle,#f8bbd0,#e91e63);border-radius:50%;z-index:6;" },
+          { css: "bottom:164px;right:58px;width:18px;height:18px;background:radial-gradient(circle,#e1f5fe,#42a5f5);border-radius:50%;z-index:6;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Trapezium", hint: "for the band", type: "svg",
+            css: "bottom:66px;left:56px;width:208px;height:74px;z-index:3;",
+            svg: '<polygon points="14,14 86,14 98,96 2,96"/>',
+            filledCSS: "fill:#fbc02d;filter:drop-shadow(0 5px 8px rgba(0,0,0,0.2));" },
+          { id: "f1", shape: "Pentagon", hint: "for the left point", type: "svg",
+            css: "bottom:122px;left:48px;width:70px;height:74px;z-index:4;transform:rotate(-18deg);",
+            svg: '<polygon points="50,3 96,37 78,98 22,98 4,37"/>',
+            filledCSS: "fill:#ffd54f;" },
+          { id: "f2", shape: "Pentagon", hint: "for the middle point", type: "svg",
+            css: "bottom:142px;left:122px;width:76px;height:82px;z-index:4;",
+            svg: '<polygon points="50,3 96,37 78,98 22,98 4,37"/>',
+            filledCSS: "fill:#ffca28;" },
+          { id: "f3", shape: "Pentagon", hint: "for the right point", type: "svg",
+            css: "bottom:122px;left:202px;width:70px;height:74px;z-index:4;transform:rotate(18deg);",
+            svg: '<polygon points="50,3 96,37 78,98 22,98 4,37"/>',
+            filledCSS: "fill:#ffd54f;" },
+          { id: "f4", shape: "Hexagon", hint: "for the jewel", type: "svg",
+            css: "bottom:86px;left:132px;width:56px;height:52px;z-index:5;",
+            svg: '<polygon points="25,4 75,4 98,50 75,96 25,96 2,50"/>',
+            filledCSS: "fill:#26c6da;filter:drop-shadow(0 0 6px rgba(38,198,218,0.5));" },
+        ]
+      },
+      {
+        name: "Envelope", icon: "\u2709\uFE0F", level: 2,
+        prebuilt: [
+          { css: "bottom:54px;left:54px;width:212px;height:130px;background:#fff8e1;border:3px solid #d6b56d;border-radius:8px;z-index:1;box-shadow:0 5px 14px rgba(0,0,0,0.18);" },
+          { css: "bottom:64px;left:70px;width:180px;height:4px;background:rgba(141,110,99,0.22);transform:rotate(28deg);z-index:2;" },
+          { css: "bottom:64px;left:70px;width:180px;height:4px;background:rgba(141,110,99,0.22);transform:rotate(-28deg);z-index:2;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Parallelogram", hint: "for the left flap", type: "svg",
+            css: "bottom:82px;left:70px;width:84px;height:76px;z-index:3;",
+            svg: '<polygon points="22,4 98,4 78,96 2,96"/>',
+            filledCSS: "fill:#ffe082;" },
+          { id: "f1", shape: "Parallelogram", hint: "for the right flap", type: "svg",
+            css: "bottom:82px;left:166px;width:84px;height:76px;z-index:3;transform:scaleX(-1);",
+            svg: '<polygon points="22,4 98,4 78,96 2,96"/>',
+            filledCSS: "fill:#ffecb3;" },
+          { id: "f2", shape: "Trapezium", hint: "for the bottom flap", type: "svg",
+            css: "bottom:60px;left:82px;width:156px;height:78px;z-index:4;",
+            svg: '<polygon points="18,4 82,4 98,96 2,96"/>',
+            filledCSS: "fill:#ffd54f;" },
+          { id: "f3", shape: "Pentagon", hint: "for the stamp", type: "svg",
+            css: "bottom:128px;left:206px;width:42px;height:44px;z-index:5;",
+            svg: '<polygon points="50,3 96,37 78,98 22,98 4,37"/>',
+            filledCSS: "fill:#ef5350;" },
+          { id: "f4", shape: "Crescent", hint: "for the seal", type: "svg",
+            css: "bottom:84px;left:134px;width:52px;height:52px;z-index:5;",
+            svg: '<path d="M68,10 C48,18 36,36 36,56 C36,74 48,89 66,96 C34,96 8,72 8,42 C8,18 32,2 68,10 Z"/>',
+            filledCSS: "fill:#ab47bc;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.25));" },
+        ]
+      },
+      {
+        name: "Honey Jar", icon: "\uD83C\uDF6F", level: 2,
+        prebuilt: [
+          { css: "bottom:38px;left:92px;width:136px;height:160px;background:rgba(255,248,225,0.65);border:4px solid #d6b56d;border-radius:26px 26px 18px 18px;z-index:1;box-shadow:0 6px 14px rgba(0,0,0,0.18);" },
+          { css: "bottom:196px;left:112px;width:96px;height:28px;background:#8d6e63;border-radius:10px 10px 6px 6px;z-index:3;" },
+          { css: "bottom:170px;left:118px;width:84px;height:18px;background:#fbc02d;border-radius:0 0 16px 16px;z-index:4;" },
+        ],
+        frames: [
+          { id: "f0", shape: "Trapezium", hint: "for the label", type: "svg",
+            css: "bottom:82px;left:108px;width:104px;height:62px;z-index:4;",
+            svg: '<polygon points="18,8 82,8 98,92 2,92"/>',
+            filledCSS: "fill:#fff59d;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.16));" },
+          { id: "f1", shape: "Pentagon", hint: "for the cap badge", type: "svg",
+            css: "bottom:196px;left:136px;width:48px;height:48px;z-index:4;",
+            svg: '<polygon points="50,3 96,37 78,98 22,98 4,37"/>',
+            filledCSS: "fill:#fdd835;" },
+          { id: "f2", shape: "Hexagon", hint: "for the honeycomb", type: "svg",
+            css: "bottom:112px;left:118px;width:42px;height:40px;z-index:5;",
+            svg: '<polygon points="25,4 75,4 98,50 75,96 25,96 2,50"/>',
+            filledCSS: "fill:#fbc02d;" },
+          { id: "f3", shape: "Hexagon", hint: "for the honeycomb", type: "svg",
+            css: "bottom:112px;left:160px;width:42px;height:40px;z-index:5;",
+            svg: '<polygon points="25,4 75,4 98,50 75,96 25,96 2,50"/>',
+            filledCSS: "fill:#ffca28;" },
+          { id: "f4", shape: "Crescent", hint: "for the shine", type: "svg",
+            css: "bottom:132px;left:176px;width:38px;height:50px;z-index:5;transform:rotate(28deg);",
+            svg: '<path d="M68,10 C48,18 36,36 36,56 C36,74 48,89 66,96 C34,96 8,72 8,42 C8,18 32,2 68,10 Z"/>',
+            filledCSS: "fill:rgba(255,255,255,0.72);" },
+        ]
+      },
     ];
 
     // Triangle fill colors per scene
@@ -843,6 +1000,14 @@
           el.appendChild(outline);
         }
 
+        if (f.type === "svg") {
+          el.classList.add("svg-frame");
+          const outline = document.createElement("div");
+          outline.className = "svg-outline";
+          outline.innerHTML = '<svg viewBox="0 0 100 100" preserveAspectRatio="none">' + f.svg + '</svg>';
+          el.appendChild(outline);
+        }
+
         const label = document.createElement("span");
         label.className = "frame-label";
         label.textContent = f.shape.toLowerCase();
@@ -872,6 +1037,9 @@
       } else if (frame.type === "diamond") {
         const outline = el.querySelector(".diamond-outline");
         if (frame.filledCSS) outline.setAttribute("style", "width:100%;height:100%;transform:rotate(45deg);" + frame.filledCSS);
+      } else if (frame.type === "svg") {
+        const shape = el.querySelector(".svg-outline path, .svg-outline polygon");
+        if (shape && frame.filledCSS) shape.setAttribute("style", frame.filledCSS);
       } else if (frame.filledCSS) {
         el.setAttribute("style", frame.css + frame.filledCSS);
       }
@@ -882,6 +1050,8 @@
       el.className = "css-shape " + shapeCss;
       if (shapeCss === "triangle") {
         el.style.borderBottomColor = color;
+      } else if (shapeCss === "crescent") {
+        el.style.color = color;
       } else {
         el.style.background = color;
       }
@@ -890,7 +1060,8 @@
 
     function pickChoices(correctName) {
       const correct = SHAPES.find(s => s.name === correctName);
-      const wrong = SHAPES.filter(s => s.name !== correctName);
+      const sceneLevel = currentScene ? (currentScene.level || 1) : 1;
+      const wrong = SHAPES.filter(s => s.name !== correctName && s.level <= sceneLevel);
       const distractors = KidsGame.shuffle(wrong).slice(0, 3);
       return KidsGame.shuffle([correct, ...distractors]);
     }
@@ -986,12 +1157,24 @@
       $pickOv.style.display = "flex";
 
       $pickGrid.innerHTML = "";
-      SCENES.forEach((scene, i) => {
-        const card = document.createElement("div");
-        card.className = "pick-card";
-        card.innerHTML = '<span class="pick-icon">' + scene.icon + '</span><span class="pick-name">' + scene.name + '</span>';
-        card.addEventListener("click", () => beginGame(i));
-        $pickGrid.appendChild(card);
+      $pickOv.querySelector("h2").textContent = "What do you want to build?";
+
+      [1, 2].forEach(level => {
+        const scenes = SCENES.filter(scene => (scene.level || 1) === level);
+        if (!scenes.length) return;
+
+        const title = document.createElement("div");
+        title.className = "pick-level-title";
+        title.textContent = "--- Level " + level + " ---";
+        $pickGrid.appendChild(title);
+
+        scenes.forEach(scene => {
+          const card = document.createElement("div");
+          card.className = "pick-card";
+          card.innerHTML = '<span class="pick-icon">' + scene.icon + '</span><span class="pick-name">' + scene.name + '</span>';
+          card.addEventListener("click", () => beginGame(SCENES.indexOf(scene)));
+          $pickGrid.appendChild(card);
+        });
       });
     }
 
@@ -1013,7 +1196,6 @@
       beginGame(Math.floor(Math.random() * SCENES.length));
     });
 
-    // Start button -> show picker
     $("start-btn").addEventListener("click", showPicker);
     // Restart -> show picker again
     $("restart-btn").addEventListener("click", showPicker);

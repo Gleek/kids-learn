@@ -188,6 +188,19 @@
     </div>
   </section>
 
+  <section class="panel" aria-labelledby="word-length-settings-title">
+    <h2 id="word-length-settings-title">Reading words</h2>
+    <p>Choose how long the words are in Build a Word, Build a Rocket, and the CVC Car game.</p>
+    <label class="setting-row" for="word-length">
+      <span class="setting-label">Word length</span>
+      <select id="word-length">
+        <option value="3">3 letters</option>
+        <option value="4">4 letters</option>
+        <option value="5">5 letters</option>
+      </select>
+    </label>
+  </section>
+
   <section class="panel" aria-labelledby="picture-patch-settings-title">
     <h2 id="picture-patch-settings-title">Picture Patch</h2>
     <p>Choose how many squares the picture puzzle uses.</p>
@@ -207,12 +220,14 @@
   </section>
 </main>
 
+<script src="shared/game.js"></script>
 <script src="shared/builder.js"></script>
 <script>
   const vehicleList = document.getElementById("vehicle-list");
   const saveStatus = document.getElementById("save-status");
   const selectAllBtn = document.getElementById("select-all-btn");
   const picturePatchGridSize = document.getElementById("picture-patch-grid-size");
+  const wordLength = document.getElementById("word-length");
   const options = Builder.getVehicleOptions();
   const PICTURE_PATCH_GRID_SIZE_KEY = "kidslearn-picture-patch-grid-size";
   const DEFAULT_PICTURE_PATCH_GRID_SIZE = 6;
@@ -290,6 +305,11 @@
   picturePatchGridSize.value = String(getPicturePatchGridSize());
   picturePatchGridSize.addEventListener("input", savePicturePatchGridSize);
   picturePatchGridSize.addEventListener("change", savePicturePatchGridSize);
+
+  wordLength.value = String(KidsGame.getWordLength());
+  wordLength.addEventListener("change", () => {
+    KidsGame.setWordLength(Number(wordLength.value));
+  });
 
   renderVehicles();
 </script>

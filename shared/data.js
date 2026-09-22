@@ -42,18 +42,64 @@ window.GameData = (function () {
     { word: "NUT", emoji: "🥜", distractors: ["🌰", "🥥", "🍎"] },
   ];
 
-  const WORD_BUILD_WORDS = CVC_WORDS.concat([
-    { word: "FISH", emoji: "🐟" },
-    { word: "DUCK", emoji: "🦆" },
-    { word: "BIRD", emoji: "🐦" },
-    { word: "FROG", emoji: "🐸" },
-    { word: "MOON", emoji: "🌙" },
-    { word: "STAR", emoji: "⭐" },
-    { word: "TREE", emoji: "🌳" },
-    { word: "CAKE", emoji: "🎂" },
-    { word: "BALL", emoji: "⚽" },
-    { word: "BOOK", emoji: "📖" },
-  ]);
+  // 4-letter words, same shape as CVC_WORDS, for games that read words aloud.
+  const WORDS_4 = [
+    { word: "FISH", emoji: "🐟", distractors: ["🐦", "🐸", "🐱"] },
+    { word: "DUCK", emoji: "🦆", distractors: ["🐔", "🐧", "🦢"] },
+    { word: "BIRD", emoji: "🐦", distractors: ["🦆", "🦉", "🐝"] },
+    { word: "FROG", emoji: "🐸", distractors: ["🐢", "🦎", "🐍"] },
+    { word: "MOON", emoji: "🌙", distractors: ["☀️", "⭐", "🌈"] },
+    { word: "STAR", emoji: "⭐", distractors: ["🌙", "☀️", "🌈"] },
+    { word: "TREE", emoji: "🌳", distractors: ["🌴", "🌵", "🌲"] },
+    { word: "CAKE", emoji: "🎂", distractors: ["🍰", "🧁", "🍪"] },
+    { word: "BALL", emoji: "⚽", distractors: ["🏀", "🎾", "🏐"] },
+    { word: "BOOK", emoji: "📖", distractors: ["📔", "📚", "✏️"] },
+    { word: "LION", emoji: "🦁", distractors: ["🐯", "🐆", "🐴"] },
+    { word: "BEAR", emoji: "🐻", distractors: ["🐼", "🦁", "🐺"] },
+    { word: "SHIP", emoji: "🚢", distractors: ["⛵", "🚤", "✈️"] },
+    { word: "KITE", emoji: "🪁", distractors: ["🎈", "🪂", "🎏"] },
+    { word: "RAIN", emoji: "🌧️", distractors: ["☀️", "❄️", "🌈"] },
+    { word: "SNOW", emoji: "❄️", distractors: ["🌧️", "☀️", "🌪️"] },
+    { word: "CORN", emoji: "🌽", distractors: ["🥕", "🍅", "🥦"] },
+    { word: "MILK", emoji: "🥛", distractors: ["🧃", "☕", "🍵"] },
+    { word: "SOCK", emoji: "🧦", distractors: ["👟", "🧤", "👗"] },
+    { word: "RING", emoji: "💍", distractors: ["👑", "📿", "⌚"] },
+    { word: "CRAB", emoji: "🦀", distractors: ["🦞", "🐚", "🐙"] },
+    { word: "WOLF", emoji: "🐺", distractors: ["🐕", "🦊", "🐩"] },
+  ];
+
+  // 5-letter words, same shape as CVC_WORDS, for games that read words aloud.
+  const WORDS_5 = [
+    { word: "HORSE", emoji: "🐴", distractors: ["🦓", "🐮", "🦌"] },
+    { word: "MOUSE", emoji: "🐭", distractors: ["🐹", "🐀", "🐇"] },
+    { word: "SNAKE", emoji: "🐍", distractors: ["🐛", "🪱", "🦎"] },
+    { word: "WHALE", emoji: "🐳", distractors: ["🐬", "🦈", "🐟"] },
+    { word: "SHEEP", emoji: "🐑", distractors: ["🐐", "🐄", "🐇"] },
+    { word: "TIGER", emoji: "🐯", distractors: ["🦁", "🐆", "🐈"] },
+    { word: "HOUSE", emoji: "🏠", distractors: ["🏰", "🏢", "⛺"] },
+    { word: "CLOCK", emoji: "🕐", distractors: ["⏰", "📅", "🧭"] },
+    { word: "PLANT", emoji: "🌱", distractors: ["🌳", "🌵", "🍀"] },
+    { word: "CHAIR", emoji: "🪑", distractors: ["🛋️", "🛏️", "🚪"] },
+    { word: "APPLE", emoji: "🍎", distractors: ["🍏", "🍒", "🍑"] },
+    { word: "GRAPE", emoji: "🍇", distractors: ["🍒", "🍓", "🫐"] },
+    { word: "LEMON", emoji: "🍋", distractors: ["🍊", "🍈", "🍑"] },
+    { word: "ONION", emoji: "🧅", distractors: ["🧄", "🥔", "🥦"] },
+    { word: "BREAD", emoji: "🍞", distractors: ["🥖", "🥐", "🧀"] },
+    { word: "WATCH", emoji: "⌚", distractors: ["⏰", "📱", "💍"] },
+    { word: "TRUCK", emoji: "🚚", distractors: ["🚗", "🚌", "🚜"] },
+    { word: "PLANE", emoji: "✈️", distractors: ["🚀", "🚁", "🛩️"] },
+    { word: "CANDY", emoji: "🍬", distractors: ["🍭", "🍫", "🧁"] },
+    { word: "CROWN", emoji: "👑", distractors: ["🎩", "💍", "🎓"] },
+  ];
+
+  const WORD_BUILD_WORDS = CVC_WORDS.concat(WORDS_4);
+
+  // Returns the word list matching a reading word-length setting (3, 4, or 5).
+  function getReadingWords(length) {
+    if (length === 5) return WORDS_5;
+    if (length === 4) return WORDS_4;
+    return CVC_WORDS;
+  }
 
   // ── Sentence Scene Data ──
   const IMG = "images/sentence/";
@@ -169,12 +215,17 @@ window.GameData = (function () {
 
   // ── Shapes ──
   const SHAPES = [
-    { name: "Square",    css: "square" },
-    { name: "Triangle",  css: "triangle" },
-    { name: "Circle",    css: "circle" },
-    { name: "Rectangle", css: "rectangle" },
-    { name: "Diamond",   css: "diamond" },
-    { name: "Oval",      css: "oval" },
+    { name: "Square",        css: "square",        level: 1, group: "basic" },
+    { name: "Triangle",      css: "triangle",      level: 1, group: "basic" },
+    { name: "Circle",        css: "circle",        level: 1, group: "basic" },
+    { name: "Rectangle",     css: "rectangle",     level: 1, group: "basic-plus" },
+    { name: "Diamond",       css: "diamond",       level: 1, group: "basic-plus" },
+    { name: "Oval",          css: "oval",          level: 1, group: "basic-plus" },
+    { name: "Pentagon",      css: "pentagon",      level: 2, group: "polygons" },
+    { name: "Hexagon",       css: "hexagon",       level: 2, group: "polygons" },
+    { name: "Parallelogram", css: "parallelogram", level: 2, group: "quadrilaterals" },
+    { name: "Trapezium",     css: "trapezium",     level: 2, group: "quadrilaterals" },
+    { name: "Crescent",      css: "crescent",      level: 2, group: "curved" },
   ];
 
   // ── Passengers (Fill the Bus) ──
@@ -185,7 +236,10 @@ window.GameData = (function () {
 
   return {
     CVC_WORDS,
+    WORDS_4,
+    WORDS_5,
     WORD_BUILD_WORDS,
+    getReadingWords,
     ALL_IMAGES,
     SENTENCES,
     SHAPES,

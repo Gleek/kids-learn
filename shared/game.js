@@ -292,6 +292,18 @@ window.KidsGame = (function () {
     localStorage.setItem("kidslearn-tts", on ? "on" : "off");
   }
 
+  // ── Reading word length (3, 4, or 5 letters) ──
+  const WORD_LENGTH_KEY = "kidslearn-word-length";
+
+  function getWordLength() {
+    const value = Number(localStorage.getItem(WORD_LENGTH_KEY));
+    return value === 4 || value === 5 ? value : 3;
+  }
+
+  function setWordLength(length) {
+    localStorage.setItem(WORD_LENGTH_KEY, String(length));
+  }
+
   function applyVoice(utterance) {
     const voice = pickVoice();
     if (voice) utterance.voice = voice;
@@ -427,6 +439,8 @@ window.KidsGame = (function () {
     createWordAudioPlayer,
     isTTSEnabled,
     setTTSEnabled,
+    getWordLength,
+    setWordLength,
     createMuteToggle,
   };
 })();

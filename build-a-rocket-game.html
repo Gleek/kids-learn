@@ -252,7 +252,7 @@
 <script src="shared/game.js"></script>
 <script src="shared/builder.js"></script>
 <script>
-const CVC_WORDS = GameData.CVC_WORDS;
+const CVC_WORDS = GameData.getReadingWords(KidsGame.getWordLength());
 
 const ROUNDS = 5;
 const GRID_SIZE = 9;

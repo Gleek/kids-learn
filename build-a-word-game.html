@@ -359,7 +359,7 @@
 <script src="shared/game.js"></script>
 <script src="shared/builder.js"></script>
 <script>
-const WORDS = GameData.WORD_BUILD_WORDS || GameData.CVC_WORDS;
+const WORDS = GameData.getReadingWords(KidsGame.getWordLength());
 const ROUNDS = 5;
 const EXTRA_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "R", "S", "T", "U", "W", "Y"];
 

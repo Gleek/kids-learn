@@ -206,7 +206,7 @@
 <script src="shared/game.js"></script>
 <script>
 // ── CVC Words & Emoji Mappings ──
-const CVC_WORDS = GameData.CVC_WORDS;
+const CVC_WORDS = GameData.getReadingWords(KidsGame.getWordLength());
 
 const WORDS_PER_SESSION = 5;
 const LANE_COUNT = 4;
