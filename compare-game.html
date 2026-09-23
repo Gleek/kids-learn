@@ -70,6 +70,14 @@
       line-height: 1;
     }
 
+    .compare-side .number {
+      font-size: 72px;
+      font-weight: 900;
+      color: var(--text-color);
+    }
+
+    #numbers-btn { margin-top: 16px; }
+
     .compare-side.correct {
       border-color: #4caf50;
       background: #e8f5e9;
@@ -124,8 +132,9 @@
     <div id="game-area">
       <div id="start-screen" class="overlay">
         <h1>Which Is More?</h1>
-        <p>Look at the two groups and tap the one that is greater or smaller!</p>
-        <button id="start-btn" class="btn">Play</button>
+        <p>What would you like to compare?</p>
+        <button id="objects-btn" class="btn">Objects</button>
+        <button id="numbers-btn" class="btn">Numbers</button>
       </div>
 
       <div id="end-screen" class="overlay" style="display:none">
@@ -151,6 +160,7 @@
   (function () {
     const TOTAL_ROUNDS = 5;
     const MAX_ITEMS = 8;
+    const MAX_NUMBER = 100;
 
     const EMOJI_POOL = ["🍎", "🍓", "🍌", "🚗", "🐶", "🐱", "⭐", "🎈", "🐟", "🌸", "🍪", "🐰"];
 
@@ -159,6 +169,7 @@
     let locked = false;
     let wantGreater = true;
     let correctSide = "";
+    let mode = "objects";
 
     const $roundLabel = document.getElementById("round-label");
     const $stars = document.getElementById("stars");
@@ -171,11 +182,11 @@
     const $rewardOv = document.getElementById("reward-overlay");
     const $rewardEmoji = document.getElementById("reward-emoji");
 
-    function makeCounts() {
+    function makeCounts(max) {
       let a, b;
       do {
-        a = Math.floor(Math.random() * MAX_ITEMS) + 1;
-        b = Math.floor(Math.random() * MAX_ITEMS) + 1;
+        a = Math.floor(Math.random() * max) + 1;
+        b = Math.floor(Math.random() * max) + 1;
       } while (a === b);
       return [a, b];
     }
@@ -183,6 +194,13 @@
     function renderSide(count, emoji) {
       const side = document.createElement("div");
       side.className = "compare-side";
+      if (mode === "numbers") {
+        const number = document.createElement("span");
+        number.className = "number";
+        number.textContent = count;
+        side.appendChild(number);
+        return side;
+      }
       for (let i = 0; i < count; i++) {
         const span = document.createElement("span");
         span.className = "item";
@@ -196,10 +214,13 @@
       locked = false;
       wantGreater = Math.random() < 0.5;
 
-      const [countA, countB] = makeCounts();
-      const emojiA = KidsGame.pickRandom(EMOJI_POOL, 1)[0];
-      let emojiB = KidsGame.pickRandom(EMOJI_POOL, 1)[0];
-      while (emojiB === emojiA) emojiB = KidsGame.pickRandom(EMOJI_POOL, 1)[0];
+      const [countA, countB] = makeCounts(mode === "numbers" ? MAX_NUMBER : MAX_ITEMS);
+      let emojiA, emojiB;
+      if (mode === "objects") {
+        emojiA = KidsGame.pickRandom(EMOJI_POOL, 1)[0];
+        emojiB = KidsGame.pickRandom(EMOJI_POOL, 1)[0];
+        while (emojiB === emojiA) emojiB = KidsGame.pickRandom(EMOJI_POOL, 1)[0];
+      }
 
       const sides = KidsGame.shuffle([
         { count: countA, emoji: emojiA, id: "a" },
@@ -212,7 +233,9 @@
       $roundLabel.textContent = "Round " + round + " / " + TOTAL_ROUNDS;
       KidsGame.renderStars($stars, stars, TOTAL_ROUNDS);
 
-      const question = wantGreater ? "Which group has more?" : "Which group has fewer?";
+      const question = mode === "numbers"
+        ? (wantGreater ? "Which number is greater?" : "Which number is smaller?")
+        : (wantGreater ? "Which group has more?" : "Which group has fewer?");
       $prompt.textContent = question;
 
       $groups.innerHTML = "";
@@ -269,6 +292,7 @@
     }
 
     function showEndScreen() {
+      const noun = mode === "numbers" ? "numbers" : "groups";
       KidsGame.showEndScreen({
         screenEl: $endOv,
         titleEl: document.getElementById("end-title"),
@@ -278,9 +302,9 @@
         total: TOTAL_ROUNDS,
         reward: { rewardEl: $rewardEmoji, overlayEl: $rewardOv },
         messages: {
-          perfect: { title: "Perfect!", message: "You compared every group correctly!" },
-          good: { title: "Great Job!", message: "You built the vehicle and compared the groups!" },
-          try: { title: "Good Try!", message: "Play again to compare more groups!" },
+          perfect: { title: "Perfect!", message: "You compared every pair of " + noun + " correctly!" },
+          good: { title: "Great Job!", message: "You built the vehicle and compared the " + noun + "!" },
+          try: { title: "Good Try!", message: "Play again to compare more " + noun + "!" },
         },
       });
     }
@@ -297,7 +321,15 @@
       renderRound();
     }
 
-    KidsGame.wireStartRestart("start-btn", "restart-btn", startGame);
+    document.getElementById("objects-btn").addEventListener("click", function () {
+      mode = "objects";
+      startGame();
+    });
+    document.getElementById("numbers-btn").addEventListener("click", function () {
+      mode = "numbers";
+      startGame();
+    });
+    document.getElementById("restart-btn").addEventListener("click", startGame);
     KidsGame.renderStars($stars, 0, TOTAL_ROUNDS);
     KidsGame.createMuteToggle();
   })();

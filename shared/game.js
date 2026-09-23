@@ -319,6 +319,8 @@ window.KidsGame = (function () {
   // Lazily loaded top-down bike-with-rider sprite
   let bikeImage = null;
   let bikeImageLoaded = false;
+  let carImage = null;
+  let carImageLoaded = false;
 
   function getBikeImage() {
     if (!bikeImage) {
@@ -329,6 +331,15 @@ window.KidsGame = (function () {
     return bikeImage;
   }
 
+  function getCarImage() {
+    if (!carImage) {
+      carImage = new Image();
+      carImage.onload = function () { carImageLoaded = true; };
+      carImage.src = "images/car-top.png";
+    }
+    return carImage;
+  }
+
   // Draws a top-down car or bike centered at (x, y) for lane-driving games.
   function drawTopDownVehicle(ctx, x, y, w, h, vehicle) {
     if (vehicle === "bike") {
@@ -336,6 +347,12 @@ window.KidsGame = (function () {
       if (bikeImageLoaded) {
         ctx.drawImage(img, x - w / 2, y - h / 2, w, h);
       }
+      return;
+    }
+
+    const carSprite = getCarImage();
+    if (carImageLoaded) {
+      ctx.drawImage(carSprite, x - w / 2, y - h / 2, w, h);
       return;
     }
 
@@ -482,6 +499,7 @@ window.KidsGame = (function () {
     let next = audioB;
     let rafId = null;
     let crossfading = false;
+    let volume = 1;
 
     function onTimeUpdate() {
       if (crossfading) return;
@@ -504,8 +522,8 @@ window.KidsGame = (function () {
       const startTime = performance.now();
       (function tick() {
         const t = Math.min(1, (performance.now() - startTime) / 1000 / crossfadeSec);
-        current.volume = 1 - t;
-        next.volume = t;
+        current.volume = (1 - t) * volume;
+        next.volume = t * volume;
         if (t < 1) {
           rafId = requestAnimationFrame(tick);
           return;
@@ -521,19 +539,17 @@ window.KidsGame = (function () {
 
     return {
       start: function () {
+        this.stop();
         current = audioA;
         next = audioB;
-        crossfading = false;
-        next.pause();
-        next.currentTime = 0;
         next.volume = 0;
-        current.currentTime = 0;
-        current.volume = 1;
+        current.volume = volume;
         current.play().catch(function () {});
         watch();
       },
       stop: function () {
         if (rafId) cancelAnimationFrame(rafId);
+        rafId = null;
         crossfading = false;
         audioA.pause();
         audioB.pause();
@@ -541,6 +557,16 @@ window.KidsGame = (function () {
         audioB.currentTime = 0;
         audioA.removeEventListener("timeupdate", onTimeUpdate);
         audioB.removeEventListener("timeupdate", onTimeUpdate);
+      },
+      setVolume: function (level) {
+        const previous = volume;
+        volume = Math.max(0, Math.min(1, level));
+        if (previous) {
+          audioA.volume = audioA.volume / previous * volume;
+          audioB.volume = audioB.volume / previous * volume;
+        } else {
+          current.volume = volume;
+        }
       },
     };
   }

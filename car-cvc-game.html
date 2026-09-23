@@ -226,16 +226,19 @@ const drivingSound = KidsGame.createDrivingSoundPlayer(
     ? { src: "audio/bike-drive.mp3", loopStart: 7, rate: 1.1 }
     : { src: "audio/car-drive.mp3", loopStart: 18, rate: 1.15 }
 );
-let car = { lane: 1, width: 50, height: 70 };
+let car = { lane: 1, width: driveVehicle === "car" ? 55 : 50, height: driveVehicle === "car" ? 110 : 70 };
+const CAR_Y = H - (driveVehicle === "car" ? 115 : 100);
 let objects = [];
 let currentRound = 0;
 let starsEarned = 0;
 let sessionWords = [];
 let currentWord = null;
 let spawnReady = false;
-let objectSpeed = 1.5;
-const ROAD_SCROLL_SPEED = objectSpeed * 3;
-const EDGE_SCROLL_SPEED = objectSpeed * 4;
+const BASE_SPEED = 0.7;
+const MAX_SPEED = 4.2;
+const ACCELERATION = 0.65;
+let objectSpeed = BASE_SPEED;
+let lastFrame = 0;
 let roadLineOffset = 0;
 let edgeLineOffset = 0;
 let exhaustParticles = [];
@@ -303,7 +306,7 @@ function spawnObjects() {
 // ── Car Drawing ──
 function drawCar() {
   const x = car.lane * LANE_W + LANE_W / 2;
-  const y = H - 100;
+  const y = CAR_Y;
 
   if (roundActive) {
     exhaustParticles.push({
@@ -318,33 +321,33 @@ function drawCar() {
 }
 
 // ── Exhaust Particle Trail ──
-function drawExhaustParticles() {
+function drawExhaustParticles(frameScale) {
   for (let i = exhaustParticles.length - 1; i >= 0; i--) {
     const p = exhaustParticles[i];
-    p.y += ROAD_SCROLL_SPEED;
-    p.life -= 0.05;
+    p.y += (3 + objectSpeed * 0.6) * frameScale;
+    p.life -= 0.06 * frameScale;
     if (p.life <= 0) {
       exhaustParticles.splice(i, 1);
       continue;
     }
     ctx.fillStyle = `rgba(230, 230, 230, ${p.life * 0.5})`;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, p.size * (0.65 + 0.35 * p.life), 0, Math.PI * 2);
     ctx.fill();
   }
 }
 
 // ── Road Drawing ──
-function drawRoad() {
+function drawRoad(frameScale) {
   // Road surface
   ctx.fillStyle = "#555";
   ctx.fillRect(0, 0, W, H);
 
   // Lane dividers (dashed) — scroll faster than objects for a sense of speed
-  roadLineOffset = (roadLineOffset + ROAD_SCROLL_SPEED) % 40;
+  roadLineOffset = (roadLineOffset + objectSpeed * 4 * frameScale) % 80;
   ctx.strokeStyle = "#fff";
   ctx.lineWidth = 3;
-  ctx.setLineDash([20, 20]);
+  ctx.setLineDash([40, 40]);
   for (let i = 1; i < LANE_COUNT; i++) {
     ctx.beginPath();
     ctx.lineDashOffset = -roadLineOffset;
@@ -355,14 +358,14 @@ function drawRoad() {
   ctx.setLineDash([]);
 
   // Road edges with fast-scrolling motion ticks
-  edgeLineOffset = (edgeLineOffset + EDGE_SCROLL_SPEED) % 30;
+  edgeLineOffset = (edgeLineOffset + objectSpeed * 5 * frameScale) % 96;
   ctx.fillStyle = "#ff6b8a";
   ctx.fillRect(0, 0, 6, H);
   ctx.fillRect(W - 6, 0, 6, H);
   ctx.fillStyle = "#fff2f5";
-  for (let y = -30 + edgeLineOffset; y < H; y += 30) {
-    ctx.fillRect(0, y, 6, 14);
-    ctx.fillRect(W - 6, y, 6, 14);
+  for (let y = -96 + edgeLineOffset; y < H; y += 96) {
+    ctx.fillRect(0, y, 6, 28);
+    ctx.fillRect(W - 6, y, 6, 28);
   }
 }
 
@@ -382,7 +385,7 @@ function drawObjects() {
 // ── Collision Detection ──
 function checkCollisions() {
   const carX = car.lane * LANE_W + LANE_W / 2;
-  const carY = H - 100;
+  const carY = CAR_Y;
 
   for (let i = objects.length - 1; i >= 0; i--) {
     const obj = objects[i];
@@ -409,6 +412,8 @@ function checkCollisions() {
         // Wrong — just disappear, round continues
         obj.hit = true;
         firstCorrectHit = false;
+        objectSpeed = BASE_SPEED;
+        drivingSound.start();
         KidsGame.showCanvasFeedback("❌", objX, obj.y - 40, canvas, wrapper, { className: "feedback", offsetY: 60 });
         KidsGame.playTone(false);
       }
@@ -448,17 +453,22 @@ function endGame() {
 }
 
 // ── Main Game Loop ──
-function gameLoop() {
+function gameLoop(now) {
   if (!gameRunning) return;
 
-  drawRoad();
-  drawExhaustParticles();
+  now = now || performance.now();
+  const frameScale = lastFrame ? Math.min((now - lastFrame) / (1000 / 60), 2) : 1;
+  lastFrame = now;
+  objectSpeed = Math.min(MAX_SPEED, objectSpeed + ACCELERATION * frameScale / 60);
+
+  drawRoad(frameScale);
+  drawExhaustParticles(frameScale);
   drawCar();
 
   if (roundActive) {
     // Move objects down
     for (const obj of objects) {
-      if (!obj.hit) obj.y += objectSpeed;
+      if (!obj.hit) obj.y += objectSpeed * frameScale;
     }
 
     // Loop objects back to top when they pass the bottom
@@ -482,7 +492,7 @@ function gameLoop() {
     checkCollisions();
   } else {
     if (roundCooldown > 0) {
-      roundCooldown--;
+      roundCooldown -= frameScale;
     } else {
       nextRound();
     }
@@ -535,6 +545,8 @@ function startGame() {
   endScreen.style.display = "none";
   starsEarned = 0;
   currentRound = 0;
+  objectSpeed = BASE_SPEED;
+  lastFrame = 0;
   objects = [];
   exhaustParticles = [];
   roundActive = false;
