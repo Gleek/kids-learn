@@ -325,6 +325,10 @@ window.GameData = (function () {
     IMG + "pig-in-mud.jpg",
     IMG + "cat-on-roof.jpg",
     IMG + "dog-in-bath.jpg",
+    IMG + "rabbit-in-garden.jpg",
+    IMG + "turtle-on-rock.jpg",
+    IMG + "kite-in-sky.jpg",
+    IMG + "apple-on-tree.jpg",
   ];
 
   const SENTENCES = [
@@ -378,6 +382,10 @@ window.GameData = (function () {
     { sentence: "The pig is in the mud.",     correct: IMG + "pig-in-mud.jpg" },
     { sentence: "The cat is on the roof.",    correct: IMG + "cat-on-roof.jpg" },
     { sentence: "The dog is in the bath.",    correct: IMG + "dog-in-bath.jpg" },
+    { sentence: "The rabbit is in the garden.", correct: IMG + "rabbit-in-garden.jpg" },
+    { sentence: "The turtle is on the rock.", correct: IMG + "turtle-on-rock.jpg" },
+    { sentence: "The red kite is in the sky.", correct: IMG + "kite-in-sky.jpg" },
+    { sentence: "The apple is on the tree.", correct: IMG + "apple-on-tree.jpg" },
   ];
 
   // ── Shapes ──

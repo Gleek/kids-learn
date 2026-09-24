@@ -295,6 +295,7 @@ var hearBtn = document.getElementById("hear-btn");
 // ── Game State ──
 var gameRunning = false;
 var driveVehicle = KidsGame.getDriveVehicle();
+KidsGame.preloadDriveVehicle(driveVehicle);
 var drivingSound = KidsGame.createDrivingSoundPlayer(
   driveVehicle === "bike"
     ? { src: "audio/bike-drive.mp3", loopStart: 7, rate: 1.1 }

@@ -221,6 +221,7 @@ const LANE_W = W / LANE_COUNT;
 // ── Game State ──
 let gameRunning = false;
 const driveVehicle = KidsGame.getDriveVehicle();
+KidsGame.preloadDriveVehicle(driveVehicle);
 const drivingSound = KidsGame.createDrivingSoundPlayer(
   driveVehicle === "bike"
     ? { src: "audio/bike-drive.mp3", loopStart: 7, rate: 1.1 }

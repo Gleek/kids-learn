@@ -340,6 +340,11 @@ window.KidsGame = (function () {
     return carImage;
   }
 
+  function preloadDriveVehicle(vehicle) {
+    if (vehicle === "bike") getBikeImage();
+    else getCarImage();
+  }
+
   // Draws a top-down car or bike centered at (x, y) for lane-driving games.
   function drawTopDownVehicle(ctx, x, y, w, h, vehicle) {
     if (vehicle === "bike") {
@@ -353,34 +358,7 @@ window.KidsGame = (function () {
     const carSprite = getCarImage();
     if (carImageLoaded) {
       ctx.drawImage(carSprite, x - w / 2, y - h / 2, w, h);
-      return;
     }
-
-    // Car body
-    ctx.fillStyle = "#ff6b8a";
-    ctx.beginPath();
-    ctx.roundRect(x - w / 2, y - h / 2, w, h, 10);
-    ctx.fill();
-
-    // Windshield
-    ctx.fillStyle = "#7ec8e3";
-    ctx.beginPath();
-    ctx.roundRect(x - w / 2 + 8, y - h / 2 + 8, w - 16, 18, 5);
-    ctx.fill();
-
-    // Wheels
-    ctx.fillStyle = "#222";
-    ctx.fillRect(x - w / 2 - 5, y - h / 2 + 5, 8, 16);
-    ctx.fillRect(x + w / 2 - 3, y - h / 2 + 5, 8, 16);
-    ctx.fillRect(x - w / 2 - 5, y + h / 2 - 21, 8, 16);
-    ctx.fillRect(x + w / 2 - 3, y + h / 2 - 21, 8, 16);
-
-    // Headlights
-    ctx.fillStyle = "#ffd700";
-    ctx.beginPath();
-    ctx.arc(x - w / 2 + 10, y - h / 2 + 2, 4, 0, Math.PI * 2);
-    ctx.arc(x + w / 2 - 10, y - h / 2 + 2, 4, 0, Math.PI * 2);
-    ctx.fill();
   }
 
   function applyVoice(utterance) {
@@ -614,6 +592,7 @@ window.KidsGame = (function () {
     setWordLength,
     getDriveVehicle,
     setDriveVehicle,
+    preloadDriveVehicle,
     drawTopDownVehicle,
     createMuteToggle,
     createDrivingSoundPlayer,
