@@ -35,10 +35,10 @@
   }
 
   #word-display {
-    font-size: 48px;
+    font-size: 36px;
     font-weight: 900;
     color: #2d3436;
-    letter-spacing: 12px;
+    letter-spacing: 6px;
     text-shadow: none;
   }
 
@@ -154,7 +154,7 @@
   }
 
   @media (max-width: 500px) {
-    #word-display { font-size: 32px; letter-spacing: 8px; }
+    #word-display { font-size: 28px; letter-spacing: 4px; }
     .star { font-size: 24px; }
     .mobile-btn { width: 60px; height: 60px; font-size: 28px; }
   }
@@ -177,7 +177,7 @@
 
 <div id="game-wrapper">
   <div id="hud">
-    <div id="word-display">CAT</div>
+    <div><div id="word-display">CAT</div><div id="turn-display">3-letter words · Turn 1 of 4</div></div>
     <div id="stars"></div>
   </div>
   <canvas id="game" width="480" height="640"></canvas>
@@ -206,9 +206,10 @@
 <script src="shared/game.js"></script>
 <script>
 // ── CVC Words & Emoji Mappings ──
-const CVC_WORDS = GameData.getReadingWords(KidsGame.getWordLength());
-
 const WORDS_PER_SESSION = 5;
+const MAX_TURNS = 4;
+let wordLength = 3;
+let turn = 1;
 const LANE_COUNT = 4;
 
 // ── Canvas Setup ──
@@ -262,7 +263,17 @@ function renderStars() {
 
 // ── Pick Session Words ──
 function pickSessionWords() {
-  return KidsGame.pickRandom(CVC_WORDS, WORDS_PER_SESSION);
+  const words = GameData.getReadingWords(wordLength);
+  const freshWords = words.filter(word => !sessionWords.includes(word));
+  return KidsGame.pickRandom(freshWords, WORDS_PER_SESSION);
+}
+
+function startTurn() {
+  sessionWords = pickSessionWords();
+  starsEarned = 0;
+  currentRound = 0;
+  document.getElementById("turn-display").textContent = `${wordLength}-letter words · Turn ${turn} of ${MAX_TURNS}`;
+  renderStars();
 }
 
 // ── Spawn Objects for Current Word ──
@@ -284,7 +295,7 @@ function spawnObjects() {
   });
 
   // Place distractors — random emojis from the same word pool, not a fixed list
-  const distractors = KidsGame.pickDistractors(CVC_WORDS, currentWord, 3, {
+  const distractors = KidsGame.pickDistractors(GameData.getReadingWords(wordLength), currentWord, 3, {
     getKey: w => w.emoji,
   });
   for (let i = 0; i < 3; i++) {
@@ -426,8 +437,14 @@ function checkCollisions() {
 function nextRound() {
   currentRound++;
   if (currentRound > WORDS_PER_SESSION) {
-    endGame();
-    return;
+    if (turn === MAX_TURNS || (wordLength === 5 && starsEarned >= 4)) {
+      endGame();
+      return;
+    }
+    if (starsEarned >= 4) wordLength++;
+    turn++;
+    startTurn();
+    currentRound = 1;
   }
   currentWord = sessionWords[currentRound - 1];
   wordDisplay.textContent = currentWord.word;
@@ -544,8 +561,9 @@ document.getElementById("right-btn").addEventListener("click", () => moveCar("ri
 function startGame() {
   startScreen.style.display = "none";
   endScreen.style.display = "none";
-  starsEarned = 0;
-  currentRound = 0;
+  wordLength = 3;
+  turn = 1;
+  sessionWords = [];
   objectSpeed = BASE_SPEED;
   lastFrame = 0;
   objects = [];
@@ -553,8 +571,7 @@ function startGame() {
   roundActive = false;
   roundCooldown = 30;
   car.lane = 1;
-  sessionWords = pickSessionWords();
-  renderStars();
+  startTurn();
   gameRunning = true;
   drivingSound.start();
   gameLoop();

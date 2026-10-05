@@ -1,0 +1,324 @@
+[
+  {
+    "letter": "अ",
+    "file": "0905.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Vowels_Row1.mp3",
+    "start": 0,
+    "end": 0.567914
+  },
+  {
+    "letter": "आ",
+    "file": "0906.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Vowels_Row1.mp3",
+    "start": 1.338073,
+    "end": 1.968594
+  },
+  {
+    "letter": "इ",
+    "file": "0907.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Vowels_Row1.mp3",
+    "start": 2.618662,
+    "end": 3.107302
+  },
+  {
+    "letter": "ई",
+    "file": "0908.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Vowels_Row1.mp3",
+    "start": 3.804172,
+    "end": 4.442971
+  },
+  {
+    "letter": "उ",
+    "file": "0909.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Vowels_Row1.mp3",
+    "start": 4.941315,
+    "end": 5.381973
+  },
+  {
+    "letter": "ऊ",
+    "file": "090a.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Vowels_Row1.mp3",
+    "start": 6.036122,
+    "end": 6.664263
+  },
+  {
+    "letter": "ऋ",
+    "file": "090b.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Vowels_Row1.mp3",
+    "start": 7.202018,
+    "end": 7.71966
+  },
+  {
+    "letter": "ए",
+    "file": "090f.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Vowels_Row2and3.mp3",
+    "start": 0,
+    "end": 0.583968
+  },
+  {
+    "letter": "ऐ",
+    "file": "0910.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Vowels_Row2and3.mp3",
+    "start": 1.163991,
+    "end": 1.77941
+  },
+  {
+    "letter": "ओ",
+    "file": "0913.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Vowels_Row2and3.mp3",
+    "start": 2.348707,
+    "end": 2.875578
+  },
+  {
+    "letter": "औ",
+    "file": "0914.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Vowels_Row2and3.mp3",
+    "start": 3.416327,
+    "end": 4.026145
+  },
+  {
+    "letter": "अं",
+    "file": "0905-0902.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Vowels_Row2and3.mp3",
+    "start": 4.738027,
+    "end": 5.271837
+  },
+  {
+    "letter": "अः",
+    "file": "0905-0903.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Vowels_Row2and3.mp3",
+    "start": 5.848322,
+    "end": 6.474
+  },
+  {
+    "letter": "क",
+    "file": "0915.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row1.mp3",
+    "start": 0,
+    "end": 0.572041
+  },
+  {
+    "letter": "ख",
+    "file": "0916.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row1.mp3",
+    "start": 1.113197,
+    "end": 1.777007
+  },
+  {
+    "letter": "ग",
+    "file": "0917.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row1.mp3",
+    "start": 2.314807,
+    "end": 2.890181
+  },
+  {
+    "letter": "घ",
+    "file": "0918.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row1.mp3",
+    "start": 3.317279,
+    "end": 4.042109
+  },
+  {
+    "letter": "ङ",
+    "file": "0919.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row1.mp3",
+    "start": 4.469433,
+    "end": 5.071995
+  },
+  {
+    "letter": "च",
+    "file": "091a.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row2.mp3",
+    "start": 0,
+    "end": 0.680091
+  },
+  {
+    "letter": "छ",
+    "file": "091b.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row2.mp3",
+    "start": 1.341202,
+    "end": 1.983492
+  },
+  {
+    "letter": "ज",
+    "file": "091c.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row2.mp3",
+    "start": 2.521995,
+    "end": 3.255351
+  },
+  {
+    "letter": "झ",
+    "file": "091d.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row2.mp3",
+    "start": 3.784694,
+    "end": 4.487687
+  },
+  {
+    "letter": "ञ",
+    "file": "091e.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row2.mp3",
+    "start": 5.033424,
+    "end": 5.67551
+  },
+  {
+    "letter": "ट",
+    "file": "091f.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row3.mp3",
+    "start": 0,
+    "end": 0.599456
+  },
+  {
+    "letter": "ठ",
+    "file": "0920.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row3.mp3",
+    "start": 1.320522,
+    "end": 1.914331
+  },
+  {
+    "letter": "ड",
+    "file": "0921.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row3.mp3",
+    "start": 2.445646,
+    "end": 3.136009
+  },
+  {
+    "letter": "ढ",
+    "file": "0922.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row3.mp3",
+    "start": 3.678866,
+    "end": 4.362857
+  },
+  {
+    "letter": "ण",
+    "file": "0923.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row3.mp3",
+    "start": 4.855125,
+    "end": 5.433311
+  },
+  {
+    "letter": "त",
+    "file": "0924.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row4.mp3",
+    "start": 0,
+    "end": 0.626825
+  },
+  {
+    "letter": "थ",
+    "file": "0925.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row4.mp3",
+    "start": 1.2922,
+    "end": 1.87254
+  },
+  {
+    "letter": "द",
+    "file": "0926.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row4.mp3",
+    "start": 2.468163,
+    "end": 3.198413
+  },
+  {
+    "letter": "ध",
+    "file": "0927.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row4.mp3",
+    "start": 3.765918,
+    "end": 4.447914
+  },
+  {
+    "letter": "न",
+    "file": "0928.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row4.mp3",
+    "start": 5.020204,
+    "end": 5.653991
+  },
+  {
+    "letter": "प",
+    "file": "092a.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row5.mp3",
+    "start": 0,
+    "end": 0.626168
+  },
+  {
+    "letter": "फ",
+    "file": "092b.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row5.mp3",
+    "start": 1.308957,
+    "end": 1.927664
+  },
+  {
+    "letter": "ब",
+    "file": "092c.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row5.mp3",
+    "start": 2.535238,
+    "end": 3.20907
+  },
+  {
+    "letter": "भ",
+    "file": "092d.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row5.mp3",
+    "start": 3.775465,
+    "end": 4.46161
+  },
+  {
+    "letter": "म",
+    "file": "092e.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Row5.mp3",
+    "start": 5.110726,
+    "end": 5.758912
+  },
+  {
+    "letter": "य",
+    "file": "092f.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Semivowels.mp3",
+    "start": 0,
+    "end": 0.69907
+  },
+  {
+    "letter": "र",
+    "file": "0930.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Semivowels.mp3",
+    "start": 1.404785,
+    "end": 2.103107
+  },
+  {
+    "letter": "ल",
+    "file": "0932.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Semivowels.mp3",
+    "start": 2.784376,
+    "end": 3.475941
+  },
+  {
+    "letter": "व",
+    "file": "0935.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Consonants_Semivowels.mp3",
+    "start": 4.092313,
+    "end": 4.786032
+  },
+  {
+    "letter": "श",
+    "file": "0936.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Sibilants.mp3",
+    "start": 0,
+    "end": 0.82644
+  },
+  {
+    "letter": "ष",
+    "file": "0937.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Sibilants.mp3",
+    "start": 1.46873,
+    "end": 2.258481
+  },
+  {
+    "letter": "स",
+    "file": "0938.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Sibilants.mp3",
+    "start": 2.845374,
+    "end": 3.569705
+  },
+  {
+    "letter": "ह",
+    "file": "0939.mp3",
+    "source": "https://utw11087.utweb.utexas.edu/wp-content/uploads/sites/8/assets/audio/Sibilants.mp3",
+    "start": 4.233764,
+    "end": 4.795805
+  }
+]
