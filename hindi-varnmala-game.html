@@ -172,10 +172,16 @@
     }
   }
 </style>
+<link rel="stylesheet" href="shared/theme.css">
 </head>
-<body>
+<body class="themed-game" data-theme="Hindi">
 
-<div id="game-wrapper">
+<main class="game-frame">
+  <header class="game-topbar">
+    <a class="game-back" href="index.html?category=Hindi#picture-puzzles">← Games</a>
+    <h1>Varnmala Match</h1>
+  </header>
+  <div id="game-wrapper">
   <div id="hud">
     <div id="round-label">Round 1 / 10</div>
     <div id="stars"></div>
@@ -205,7 +211,9 @@
   <div id="reward-overlay"></div>
   <div id="reward-emoji"></div>
 </div>
+</main>
 
+<script src="shared/voice-clips.js"></script>
 <script src="shared/game.js"></script>
 <script>
 const LETTERS = [

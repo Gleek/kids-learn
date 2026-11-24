@@ -1,0 +1,186 @@
+/* Color, typography and surfaces shared by Kids Learn games. */
+:root {
+  --puzzle-font: ui-rounded, "Avenir Next", Avenir, "Trebuchet MS", sans-serif;
+  --ink: #232b49;
+  --paper: #fffdf8;
+  --tint: #ffdfab;
+  --strong: #ffb66f;
+  --deep: #77391b;
+  --chalk: #fff4e1;
+}
+
+[data-theme="Spatial"] { --tint: #ccebf1; --strong: #75cadb; --deep: #125265; --chalk: #e9f9fa; }
+[data-theme="Maths"] { --tint: #e9eeb3; --strong: #b9d763; --deep: #39500d; --chalk: #f6f8df; }
+[data-theme="Memory & Focus"], [data-theme="Reading"] { --tint: #e5dafa; --strong: #b9a1ed; --deep: #4d337d; --chalk: #f4eeff; }
+[data-theme="Talk & Listen"] { --tint: #fbd8e4; --strong: #f2a3c3; --deep: #742c54; --chalk: #fff0f6; }
+
+[data-theme="Hindi"] { --tint: #ffdfb4; --strong: #f4b671; --deep: #77391b; --chalk: #fff4e1; }
+[data-theme="Arabic"] { --tint: #cff0df; --strong: #8ad4b0; --deep: #1b5946; --chalk: #ebfaf1; }
+
+.themed-game {
+  --bg-color: #f0f2f8;
+  --panel-bg: var(--paper);
+  --border-color: var(--strong);
+  --accent: var(--deep);
+  --accent-dark: var(--ink);
+  --text-color: var(--ink);
+  --text-muted: var(--deep);
+  --game-pattern: radial-gradient(var(--chalk) 2px, transparent 2px),
+    linear-gradient(165deg, transparent 73%, var(--strong) 73%);
+  min-height: 100svh;
+  padding-block: 14px;
+  background: var(--bg-color);
+  color: var(--ink);
+  font-family: var(--puzzle-font);
+}
+
+.themed-game #game-wrapper { max-width: calc(100% - 20px); }
+.themed-game #hud {
+  gap: 7px;
+  flex-wrap: wrap;
+  padding: 10px clamp(10px, 3vw, 18px);
+  background: var(--paper);
+  border: 3px solid var(--paper);
+  border-radius: 26px 26px 0 0;
+}
+.themed-game #round-label { color: var(--deep); }
+.themed-game #game-area {
+  border: 4px solid var(--paper);
+  border-radius: 0 0 26px 26px;
+  background-color: var(--tint);
+  background-image: var(--game-pattern);
+  background-size: 28px 28px, 100% 100%;
+  box-shadow: 0 4px #d9dfed;
+}
+.themed-game canvas {
+  border: 4px solid var(--paper);
+  border-radius: 0 0 26px 26px;
+  box-shadow: 0 4px #d9dfed;
+}
+.themed-game :is(#start-screen, #end-screen, #start-overlay, #end-overlay):not(.scene-screen) {
+  justify-content: safe center;
+  overflow: auto;
+  border: 4px solid var(--paper);
+  border-radius: 26px;
+  background-color: var(--tint);
+  background-image: var(--game-pattern);
+  background-size: 28px 28px, 100% 100%;
+  padding: clamp(8px, 3vw, 20px);
+  box-shadow: 0 4px #d9dfed;
+}
+.themed-game :is(#start-screen, #end-screen, #start-overlay, #end-overlay):not(.scene-screen) > * { flex-shrink: 0; }
+/* A level menu needs its own document height before play begins. */
+.themed-game #start-screen.level-picker {
+  position: static;
+  height: auto;
+  overflow: visible;
+}
+
+.themed-game #start-screen.level-picker[hidden],
+.themed-game #game-wrapper:has(> .level-picker:not([hidden])) > :not(.level-picker) {
+  display: none;
+}
+
+.themed-game .level-picker #level-select {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 195px), 1fr));
+  padding-inline: 0;
+  margin-bottom: 0;
+}
+
+.themed-game .level-btn { background: var(--paper); border-color: var(--strong); }
+.themed-game .level-btn .level-num { color: var(--deep); }
+.themed-game :is(.overlay, #start-screen, #end-screen) h1 {
+  color: var(--ink);
+  font-size: clamp(1.65rem, 7vw, 2.65rem);
+  line-height: 1.08;
+  margin-bottom: 12px;
+}
+.themed-game :is(.overlay, #start-screen, #end-screen) p {
+  font-size: clamp(1rem, 4.3vw, 1.26rem);
+  color: var(--ink);
+  margin-bottom: clamp(10px, 3.6vw, 25px);
+  line-height: 1.35;
+}
+.themed-game :is(.btn, #submit-btn, #go-btn) {
+  min-height: 44px;
+  padding: 10px clamp(18px, 6vw, 36px);
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: clamp(1rem, 4.2vw, 1.35rem);
+}
+.themed-game .btn.btn-secondary {
+  display: inline-grid;
+  place-items: center;
+  margin-top: 8px;
+  border: 2px solid var(--deep);
+  background: var(--paper);
+  color: var(--deep);
+  text-decoration: none;
+}
+.themed-game :is(.home-btn, .mobile-btn, #hear-btn) {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--strong);
+}
+.themed-game :is(#stage, .screen-card) { border-color: var(--paper); }
+.themed-game #stage { box-shadow: 0 4px #d9dfed; }
+.themed-game main > header h1 { color: var(--ink); }
+.themed-game :is(button, a):focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.themed-game button { touch-action: manipulation; }
+.themed-game #tts-toggle { min-width: 36px; min-height: 44px; }
+.themed-game .builder-msg:not(.show) { display: none; }
+.themed-game .builder-msg.show { width: min(245px, 70vw); white-space: normal; }
+
+@media (max-width: 550px) {
+  .themed-game { align-items: flex-start; }
+  .themed-game :is(#hud, #stars) { gap: 4px; }
+  .themed-game :is(.star, #round-label) { font-size: clamp(.9rem, 3.8vw, 1.2rem); }
+  .themed-game #game-area { padding-inline: clamp(9px, 3vw, 18px); }
+  .themed-game #vehicle-area.builder-wrap { zoom: .62; }
+  .themed-game .overlay .final-stars { font-size: clamp(1.6rem, 7vw, 2.4rem); }
+}
+
+[data-theme="Create"] { --tint: #f9ddb7; --strong: #edac78; --deep: #77391b; --chalk: #fff3e1; }
+
+.game-topbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.game-topbar h1 {
+  font-size: clamp(1.3rem, 4vw, 2rem);
+  line-height: 1.05;
+  grid-column: 2;
+  margin: 0;
+}
+
+.game-topbar > :last-child:not(h1) { justify-self: end; }
+
+.game-back {
+  justify-self: start;
+  color: var(--ink);
+  font-weight: 750;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  white-space: nowrap;
+}
+
+.themed-game:has(.game-frame) {
+  align-items: center;
+  justify-content: start;
+  flex-direction: column;
+}
+
+.game-frame #game-wrapper { max-width: none; }
+.game-frame :is(#start-screen, #start-overlay) h1 { display: none; }
+
+@media (max-width: 550px) {
+  .game-topbar { grid-template-columns: 1fr 1fr; }
+  .game-topbar h1 { grid-row: 2; grid-column: 1 / -1; text-align: left; }
+}

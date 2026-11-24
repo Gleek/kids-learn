@@ -4,336 +4,81 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kids Learn — Games</title>
+<link rel="stylesheet" href="shared/theme.css">
+<link rel="stylesheet" href="shared/puzzles.css">
+<script src="shared/game-catalog.js" defer></script>
+<script src="shared/puzzle-data.js" defer></script>
+<script src="shared/puzzle-visuals.js" defer></script>
+<script src="shared/puzzle-shelf.js" defer></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: #f0f4ff;
+    background: #f0f2f8;
     min-height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #2d3436;
-    padding: 40px 20px 60px;
+    font-family: var(--puzzle-font);
+    color: var(--ink);
+    padding: clamp(16px, 4vw, 48px) clamp(12px, 4vw, 32px) 60px;
   }
 
-  header {
-    text-align: center;
-    margin-bottom: 48px;
+  .home-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 18px;
+    max-width: 1080px;
+    margin: 0 auto 31px;
+    padding: clamp(18px, 5vw, 40px);
+    border-radius: 28px;
+    color: #fffdf8;
+    background: #272946;
   }
 
-  header h1 {
-    font-size: 48px;
-    font-weight: 900;
-    letter-spacing: 2px;
-    color: #ff6b8a;
-    text-shadow: none;
-    margin-bottom: 8px;
+  .home-header h1 {
+    font-size: clamp(2.35rem, 8vw, 4rem);
+    line-height: 1;
+    letter-spacing: -0.055em;
+    margin-bottom: 9px;
   }
 
-  header p {
-    font-size: 20px;
-    color: #636e72;
-  }
+  .home-header p { color: #ede9f8; font-size: 1rem; }
 
   .settings-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 18px;
-    padding: 10px 18px;
-    border: 3px solid #c5d3f7;
-    border-radius: 12px;
-    background: #ffffff;
-    color: #2d3436;
+    display: inline-block;
+    padding: 10px 15px;
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--ink);
     text-decoration: none;
     font-weight: 800;
-    transition: transform 0.2s, border-color 0.2s;
   }
 
-  .settings-link:hover {
-    transform: translateY(-2px);
-    border-color: #ff6b8a;
-  }
+  .settings-link:hover { background: #edf0ff; }
 
-  .categories {
-    max-width: 900px;
-    margin: 0 auto;
-  }
+  .categories { max-width: 1080px; margin: 0 auto; }
 
-  .category {
-    margin-bottom: 44px;
-  }
-
-  .category-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #c5d3f7;
-  }
-
-  .category-icon {
-    font-size: 32px;
-  }
-
-  .category-title {
-    font-size: 26px;
-    font-weight: 700;
-    color: #ff6b8a;
-  }
-
-  .games-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 20px;
-  }
-
-  .game-card {
-    background: #ffffff;
-    border: 3px solid #c5d3f7;
-    border-radius: 18px;
-    padding: 24px 20px;
-    text-decoration: none;
-    color: #2d3436;
-    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 12px;
-  }
-
-  .game-card:hover {
-    transform: translateY(-4px) scale(1.02);
-    border-color: #ff6b8a;
-    box-shadow: 0 8px 30px rgba(255, 107, 138, 0.2);
-  }
-
-  .game-card:active {
-    transform: scale(0.98);
-  }
-
-  .game-icon {
-    font-size: 56px;
-    line-height: 1;
-  }
-
-  .game-name {
-    font-size: 22px;
-    font-weight: 700;
-  }
-
-  .game-desc {
-    font-size: 14px;
-    color: #636e72;
-    line-height: 1.5;
-  }
-
-  .game-tag {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    background: rgba(255, 107, 138, 0.12);
-    color: #ff6b8a;
-  }
-
-  footer {
-    text-align: center;
-    margin-top: 60px;
-    color: #999;
-    font-size: 14px;
-  }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Kids Learn</h1>
-  <p>Fun games for ages 3 - 5</p>
+<header class="home-header">
+  <div>
+    <h1>Kids Learn</h1>
+    <p>Games for ages 3–5</p>
+  </div>
   <a class="settings-link" href="settings.html">⚙️ Settings</a>
 </header>
 
-<div class="categories">
-
-  <!-- Reading -->
-  <div class="category">
-    <div class="category-header">
-      <span class="category-icon">📖</span>
-      <span class="category-title">Reading</span>
+<main id="more-games" class="categories">
+  <section id="picture-puzzles" class="puzzle-shelf" aria-labelledby="shelf-title" hidden>
+    <div class="shelf-header">
+      <h2 id="shelf-title">Pick a game</h2>
     </div>
-    <div class="games-grid">
-
-      <a href="car-cvc-game.html" class="game-card">
-        <span class="game-icon">🚗</span>
-        <span class="game-name">Word Drive</span>
-        <span class="game-desc">Drive your car into the emoji that matches the CVC word!</span>
-        <span class="game-tag">CVC Words</span>
-      </a>
-
-      <a href="build-a-rocket-game.html" class="game-card">
-        <span class="game-icon">🚀</span>
-        <span class="game-name">Build a Rocket</span>
-        <span class="game-desc">Match words to emojis and build a rocket piece by piece!</span>
-        <span class="game-tag">CVC Words</span>
-      </a>
-
-      <a href="build-a-word-game.html" class="game-card">
-        <span class="game-icon">🔤</span>
-        <span class="game-name">Build a Word</span>
-        <span class="game-desc">Look at the emoji and tap each letter in order to make the word.</span>
-        <span class="game-tag">3-4 Letter Words</span>
-      </a>
-
-      <a href="letter-blast-game.html" class="game-card">
-        <span class="game-icon">🧱</span>
-        <span class="game-name">Letter Blast</span>
-        <span class="game-desc">Spell the picture to blast through letter walls.</span>
-        <span class="game-tag">3–5 Letter Words</span>
-      </a>
-
-      <a href="sentence-scene-game.html" class="game-card">
-        <span class="game-icon">🖼️</span>
-        <span class="game-name">Pick the Picture</span>
-        <span class="game-desc">Read a sentence and pick the picture that matches it.</span>
-        <span class="game-tag">Sentences</span>
-      </a>
-
-    </div>
-  </div>
-
-  <!-- Maths & Shapes -->
-  <div class="category">
-    <div class="category-header">
-      <span class="category-icon">🔢</span>
-      <span class="category-title">Maths & Shapes</span>
-    </div>
-    <div class="games-grid">
-
-      <a href="fill-the-bus.html" class="game-card">
-        <span class="game-icon">🚌</span>
-        <span class="game-name">Fill the Bus</span>
-        <span class="game-desc">Put the right number of passengers on the bus!</span>
-        <span class="game-tag">Counting</span>
-      </a>
-
-      <a href="apple-tree.html" class="game-card">
-        <span class="game-icon">🍎</span>
-        <span class="game-name">Apple Tree</span>
-        <span class="game-desc">Count the apples in two groups and add them up!</span>
-        <span class="game-tag">Addition</span>
-      </a>
-
-      <a href="dice-roll.html" class="game-card">
-        <span class="game-icon">🎲</span>
-        <span class="game-name">Dice Roll</span>
-        <span class="game-desc">Roll two dice, count the dots, and pick the total!</span>
-        <span class="game-tag">Addition</span>
-      </a>
-
-      <a href="pattern-game.html" class="game-card">
-        <span class="game-icon">🔄</span>
-        <span class="game-name">Pattern Match</span>
-        <span class="game-desc">Spot the pattern and guess what comes next!</span>
-        <span class="game-tag">Patterns</span>
-      </a>
-
-      <a href="odd-one-out-game.html" class="game-card">
-        <span class="game-icon">🧩</span>
-        <span class="game-name">Odd One Out</span>
-        <span class="game-desc">Find the picture that does not belong and build a surprise vehicle!</span>
-        <span class="game-tag">Sorting</span>
-      </a>
-
-      <a href="picture-patch-game.html" class="game-card">
-        <span class="game-icon">🔍</span>
-        <span class="game-name">Picture Patch</span>
-        <span class="game-desc">Find the missing square that completes the picture.</span>
-        <span class="game-tag">Visual Puzzle</span>
-      </a>
-
-      <a href="compare-game.html" class="game-card">
-        <span class="game-icon">⚖️</span>
-        <span class="game-name">Which Is More?</span>
-        <span class="game-desc">Compare two groups and tap the one that is greater or fewer!</span>
-        <span class="game-tag">Comparing</span>
-      </a>
-
-      <a href="build-a-house.html" class="game-card">
-        <span class="game-icon">🔷</span>
-        <span class="game-name">Build with Shapes</span>
-        <span class="game-desc">Fill in the dotted frames to build a house, train, robot, and more!</span>
-        <span class="game-tag">Shapes</span>
-      </a>
-
-      <a href="cake-bake-game.html" class="game-card">
-        <span class="game-icon">🎂</span>
-        <span class="game-name">Cake Bakery</span>
-        <span class="game-desc">Follow the recipe, count out each ingredient, then bake the cake!</span>
-        <span class="game-tag">Counting</span>
-      </a>
-
-    </div>
-  </div>
-
-  <!-- Hindi Reading -->
-  <div class="category">
-    <div class="category-header">
-      <span class="category-icon">अ</span>
-      <span class="category-title">Hindi Reading</span>
-    </div>
-    <div class="games-grid">
-
-      <a href="hindi-car-game.html" class="game-card">
-        <span class="game-icon">🚗</span>
-        <span class="game-name">Hindi Drive</span>
-        <span class="game-desc">Listen to Hindi letters and drive into the matching one!</span>
-        <span class="game-tag">Hindi Letters</span>
-      </a>
-
-      <a href="hindi-varnmala-game.html" class="game-card">
-        <span class="game-icon">🥭</span>
-        <span class="game-name">Varnmala Match</span>
-        <span class="game-desc">Look at the Hindi letter and choose the matching word.</span>
-        <span class="game-tag">Hindi Letters</span>
-      </a>
-
-    </div>
-  </div>
-
-  <!-- Arabic / Quranic Reading -->
-  <div class="category">
-    <div class="category-header">
-      <span class="category-icon">📖</span>
-      <span class="category-title">Arabic Reading</span>
-    </div>
-    <div class="games-grid">
-
-      <a href="arabic-rocket-game.html" class="game-card">
-        <span class="game-icon">🚀</span>
-        <span class="game-name">Arabic Rocket</span>
-        <span class="game-desc">Read Quranic words and pick the correct sound to build a rocket!</span>
-        <span class="game-tag">Noorani Qaida</span>
-      </a>
-
-      <a href="arabic-car-game.html" class="game-card">
-        <span class="game-icon">🚗</span>
-        <span class="game-name">Arabic Drive</span>
-        <span class="game-desc">Listen to Arabic words and drive into the correct one!</span>
-        <span class="game-tag">Noorani Qaida</span>
-      </a>
-
-    </div>
-  </div>
-
-</div>
-
-<footer>
-  Kids Learn &mdash; Built with love for little learners
-</footer>
+    <div id="puzzle-filters" class="shelf-filters" role="group" aria-label="Game categories"></div>
+    <div id="puzzle-shelf" class="shelf-grid"></div>
+  </section>
+</main>
 
 </body>
 </html>

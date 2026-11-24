@@ -94,8 +94,14 @@
       padding: 12px 28px;
     }
   </style>
+<link rel="stylesheet" href="shared/theme.css">
 </head>
-<body>
+<body class="themed-game" data-theme="Maths">
+  <main class="game-frame">
+  <header class="game-topbar">
+    <a class="game-back" href="index.html?category=Maths#picture-puzzles">← Games</a>
+    <h1>Cake Bakery</h1>
+  </header>
   <div id="game-wrapper">
 
     <div id="hud">
@@ -134,13 +140,15 @@
       <div class="final-stars" id="final-stars"></div>
       <p id="end-message"></p>
       <button class="btn" id="restart-btn">Play Again</button>
-      <a href="index.html" class="btn" style="background:none;border:2px solid #ff6b8a;color:#ff6b8a;margin-top:8px;text-decoration:none;display:inline-block;text-align:center;">Home</a>
+      <a href="index.html" class="btn btn-secondary">Home</a>
     </div>
 
     <div id="reward-overlay"></div>
     <div id="reward-emoji"></div>
   </div>
+</main>
 
+  <script src="shared/voice-clips.js"></script>
   <script src="shared/game.js"></script>
   <script>
   (function () {
@@ -266,7 +274,7 @@
       const item = recipe[key];
       const n = counts[key];
       const word = n === 1 ? item.singular : item.plural;
-      KidsGame.speak("Add " + n + " " + word);
+      KidsGame.speak(n > item.target ? "Too many! Check the recipe." : "Add " + n + " " + word);
     }
 
     function tierGeometry() {

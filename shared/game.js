@@ -231,6 +231,8 @@ window.KidsGame = (function () {
   // ── TTS ──
   let ttsEnabled = localStorage.getItem("kidslearn-tts") !== "off";
   let preferredVoice = null;
+  let promptAudio, stopPrompt;
+  let promptId = 0;
   const voiceCache = {};
 
   // Pick the best available English voice (prefer natural/premium ones)
@@ -274,7 +276,7 @@ window.KidsGame = (function () {
   // Warm it up on the first tap so later async calls work.
   let ttsUnlocked = false;
   function unlockTTS() {
-    if (ttsUnlocked) return;
+    if (ttsUnlocked || !window.speechSynthesis) return;
     ttsUnlocked = true;
     const u = new SpeechSynthesisUtterance("");
     u.volume = 0;
@@ -290,7 +292,10 @@ window.KidsGame = (function () {
   function setTTSEnabled(on) {
     ttsEnabled = on;
     localStorage.setItem("kidslearn-tts", on ? "on" : "off");
-    if (!on) window.speechSynthesis?.cancel();
+    if (!on) {
+      stopPrompt?.();
+      window.speechSynthesis?.cancel();
+    }
   }
 
   // ── Reading word length (3, 4, or 5 letters) ──
@@ -380,12 +385,59 @@ window.KidsGame = (function () {
 
   function speak(text, options) {
     if (!ttsEnabled) return Promise.resolve();
-    speechSynthesis.cancel();
+    return speakPrompt(text, options, id => speakWithBrowser(text, options, id));
+  }
+
+  function speakPrompt(text, options, browserFallback) {
+    stopPrompt?.();
+    window.speechSynthesis?.cancel();
+    const id = ++promptId;
+    const clips = window.KidsVoiceClips;
+    const fallback = () => browserFallback(id);
+    if (clips && Object.hasOwn(clips, text)) {
+      return playRecordedPrompt(clips[text], fallback, options);
+    }
+    return fallback();
+  }
+
+  function playRecordedPrompt(file, fallback, options) {
+    const audio = promptAudio ||= new Audio();
+    return new Promise(resolve => {
+      const clear = () => {
+        audio.onended = audio.onerror = null;
+        stopPrompt = null;
+      };
+      const cancelled = () => {
+        clear();
+        audio.pause();
+        resolve();
+      };
+      const failed = () => {
+        if (stopPrompt !== cancelled) return;
+        clear();
+        resolve(fallback());
+      };
+      stopPrompt = cancelled;
+      audio.onended = event => {
+        clear();
+        options?.onend?.(event);
+        resolve();
+      };
+      audio.onerror = failed;
+      const url = new URL("audio/voices/" + file, document.baseURI).href;
+      if (audio.src !== url) audio.src = url;
+      else audio.currentTime = 0;
+      audio.play().catch(failed);
+    });
+  }
+
+  function speakWithBrowser(text, options, id) {
+    if (!window.speechSynthesis) return Promise.resolve();
     return new Promise(resolve => {
       // Short delay after cancel — Android Chrome silently drops
       // utterances if speak() is called immediately after cancel()
       setTimeout(() => {
-        if (!ttsEnabled) return resolve();
+        if (!ttsEnabled || id !== promptId) return resolve();
         const u = new SpeechSynthesisUtterance(text);
         u.rate = (options && options.rate) || 0.85;
         u.pitch = (options && options.pitch) || 1.1;
@@ -426,21 +478,23 @@ window.KidsGame = (function () {
     return fallback || null;
   }
 
-  function speakLang(text, options) {
-    const opts = options || {};
-    speechSynthesis.cancel();
-    return new Promise(resolve => {
-      setTimeout(() => {
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = opts.lang || "en-US";
-        u.rate = opts.rate || 0.85;
-        u.pitch = opts.pitch || 1.1;
-        const voice = pickVoiceForLang(u.lang, opts.preferredPatterns);
-        if (voice) u.voice = voice;
-        u.onend = resolve;
-        u.onerror = resolve;
-        speechSynthesis.speak(u);
-      }, opts.delay == null ? 50 : opts.delay);
+  function speakLang(text, options = {}) {
+    return speakPrompt(text, options, id => {
+      if (!window.speechSynthesis) return Promise.resolve();
+      return new Promise(resolve => {
+        setTimeout(() => {
+          if (id !== promptId) return resolve();
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = options.lang || "en-US";
+          u.rate = options.rate || 0.85;
+          u.pitch = options.pitch || 1.1;
+          const voice = pickVoiceForLang(u.lang, options.preferredPatterns);
+          if (voice) u.voice = voice;
+          u.onend = resolve;
+          u.onerror = resolve;
+          speechSynthesis.speak(u);
+        }, options.delay == null ? 50 : options.delay);
+      });
     });
   }
 

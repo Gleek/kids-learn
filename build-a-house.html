@@ -318,8 +318,14 @@
       }
     }
   </style>
+<link rel="stylesheet" href="shared/theme.css">
 </head>
-<body>
+<body class="themed-game" data-theme="Spatial">
+  <main class="game-frame">
+  <header class="game-topbar">
+    <a class="game-back" href="index.html?category=Spatial#picture-puzzles">← Games</a>
+    <h1>Build with Shapes</h1>
+  </header>
   <div id="game-wrapper">
     <div id="hud">
       <span id="round-label">Round 1 / 5</span>
@@ -342,7 +348,7 @@
         <div id="final-stars" class="final-stars"></div>
         <p id="end-message"></p>
         <button id="restart-btn" class="btn">Play Again</button>
-        <a href="index.html" class="btn" style="background:none;border:2px solid #ff6b8a;color:#ff6b8a;margin-top:8px;text-decoration:none;display:inline-block;text-align:center;">Home</a>
+        <a href="index.html" class="btn btn-secondary">Home</a>
       </div>
       <div class="scene-title" id="scene-title"></div>
       <div class="prompt-text" id="prompt-text">Square</div>
@@ -353,8 +359,10 @@
     <div id="reward-overlay"></div>
     <div id="reward-emoji"></div>
   </div>
+</main>
 
   <script src="shared/data.js"></script>
+  <script src="shared/voice-clips.js"></script>
   <script src="shared/game.js"></script>
   <script>
   (function () {

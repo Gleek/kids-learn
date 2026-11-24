@@ -345,10 +345,16 @@
     .sound-btn .speaker { font-size: 24px; }
   }
 </style>
+<link rel="stylesheet" href="shared/theme.css">
 </head>
-<body>
+<body class="themed-game" data-theme="Arabic">
 
-<div id="game-wrapper">
+<main class="game-frame">
+  <header class="game-topbar">
+    <a class="game-back" href="index.html?category=Arabic#picture-puzzles">← Games</a>
+    <h1>Arabic Rocket</h1>
+  </header>
+  <div id="game-wrapper">
   <div id="hud">
     <div id="round-label">Round 1 / 5</div>
     <div id="stars"></div>
@@ -364,7 +370,7 @@
   </div>
 
   <!-- Level Select Screen -->
-  <div class="overlay" id="start-screen">
+  <div class="overlay level-picker" id="start-screen">
     <h1>Arabic Rocket!</h1>
     <p>Read the word. Pick the<br>correct sound to build your rocket!</p>
     <div id="level-select"></div>
@@ -376,10 +382,11 @@
     <div class="final-stars" id="final-stars"></div>
     <p id="end-message"></p>
     <button class="btn" id="restart-btn">Play Again</button>
-    <button class="btn" id="change-level-btn" style="background:none;border:2px solid #ff6b8a;color:#ff6b8a;margin-top:8px;font-size:20px;padding:10px 36px;">Change Level</button>
-    <a href="index.html" class="btn" style="background:none;border:2px solid #ff6b8a;color:#ff6b8a;margin-top:8px;text-decoration:none;display:inline-block;text-align:center;font-size:20px;padding:10px 36px;">Home</a>
+    <button class="btn btn-secondary" id="change-level-btn">Change Level</button>
+    <a href="index.html" class="btn btn-secondary">Home</a>
   </div>
 </div>
+</main>
 
 <script src="shared/arabic-data.js"></script>
 <script src="shared/game.js"></script>
@@ -567,7 +574,8 @@ function endGame() {
 
 function startGame(levelKey) {
   currentLevel = levelKey;
-  startScreen.style.display = "none";
+  startScreen.hidden = true;
+  window.scrollTo(0, 0);
   endScreen.style.display = "none";
   soundGrid.style.visibility = "visible";
   wordDisplay.style.visibility = "visible";
@@ -582,7 +590,8 @@ function startGame(levelKey) {
 
 function showLevelSelect() {
   endScreen.style.display = "none";
-  startScreen.style.display = "flex";
+  startScreen.hidden = false;
+  levelSelect.querySelector(".level-btn:not(.locked)")?.focus();
 }
 
 document.getElementById("restart-btn").addEventListener("click", () => startGame(currentLevel));

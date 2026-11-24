@@ -1,0 +1,251 @@
+.creative-stage {
+  justify-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  min-height: 0;
+  padding-block: clamp(16px, 4vw, 38px);
+}
+
+.creative-stage .puzzle-prompt { margin: 0; }
+.creative-stage .listen-btn:disabled { opacity: .45; cursor: default; }
+
+.creative-prompt {
+  max-width: 590px;
+  font-size: clamp(1.15rem, 3.5vw, 1.65rem);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.creative-tools, .tool-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.creative-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 5px clamp(8px, 2vw, 14px);
+  border: 2px solid transparent;
+  border-radius: 16px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 800 clamp(.83rem, 2.4vw, 1rem) var(--puzzle-font);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.creative-button[aria-pressed="true"] { border-color: var(--deep); box-shadow: 0 3px var(--deep); }
+.creative-button:disabled { opacity: .55; cursor: default; }
+.creative-button:focus-visible, .creative-board button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.creative-button img { width: clamp(30px, 8vw, 47px); height: auto; }
+
+.creative-board {
+  width: min(100%, 570px);
+  min-height: 242px;
+  position: relative;
+  border: 4px solid var(--paper);
+  border-radius: 26px;
+  box-shadow: 0 4px color-mix(in srgb, var(--deep) 22%, transparent);
+  isolation: isolate;
+  background: var(--chalk);
+}
+
+.creative-status { min-height: 1.3em; font-weight: 800; color: var(--ink); }
+.creative-status:empty { display: none; }
+
+[data-game="world"] .creative-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 1fr);
+  align-items: center;
+  padding: clamp(8px, 2vw, 24px);
+  gap: clamp(4px, 1.5vw, 12px);
+  height: clamp(220px, 47vw, 360px);
+  background:
+    radial-gradient(ellipse 60% 33% at 80% 103%, #b2de75 98%, transparent),
+    radial-gradient(ellipse 64% 37% at 26% 102%, #80be64 98%, transparent),
+    radial-gradient(ellipse 60% 40% at 70% 70%, #cde995 98%, transparent),
+    linear-gradient(#d1ecf4 0 41%, #aad982 41% 100%);
+}
+
+[data-game="world"] [data-art="pond"] {
+  background:
+    radial-gradient(ellipse 82% 48% at 65% 75%, #79cddd 98%, transparent),
+    radial-gradient(ellipse 108% 55% at 35% 79%, #9edfea 98%, transparent),
+    linear-gradient(#d1ecf4 0 38%, #acda8e 38% 100%);
+}
+
+[data-game="world"] [data-art="snow"] {
+  background:
+    radial-gradient(ellipse 62% 36% at 80% 100%, #eef9ff 98%, transparent),
+    radial-gradient(ellipse 92% 49% at 25% 94%, #d5eaff 98%, transparent),
+    linear-gradient(#c0d4f4 0 38%, #e6f3fd 38% 100%);
+}
+
+.habitat-cell {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  border: 2px dashed #224c5561;
+  border-radius: 18px;
+  background: #fff8;
+  color: #29525e;
+  display: grid;
+  place-items: center;
+  font: 800 clamp(1.2rem, 3vw, 1.85rem) var(--puzzle-font);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.habitat-cell.filled { border-color: transparent; background: transparent; }
+.habitat-cell img { width: min(100%, 110px); height: auto; }
+
+[data-game="color"] .creative-board {
+  width: min(100%, 530px);
+  aspect-ratio: 1.58;
+  background: radial-gradient(#dde4f4 2px, transparent 2px) 0 0 / 25px 25px, #eef2fc;
+}
+
+.paint-piece {
+  position: absolute;
+  left: var(--left);
+  top: var(--top);
+  width: var(--width);
+  height: var(--height);
+  border: 2px solid #464461;
+  border-radius: var(--radius, 32%);
+  background: var(--fill);
+  box-shadow: inset 0 -4px #4c3b781a;
+  transform: rotate(var(--angle, 0deg));
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+[data-game="color"] [data-art="butterfly"] .paint-piece:nth-child(1) {
+  --left: 18%; --top: 12%; --width: 30%; --height: 43%; --angle: 15deg; --radius: 45% 55% 30% 55%;
+}
+[data-game="color"] [data-art="butterfly"] .paint-piece:nth-child(2) {
+  --left: 52%; --top: 12%; --width: 30%; --height: 43%; --angle: -15deg; --radius: 55% 45% 55% 30%;
+}
+[data-game="color"] [data-art="butterfly"] .paint-piece:nth-child(3) {
+  --left: 25%; --top: 55%; --width: 22%; --height: 30%; --angle: -12deg;
+}
+[data-game="color"] [data-art="butterfly"] .paint-piece:nth-child(4) {
+  --left: 53%; --top: 55%; --width: 22%; --height: 30%; --angle: 12deg;
+}
+[data-game="color"] [data-art="butterfly"] .paint-piece:nth-child(5) {
+  --left: 45%; --top: 29%; --width: 10%; --height: 55%; --radius: 45%;
+}
+
+[data-art="rocket"] .paint-piece:nth-child(1) {
+  --left: 40%; --top: 29%; --width: 20%; --height: 45%; --radius: 10% 10% 29% 29%;
+}
+[data-art="rocket"] .paint-piece:nth-child(2) {
+  --left: 40%; --top: 9%; --width: 20%; --height: 23%; --radius: 85% 85% 10% 10%;
+}
+[data-art="rocket"] .paint-piece:nth-child(3) {
+  --left: 29%; --top: 53%; --width: 12%; --height: 23%; --radius: 90% 12% 15% 8%;
+}
+[data-art="rocket"] .paint-piece:nth-child(4) {
+  --left: 59%; --top: 53%; --width: 12%; --height: 23%; --radius: 12% 90% 8% 15%;
+}
+[data-art="rocket"] .paint-piece:nth-child(5) {
+  --left: 45%; --top: 38%; --width: 10%; --height: 16%; --radius: 50%;
+}
+[data-art="rocket"] .paint-piece:nth-child(6) {
+  --left: 45%; --top: 74%; --width: 10%; --height: 20%; --radius: 10% 10% 80% 80%;
+}
+
+[data-game="color"] [data-art="garden"] {
+  background:
+    linear-gradient(#385f4a, #385f4a) 50% 56% / 3px 40% no-repeat,
+    radial-gradient(#dae3f4 2px, transparent 2px) 0 0 / 25px 25px, #eef6fa;
+}
+[data-game="color"] [data-art="garden"] .paint-piece:nth-child(1) {
+  --left: 24%; --top: 12%; --width: 25%; --height: 35%; --radius: 50%;
+}
+[data-game="color"] [data-art="garden"] .paint-piece:nth-child(2) {
+  --left: 51%; --top: 12%; --width: 25%; --height: 35%; --radius: 50%;
+}
+[data-game="color"] [data-art="garden"] .paint-piece:nth-child(3) {
+  --left: 44%; --top: 29%; --width: 12%; --height: 19%; --radius: 50%;
+}
+[data-game="color"] [data-art="garden"] .paint-piece:nth-child(4) {
+  --left: 31%; --top: 55%; --width: 17%; --height: 13%; --angle: 20deg; --radius: 75% 20%;
+}
+[data-game="color"] [data-art="garden"] .paint-piece:nth-child(5) {
+  --left: 34%; --top: 71%; --width: 32%; --height: 22%; --radius: 14% 14% 38% 38%;
+}
+
+.paint-swatch { background: var(--paint); border-color: #232b4944; }
+.paint-swatch[aria-pressed="true"] { box-shadow: 0 3px var(--deep); }
+
+[data-game="music"] .creative-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(5px, 2vw, 14px);
+  min-height: clamp(130px, 32vw, 237px);
+  padding: clamp(8px, 3vw, 24px);
+  background: #353456;
+}
+
+.music-pad {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: clamp(10px, 3vw, 21px);
+  background: var(--note, #ffb3ba);
+  color: #262343;
+  box-shadow: 0 5px #19162d;
+  font: 850 clamp(.79rem, 2.8vw, 1.1rem) var(--puzzle-font);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.music-pad::before { content: "♪"; font-size: clamp(1.75rem, 7vw, 3.6rem); }
+.music-pad:nth-child(2) { --note: #fbd176; }
+.music-pad:nth-child(3) { --note: #a2e3bb; }
+.music-pad:nth-child(4) { --note: #9fd5f1; }
+.music-pad[aria-disabled="true"] { cursor: default; }
+.music-stars { display: flex; align-items: center; gap: 3px; }
+.music-stars .star { font-size: 1.2rem; }
+
+[data-game="pets"] .creative-board {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 16px;
+  padding: clamp(10px, 3vw, 24px);
+  background:
+    radial-gradient(ellipse 40% 33% at 50% 59%, #c5a0df 98%, transparent),
+    linear-gradient(#f7f0ff 0 54%, #e2c9ee 54% 100%);
+}
+
+.pet-portrait { width: clamp(112px, 27vw, 175px); height: auto; }
+.pet-meters { display: flex; width: 100%; justify-content: center; gap: clamp(7px, 2vw, 17px); }
+.pet-meters label {
+  display: grid;
+  gap: 3px;
+  width: min(100%, 110px);
+  padding: 5px;
+  border-radius: 13px;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 800;
+}
+.pet-meters meter { width: 100%; height: 18px; }
+
+@media (max-width: 440px) {
+  .creative-stage { padding-inline: 8px; }
+  .creative-board { min-height: 195px; border-radius: 20px; }
+  .creative-status { font-size: .9rem; }
+}
