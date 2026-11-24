@@ -290,6 +290,7 @@ window.KidsGame = (function () {
   function setTTSEnabled(on) {
     ttsEnabled = on;
     localStorage.setItem("kidslearn-tts", on ? "on" : "off");
+    if (!on) window.speechSynthesis?.cancel();
   }
 
   // ── Reading word length (3, 4, or 5 letters) ──
@@ -302,6 +303,17 @@ window.KidsGame = (function () {
 
   function setWordLength(length) {
     localStorage.setItem(WORD_LENGTH_KEY, String(length));
+  }
+
+  const LETTER_BLAST_WORD_COUNT_KEY = "kidslearn-letter-blast-word-count";
+
+  function getLetterBlastWordCount() {
+    const count = Number(localStorage.getItem(LETTER_BLAST_WORD_COUNT_KEY));
+    return Number.isInteger(count) && count >= 1 && count <= 6 ? count : 3;
+  }
+
+  function setLetterBlastWordCount(count) {
+    localStorage.setItem(LETTER_BLAST_WORD_COUNT_KEY, String(count));
   }
 
   // ── Drive vehicle (car or bike, used by Word Drive and Arabic Drive) ──
@@ -373,6 +385,7 @@ window.KidsGame = (function () {
       // Short delay after cancel — Android Chrome silently drops
       // utterances if speak() is called immediately after cancel()
       setTimeout(() => {
+        if (!ttsEnabled) return resolve();
         const u = new SpeechSynthesisUtterance(text);
         u.rate = (options && options.rate) || 0.85;
         u.pitch = (options && options.pitch) || 1.1;
@@ -590,6 +603,8 @@ window.KidsGame = (function () {
     setTTSEnabled,
     getWordLength,
     setWordLength,
+    getLetterBlastWordCount,
+    setLetterBlastWordCount,
     getDriveVehicle,
     setDriveVehicle,
     preloadDriveVehicle,

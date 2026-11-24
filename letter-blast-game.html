@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Letter Blast | Kids Learn</title>
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    display: block;
+    min-height: 100svh;
+    margin: 0;
+    padding: 20px 12px;
+    background: #eef5e3;
+    color: #263b35;
+    font-family: system-ui, sans-serif;
+  }
+  main { max-width: 880px; margin: auto; }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  h1 { margin: 0; font-size: clamp(25px, 5vw, 38px); color: #23483a; }
+  nav { display: flex; align-items: center; gap: 6px; }
+  nav a, #voice-toggle {
+    display: grid;
+    place-items: center;
+    min-height: 44px;
+    color: inherit;
+    background: #fffcf1;
+    padding: 0 12px;
+    border: 1px solid #d7dfcb;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 750;
+    font-size: 14px;
+  }
+  #voice-toggle {
+    width: 44px;
+    padding: 0;
+    font-size: 21px;
+    cursor: pointer;
+  }
+  button { font: inherit; touch-action: manipulation; }
+  button:focus-visible, a:focus-visible { outline: 4px solid #263b35; outline-offset: 3px; }
+  #stage {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    --wall-depth: -232px;
+    height: clamp(464px, 75svh, 700px);
+    border: 2px solid #b6cdb8;
+    border-radius: 24px;
+    background: linear-gradient(#82d4fa, #dff9fd 48%, #9fce7b 48%, #c7e495);
+    box-shadow: 0 10px 22px #23483a18;
+  }
+  .cloud, .hills, .camera, #clue, .status, .scene-screen { position: absolute; }
+  .cloud {
+    width: 110px;
+    height: 22px;
+    border-radius: 60px;
+    background: #fff9;
+    top: 23%;
+    left: 8%;
+    box-shadow: 34px -12px 0 -1px #fffc, 15px -19px 0 -2px #fff9;
+  }
+  .cloud-right { top: 31%; left: auto; right: 12%; transform: scale(.75); }
+  .hills {
+    inset: 28% 0 46%;
+    background:
+      radial-gradient(ellipse 38% 68% at 9% 92%, #75bf92 99%, transparent),
+      radial-gradient(ellipse 36% 64% at 92% 98%, #6ab789 99%, transparent),
+      radial-gradient(ellipse 52% 74% at 46% 100%, #8acaa2 99%, transparent);
+  }
+  .camera { inset: 0; perspective: 650px; perspective-origin: 50% 45%; }
+  .world {
+    position: absolute;
+    left: 50%;
+    top: 84%;
+    transform: scale3d(var(--scene-scale, 1), var(--scene-scale, 1), var(--scene-scale, 1));
+  }
+  .world, #walls, .wall-slot, .wall, .car, .chassis, .cab, .motor, .target-row {
+    transform-style: preserve-3d;
+  }
+  .ground {
+    position: absolute;
+    top: -850px;
+    left: -2260px;
+    width: 4520px;
+    height: 6000px;
+    transform-origin: 50% 850px;
+    transform: rotateX(-90deg);
+    background: linear-gradient(90deg,
+      #96c56d 0 43.5%, #6ca85c 43.5% 44%, #e8c48a 44% 44.4%,
+      #545a72 44.4% 55.6%, #e8c48a 55.6% 56%, #6ca85c 56% 56.5%, #96c56d 56.5%);
+  }
+  .lane-marks {
+    position: absolute;
+    inset: 0 auto -590px calc(50% - 4px);
+    width: 8px;
+    background: repeating-linear-gradient(#fbebba 0 46px, transparent 46px 118px);
+  }
+  .ground.rolling .lane-marks { animation: road-roll var(--duration) linear; }
+  @keyframes road-roll { to { transform: translateY(-590px); } }
+
+  .wall-slot {
+    position: absolute;
+    left: -220px;
+    bottom: 0;
+    width: 440px;
+    height: 270px;
+    transform: translateZ(var(--wall-depth));
+  }
+  .wall {
+    position: absolute;
+    inset: 0;
+    transform-origin: bottom center;
+  }
+  .wall-top {
+    position: absolute;
+    width: 100%;
+    height: 26px;
+    top: 0;
+    transform-origin: top;
+    transform: rotateX(-90deg);
+    background: #f6b278;
+  }
+  .bricks {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template: repeat(3, 1fr) / repeat(6, 1fr);
+    gap: 3px;
+  }
+  .brick {
+    border-radius: 4px;
+    box-shadow: inset 0 4px #fff3, inset 0 -5px #a44b3938;
+    background: #d98360;
+  }
+  .brick:nth-child(4n + 2) { background: #e49269; }
+  .brick:nth-child(4n + 3) { background: #c87356; }
+  .target-row {
+    position: absolute;
+    inset: 45px 20px auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    transform: translateZ(5px);
+  }
+  .target {
+    height: 116px;
+    padding: 0;
+    border: 4px solid #a15432;
+    border-radius: 15px;
+    background: #fff5c8;
+    color: #322d39;
+    font-size: 78px;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow: 0 7px #a15432, inset 0 4px #fff;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .target:nth-child(2) { background: #ffe3a2; }
+  .target:nth-child(3) { background: #ffedb3; }
+  .target:disabled { cursor: default; }
+  .target:disabled[hidden] { display: block; visibility: hidden; }
+  @media (hover: hover) {
+    .target:not(:disabled):hover { background: #fffbe8; }
+  }
+  .target.hit { background: #b8ed9e; }
+  .target.miss { background: #ffa893; }
+  .wall.broken { pointer-events: none; }
+
+  .shadow {
+    position: absolute;
+    left: -90px;
+    top: -80px;
+    width: 180px;
+    height: 160px;
+    border-radius: 40%;
+    background: #232b4580;
+    transform: rotateX(-90deg) translateZ(-1px);
+  }
+  .car {
+    position: absolute;
+    width: 150px;
+    height: 126px;
+    left: -75px;
+    bottom: 0;
+    transform-origin: bottom center;
+    rotate: y -12deg;
+    pointer-events: none;
+  }
+  .car.rolling { animation: car-roll var(--duration) ease-in-out; }
+  @keyframes car-roll {
+    20%, 70% { transform: translateY(-2px) translateZ(-35px); }
+    40%, 57% { transform: translateZ(-45px); }
+  }
+  .chassis, .cab, .motor { position: absolute; transform-style: preserve-3d; }
+  .chassis {
+    --width: 150px; --depth: 130px; --height: 42px; --z: 31px;
+    --paint: #f35240; --top: #ff8869; --side: #c93339;
+    width: var(--width);
+    height: var(--height);
+    bottom: 15px;
+  }
+  .cab {
+    --width: 114px; --depth: 67px; --height: 47px; --z: 8px;
+    --paint: #e33f3a; --top: #ff765b; --side: #b72f40;
+    width: var(--width);
+    height: var(--height);
+    bottom: 57px;
+    left: 18px;
+  }
+  .motor {
+    --width: 21px; --depth: 49px; --height: 17px; --z: -27px;
+    --paint: #4a4663; --top: #666782; --side: #3b3954;
+    width: var(--width);
+    height: var(--height);
+    bottom: 109px;
+    left: 32px;
+  }
+  .solid > span {
+    position: absolute;
+    display: block;
+    background: var(--paint);
+  }
+  .solid .back, .solid .front { inset: 0; }
+  .solid .back { transform: translateZ(var(--z)); }
+  .solid .front { transform: translateZ(calc(var(--z) - var(--depth))); }
+  .solid .top {
+    width: 100%;
+    height: var(--depth);
+    background: var(--top);
+    transform-origin: top;
+    transform: translateZ(var(--z)) rotateX(-90deg);
+  }
+  .solid .side {
+    width: var(--depth);
+    height: 100%;
+    transform-origin: left;
+    transform: translateZ(var(--z)) rotateY(90deg);
+    background: var(--side);
+  }
+  .solid .side:last-child { left: 100%; }
+  .chassis .back {
+    border-radius: 0 0 13px 13px;
+    background:
+      linear-gradient(#ffec9d, #ffec9d) 10px 10px / 25px 10px no-repeat,
+      linear-gradient(#ffec9d, #ffec9d) calc(100% - 10px) 10px / 25px 10px no-repeat,
+      linear-gradient(#ffedc2, #ffedc2) center 23px / 35px 10px no-repeat,
+      linear-gradient(#f35240 74%, #9c2c32 74%);
+  }
+  .cab .back, .cab .side {
+    background:
+      linear-gradient(152deg, #d6fbff 15%, #79bbc6 16% 39%, #96d5db 40% 42%, #40697d 43%) center 5px / 82% 64% no-repeat,
+      var(--paint);
+  }
+  .cab .top { background: linear-gradient(90deg, #ff765b 40%, #ffb275 40% 60%, #ff765b 60%); }
+  .motor .front { background: #ffad55; }
+  .motor .top { background: linear-gradient(#666782 70%, #ffad55 70%); }
+  .tire {
+    position: absolute;
+    bottom: 0;
+    width: 38px;
+    height: 39px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #b1c7cf 0 23%, #485166 25% 48%, #2b3043 50%);
+    transform: translateZ(11px) rotateY(68deg);
+    box-shadow: 0 4px 0 #292c3e;
+  }
+  .tire.left { left: -14px; }
+  .tire.right { right: -14px; transform: translateZ(11px) rotateY(-68deg); }
+  .tire.front-left { left: -14px; transform: translateZ(-81px) rotateY(68deg); }
+  .tire.front-right { right: -14px; transform: translateZ(-81px) rotateY(-68deg); }
+  #muzzle { position: absolute; left: 42px; bottom: 118px; transform: translateZ(-76px); }
+  .shot {
+    position: absolute;
+    z-index: 2;
+    height: 5px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #ffbf5a, #fff4a5);
+    box-shadow: 0 0 9px #fff;
+    transform-origin: left center;
+    pointer-events: none;
+  }
+
+  #clue {
+    z-index: 1;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    padding: 8px 13px 10px;
+    background: #fffcf1;
+    border: 1px solid #a7c6ab;
+    border-radius: 18px;
+    box-shadow: 0 4px #255b3d22;
+  }
+  #picture { font-size: 52px; line-height: 1.15; }
+  #stars { color: #855726; font-size: 16px; white-space: nowrap; }
+  #spelling { display: flex; gap: 5px; }
+  .letter {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 30px;
+    border-radius: 6px;
+    border-bottom: 3px solid #b7c8b2;
+    background: #e9efe1;
+    font-weight: 900;
+    font-size: 22px;
+  }
+  .letter.next { border-color: #e38724; }
+  .letter.filled { background: #d8efac; border-color: #8eb859; }
+  .status {
+    z-index: 1;
+    inset: auto 12px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    pointer-events: none;
+  }
+  .status span {
+    min-width: 0;
+    padding: 5px 10px;
+    border-radius: 12px;
+    background: #fffcf1;
+    font-size: 14px;
+    font-weight: 750;
+  }
+  #feedback:empty { visibility: hidden; }
+  .scene-screen {
+    inset: 0;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: #253d4266;
+  }
+  .scene-screen[hidden], #clue[hidden] { display: none; }
+  .screen-card {
+    text-align: center;
+    width: min(100%, 320px);
+    padding: 26px 18px;
+    border: 2px solid #dfce9d;
+    border-radius: 24px;
+    background: #fffcf1;
+    box-shadow: 0 7px #354b4266;
+  }
+  .screen-card h2 { margin: 0; font-size: 28px; }
+  .screen-card p { margin: 8px 0 18px; }
+  .screen-card button {
+    padding: 10px 24px;
+    background: #215f4c;
+    color: white;
+    border: 0;
+    border-radius: 25px;
+    font-weight: 850;
+    font-size: 21px;
+    cursor: pointer;
+  }
+  #final-stars { font-size: 24px; color: #735931; }
+  #reward-overlay, #reward-emoji { z-index: 5; }
+  #reward-emoji { top: 22%; }
+  @media (max-width: 480px) {
+    .world { --scene-scale: .78; }
+    body { padding: 12px 8px; }
+    nav a { padding-inline: 8px; }
+  }
+  @media (min-width: 690px) { .world { --scene-scale: 1.22; } }
+  @media (orientation: landscape) and (max-height: 500px) {
+    body { padding: 8px; }
+    header { margin-bottom: 8px; }
+    #stage { height: calc(100svh - 72px); }
+    .world { --scene-scale: .69; }
+    #clue { left: 10px; transform: none; padding: 6px 8px; }
+    #picture { font-size: 40px; }
+    #spelling { gap: 3px; }
+    .letter { width: 20px; height: 24px; font-size: 16px; }
+    #stars { font-size: 14px; }
+  }
+  @keyframes rewardFade {
+    from, 80% { opacity: 1; transform: translate(-50%, -50%); }
+    to { opacity: 0; transform: translate(-50%, -50%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #reward-emoji.active { animation: rewardFade 2s forwards; }
+    .confetti { display: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Letter Blast</h1>
+    <nav aria-label="Game controls">
+      <a href="index.html">Games</a>
+      <button id="voice-toggle" type="button" aria-label="Word audio" aria-pressed="true">🔊</button>
+    </nav>
+  </header>
+  <section id="stage" aria-label="Letter Blast game">
+    <div class="cloud" aria-hidden="true"></div>
+    <div class="cloud cloud-right" aria-hidden="true"></div>
+    <div class="hills" aria-hidden="true"></div>
+    <div class="camera">
+      <div class="world">
+        <div class="ground" aria-hidden="true"><div class="lane-marks"></div></div>
+        <div id="walls"></div>
+        <div class="shadow" aria-hidden="true"></div>
+        <div class="car" aria-hidden="true">
+          <div class="tire front-left"></div><div class="tire front-right"></div>
+          <div class="tire left"></div><div class="tire right"></div>
+          <div class="chassis solid"><span class="front"></span><span class="top"></span><span class="back"></span><span class="side"></span><span class="side"></span></div>
+          <div class="cab solid"><span class="front"></span><span class="top"></span><span class="back"></span><span class="side"></span><span class="side"></span></div>
+          <div class="motor solid"><span class="front"></span><span class="top"></span><span class="back"></span><span class="side"></span><span class="side"></span></div>
+          <div id="muzzle"></div>
+        </div>
+      </div>
+    </div>
+    <div id="clue" hidden>
+      <div id="picture" role="img" aria-label="Word clue"></div>
+      <div id="spelling" aria-live="polite"></div>
+      <div id="stars" role="img"></div>
+    </div>
+    <div class="status">
+      <span id="progress" hidden></span>
+      <span id="feedback" role="status"></span>
+    </div>
+    <div id="start-screen" class="scene-screen">
+      <div class="screen-card">
+        <h2>Blast the letters!</h2>
+        <p>Look at the clue. Tap the letters in order to spell it.</p>
+        <button id="start-btn" type="button">Play</button>
+      </div>
+    </div>
+    <div id="end-screen" class="scene-screen" style="display: none">
+      <div class="screen-card">
+        <h2 id="end-title"></h2>
+        <div id="final-stars"></div>
+        <p id="end-message"></p>
+        <button id="restart-btn" type="button">Play Again</button>
+      </div>
+    </div>
+    <div id="reward-overlay" aria-hidden="true"></div>
+    <div id="reward-emoji" aria-hidden="true"></div>
+  </section>
+</main>
+<template id="wall-template">
+  <div class="wall-slot">
+    <div class="wall">
+      <div class="wall-top" aria-hidden="true"></div>
+      <div class="bricks" aria-hidden="true"></div>
+      <div class="target-row" role="group" aria-label="Letter targets"></div>
+    </div>
+  </div>
+</template>
+<script src="shared/game.js"></script>
+<script src="shared/data.js"></script>
+<script>
+  const get = id => document.getElementById(id);
+  const stage = get("stage");
+  const walls = get("walls");
+  const car = stage.querySelector(".car");
+  const ground = stage.querySelector(".ground");
+  const clue = get("clue");
+  const picture = get("picture");
+  const voiceToggle = get("voice-toggle");
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  const alphabet = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+  // Choose recognizable picture clues for players who mute the spoken word.
+  const wordPools = [
+    "CAT DOG BUS SUN PIG HAT PEN VAN ANT BEE COW FOX KEY OWL CAR",
+    "FISH DUCK FROG STAR TREE CAKE BOOK LION BEAR KITE CORN SOCK RING CRAB GOAT",
+    "HORSE MOUSE SNAKE SHEEP HOUSE APPLE GRAPE LEMON TRUCK PLANE CROWN PIZZA ROBOT SPOON TRAIN",
+  ].map((list, index) => {
+    const allowed = new Set(list.split(" "));
+    return GameData.getReadingWords(index + 3)
+      .filter(({ word, emoji }) => allowed.has(word) || /^\d+$/.test(emoji));
+  });
+
+  let run, wordIndex, letterIndex, stars, locked;
+  let audio, noise;
+
+  function newRun(count) {
+    const pools = wordPools.map(KidsGame.shuffle);
+    return Array.from({ length: count }, (_, index) => {
+      return pools[Math.min(2, Math.floor(index * 3 / count))].pop();
+    });
+  }
+
+  function renderVoiceToggle() {
+    const enabled = KidsGame.isTTSEnabled();
+    voiceToggle.textContent = enabled ? "🔊" : "🔇";
+    voiceToggle.setAttribute("aria-pressed", String(enabled));
+  }
+
+  function renderStars() {
+    const score = get("stars");
+    KidsGame.renderFinalStars(score, stars, run.length);
+    score.setAttribute("aria-label", `${stars} of ${run.length} stars`);
+  }
+
+  function showClue() {
+    const { word, emoji } = run[wordIndex];
+    picture.textContent = emoji;
+    picture.setAttribute("aria-label", word.toLowerCase());
+    get("progress").textContent = `Word ${wordIndex + 1} of ${run.length}`;
+    renderSpelling();
+    KidsGame.speakWord(word.toLowerCase());
+  }
+
+  function renderSpelling() {
+    const { word } = run[wordIndex];
+    get("spelling").replaceChildren(...[...word].map((letter, index) => {
+      const slot = document.createElement("span");
+      slot.className = "letter";
+      if (index < letterIndex) {
+        slot.textContent = letter;
+        slot.classList.add("filled");
+      } else {
+        slot.setAttribute("aria-label", "blank");
+        if (index === letterIndex) slot.classList.add("next");
+      }
+      return slot;
+    }));
+  }
+
+  function buildWall() {
+    const slot = get("wall-template").content.firstElementChild.cloneNode(true);
+    const wall = slot.firstElementChild;
+    const bricks = Array.from({ length: 18 }, () => {
+      const brick = document.createElement("div");
+      brick.className = "brick";
+      return brick;
+    });
+    wall.querySelector(".bricks").append(...bricks);
+    const correct = run[wordIndex].word[letterIndex];
+    const options = KidsGame.shuffle([correct, ...KidsGame.pickDistractors(alphabet, correct, 2)]);
+    const targets = options.map(letter => {
+      const target = document.createElement("button");
+      target.type = "button";
+      target.className = "target";
+      target.textContent = letter;
+      target.disabled = true;
+      target.addEventListener("click", event => {
+        fire(target, correct, slot, event.detail === 0);
+      });
+      return target;
+    });
+    wall.querySelector(".target-row").append(...targets);
+    walls.appendChild(slot);
+    return slot;
+  }
+
+  function unlock(slot, focus) {
+    const available = [...slot.querySelectorAll(".target:not([hidden])")];
+    available.forEach(target => { target.disabled = false; });
+    locked = false;
+    if (focus) available[0].focus();
+  }
+
+  function animate(element, frames, duration, easing = "ease-in-out") {
+    return element.animate(frames, { duration, easing, fill: "both" });
+  }
+
+  function start() {
+    run = newRun(KidsGame.getLetterBlastWordCount());
+    wordIndex = letterIndex = 0;
+    stars = run.length;
+    get("start-screen").hidden = true;
+    get("end-screen").style.display = "none";
+    get("reward-emoji").classList.remove("active");
+    const confetti = get("reward-overlay");
+    if (confetti.classList.contains("active")) {
+      const cleanOverlay = confetti.cloneNode(false);
+      cleanOverlay.classList.remove("active");
+      confetti.replaceWith(cleanOverlay);
+    }
+    clue.hidden = false;
+    clue.inert = false;
+    get("progress").hidden = false;
+    get("feedback").textContent = "";
+    walls.replaceChildren();
+    renderStars();
+    showClue();
+    unlock(buildWall(), true);
+  }
+
+  function burst(type) {
+    if (!audio) return;
+    if (!noise) {
+      noise = audio.createBuffer(1, audio.sampleRate / 3, audio.sampleRate);
+      const samples = noise.getChannelData(0);
+      for (let i = 0; i < samples.length; i++) samples[i] = Math.random() * 2 - 1;
+    }
+    const sound = audio.createBufferSource();
+    const filter = audio.createBiquadFilter();
+    const gain = audio.createGain();
+    const now = audio.currentTime;
+    const shot = type === "shot";
+    const duration = shot ? .16 : .28;
+    sound.buffer = noise;
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(shot ? 2700 : 430, now);
+    filter.frequency.exponentialRampToValueAtTime(shot ? 340 : 75, now + duration);
+    gain.gain.setValueAtTime(shot ? .34 : .28, now);
+    gain.gain.exponentialRampToValueAtTime(.001, now + duration);
+    sound.connect(filter).connect(gain).connect(audio.destination);
+    sound.start(now);
+    sound.stop(now + duration);
+  }
+
+  function driveSound(duration) {
+    if (!audio) return;
+    const engine = audio.createOscillator();
+    const filter = audio.createBiquadFilter();
+    const gain = audio.createGain();
+    const now = audio.currentTime;
+    const end = now + duration / 1000;
+    engine.type = "sawtooth";
+    engine.frequency.setValueAtTime(52, now);
+    engine.frequency.linearRampToValueAtTime(105, now + duration / 1700);
+    engine.frequency.linearRampToValueAtTime(49, end);
+    filter.frequency.value = 240;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(.18, now + duration / 4500);
+    gain.gain.linearRampToValueAtTime(.001, end);
+    engine.connect(filter).connect(gain).connect(audio.destination);
+    engine.start(now);
+    engine.stop(end);
+  }
+
+  async function showShot(target) {
+    const origin = get("muzzle").getBoundingClientRect();
+    const hit = target.getBoundingClientRect();
+    const bounds = stage.getBoundingClientRect();
+    const dx = hit.left + hit.width / 2 - origin.left;
+    const dy = hit.top + hit.height / 2 - origin.top;
+    const shot = document.createElement("div");
+    shot.className = "shot";
+    shot.setAttribute("aria-hidden", "true");
+    shot.style.left = `${origin.left - bounds.left - stage.clientLeft}px`;
+    shot.style.top = `${origin.top - bounds.top - stage.clientTop}px`;
+    shot.style.width = `${Math.hypot(dx, dy)}px`;
+    const angle = `rotate(${Math.atan2(dy, dx)}rad)`;
+    stage.appendChild(shot);
+    await animate(shot, [
+      { transform: `${angle} scaleX(0)` },
+      { transform: `${angle} scaleX(1)`, offset: .72 },
+      { transform: `${angle} scaleX(1)`, opacity: 0 },
+    ], reducedMotion.matches ? 35 : 140, "ease-out").finished;
+    shot.remove();
+  }
+
+  async function crash(slot, target) {
+    const wall = slot.firstElementChild;
+    const reduced = reducedMotion.matches;
+    const duration = reduced ? 1100 : 2150;
+    const tipped = "rotateX(-87deg)";
+    const flat = "scale3d(1.16, .19, 1.08)";
+    target.classList.add("miss");
+    get("feedback").textContent = "Try again!";
+    const tip = animate(wall, reduced ? [{ transform: tipped }, { transform: tipped }] : [
+      { transform: "rotateX(0deg)", easing: "ease-in" },
+      { transform: tipped, offset: .23 },
+      { transform: tipped, offset: .70, easing: "ease-in-out" },
+      { transform: "rotateX(0deg)" },
+    ], duration, "linear");
+    const squash = animate(car, reduced ? [{ transform: flat }, { transform: flat }] : [
+      { transform: "scaleY(1)" },
+      { transform: "scaleY(1)", offset: .18, easing: "ease-out" },
+      { transform: flat, offset: .25 },
+      { transform: flat, offset: .80, easing: "ease-out" },
+      { transform: "scaleY(1.17)", offset: .94, easing: "ease-in-out" },
+      { transform: "scaleY(1)" },
+    ], duration, "linear");
+    setTimeout(() => burst("thud"), reduced ? 0 : duration * .21);
+    await Promise.all([tip.finished, squash.finished]);
+    tip.cancel();
+    squash.cancel();
+    target.hidden = true;
+  }
+
+  async function breakWall(slot, target) {
+    const wall = slot.firstElementChild;
+    wall.classList.add("broken");
+    target.classList.add("hit");
+    const reduced = reducedMotion.matches;
+    const duration = reduced ? 75 : 420;
+    await Promise.all(wallParts(slot).map((part, index) => {
+      const x = (index % 6 - 2.5) * 35;
+      return animate(part, reduced ? [{ opacity: 1 }, { opacity: 0 }] : [
+        { translate: "0px 0px 0px", rotate: "0deg", opacity: 1 },
+        { translate: `${x * .7}px -25px -35px`, rotate: `${x / 2}deg`, offset: .42 },
+        { translate: `${x * 1.8}px 120px -100px`, rotate: `${x}deg`, opacity: 0 },
+      ], duration, "ease-out").finished;
+    }));
+    slot.remove();
+  }
+
+  function wallParts(slot) {
+    return [...slot.querySelectorAll(".wall-top, .brick, .target:not([hidden])")];
+  }
+
+  async function driveTo(slot) {
+    const reduced = reducedMotion.matches;
+    const duration = reduced ? 180 : 850;
+    // Fading the entire slot flattens its 3-D children until it becomes opaque.
+    const motion = wallParts(slot).map(part =>
+      animate(part, [{ opacity: 0 }, { opacity: 1 }], reduced ? duration : 160, "ease-out")
+    );
+    stage.style.setProperty("--duration", `${duration}ms`);
+    if (!reduced) {
+      car.classList.add("rolling");
+      ground.classList.add("rolling");
+      motion.push(animate(slot, [
+        { transform: "translateZ(-790px)" },
+        { transform: "translateZ(var(--wall-depth))" },
+      ], duration));
+    }
+    driveSound(duration);
+    await Promise.all(motion.map(animation => animation.finished));
+    motion.forEach(animation => animation.cancel());
+    car.classList.remove("rolling");
+    ground.classList.remove("rolling");
+  }
+
+  async function fire(target, correct, slot, focus) {
+    if (locked) return;
+    locked = true;
+    slot.querySelectorAll(".target").forEach(button => { button.disabled = true; });
+    try {
+      audio = KidsGame.getAudioCtx();
+      if (audio.state === "suspended") audio.resume().catch(() => {});
+    } catch {
+      audio = null;
+    }
+    burst("shot");
+    await showShot(target);
+
+    if (target.textContent !== correct) {
+      stars = Math.max(0, stars - 1);
+      renderStars();
+      await crash(slot, target);
+      unlock(slot, focus);
+      return;
+    }
+    get("feedback").textContent = "";
+    letterIndex++;
+    renderSpelling();
+    const complete = letterIndex === run[wordIndex].word.length;
+    await breakWall(slot, target);
+
+    if (complete) {
+      if (wordIndex + 1 === run.length) {
+        finish();
+        return;
+      }
+      get("feedback").textContent = "Word complete!";
+      if (audio) KidsGame.playChime([523, 659, 784]);
+      wordIndex++;
+      letterIndex = 0;
+    }
+    const next = buildWall();
+    await driveTo(next);
+    if (complete) showClue();
+    get("feedback").textContent = "";
+    unlock(next, focus);
+  }
+
+  function finish() {
+    clue.inert = true;
+    KidsGame.showEndScreen({
+      screenEl: get("end-screen"),
+      titleEl: get("end-title"),
+      messageEl: get("end-message"),
+      finalStarsEl: get("final-stars"),
+      earned: stars,
+      total: run.length,
+      messages: () => ({
+        title: "You made it!",
+        message: run.length === 1 ? "You spelled a word!" : `You spelled ${run.length} words!`,
+      }),
+      reward: { enabled: Boolean(audio), rewardEl: get("reward-emoji"), overlayEl: get("reward-overlay") },
+    });
+    get("restart-btn").focus();
+  }
+
+  KidsGame.wireStartRestart("start-btn", "restart-btn", start);
+  renderVoiceToggle();
+  voiceToggle.addEventListener("click", () => {
+    const enabled = !KidsGame.isTTSEnabled();
+    KidsGame.setTTSEnabled(enabled);
+    renderVoiceToggle();
+    if (enabled && !clue.hidden && !clue.inert) {
+      KidsGame.speakWord(picture.getAttribute("aria-label"));
+    }
+  });
+</script>
+</body>
+</html>

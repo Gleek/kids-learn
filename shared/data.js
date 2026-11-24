@@ -6,7 +6,7 @@
 
 window.GameData = (function () {
 
-  // ── CVC Words ──
+  // ── 3-letter reading words ──
   // Distractor emojis are picked at random from the pool at play time
   // (see KidsGame.pickDistractors), not stored per word.
   const CVC_WORDS = [
@@ -94,6 +94,10 @@ window.GameData = (function () {
     { word: "WIN", emoji: "🥇" },
     { word: "ZOO", emoji: "🦒" },
     { word: "ZIP", emoji: "🤐" },
+    { word: "ONE", emoji: "1" },
+    { word: "TWO", emoji: "2" },
+    { word: "SIX", emoji: "6" },
+    { word: "TEN", emoji: "10" },
   ];
 
   // 4-letter words, same shape as CVC_WORDS, for games that read words aloud.
@@ -178,6 +182,9 @@ window.GameData = (function () {
     { word: "SALT", emoji: "🧂" },
     { word: "SINK", emoji: "🚰" },
     { word: "TOWN", emoji: "🏘️" },
+    { word: "FOUR", emoji: "4" },
+    { word: "FIVE", emoji: "5" },
+    { word: "NINE", emoji: "9" },
   ];
 
   // 5-letter words, same shape as CVC_WORDS, for games that read words aloud.
@@ -257,6 +264,9 @@ window.GameData = (function () {
     { word: "GRILL", emoji: "🔥" },
     { word: "LUNCH", emoji: "🥪" },
     { word: "MUSIC", emoji: "🎵" },
+    { word: "THREE", emoji: "3" },
+    { word: "SEVEN", emoji: "7" },
+    { word: "EIGHT", emoji: "8" },
   ];
 
   const WORD_BUILD_WORDS = CVC_WORDS.concat(WORDS_4);

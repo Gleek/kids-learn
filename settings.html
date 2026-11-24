@@ -201,6 +201,21 @@
     </label>
   </section>
 
+  <section class="panel" aria-labelledby="letter-blast-settings-title">
+    <h2 id="letter-blast-settings-title">Letter Blast</h2>
+    <label class="setting-row" for="letter-blast-word-count">
+      <span class="setting-label">Words per run</span>
+      <select id="letter-blast-word-count">
+        <option value="1">1 word</option>
+        <option value="2">2 words</option>
+        <option value="3">3 words</option>
+        <option value="4">4 words</option>
+        <option value="5">5 words</option>
+        <option value="6">6 words</option>
+      </select>
+    </label>
+  </section>
+
   <section class="panel" aria-labelledby="drive-vehicle-settings-title">
     <h2 id="drive-vehicle-settings-title">Drive vehicle</h2>
     <p>Choose which vehicle appears in Word Drive and Arabic Drive.</p>
@@ -321,6 +336,12 @@
   wordLength.value = String(KidsGame.getWordLength());
   wordLength.addEventListener("change", () => {
     KidsGame.setWordLength(Number(wordLength.value));
+  });
+
+  const letterBlastWordCount = document.getElementById("letter-blast-word-count");
+  letterBlastWordCount.value = KidsGame.getLetterBlastWordCount();
+  letterBlastWordCount.addEventListener("change", () => {
+    KidsGame.setLetterBlastWordCount(Number(letterBlastWordCount.value));
   });
 
   const driveVehicle = document.getElementById("drive-vehicle");
